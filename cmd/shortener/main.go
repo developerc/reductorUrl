@@ -24,7 +24,10 @@ func mainPage2(res http.ResponseWriter, req *http.Request) {
 		res.Write([]byte("http://" + beginUrl + "/" + cutUrl))
 		return
 	case http.MethodGet:
-		tmpStr := req.URL.String()[1:]
+		res.Header().Set("Location", "http://"+beginUrl+"/"+strUrl)
+		res.WriteHeader(http.StatusTemporaryRedirect)
+		return
+		/*tmpStr := req.URL.String()[1:]
 		//fmt.Println(tmpStr + "   " + cutUrl)
 		if tmpStr == cutUrl {
 
@@ -37,7 +40,7 @@ func mainPage2(res http.ResponseWriter, req *http.Request) {
 			res.WriteHeader(http.StatusBadRequest)
 			res.Write([]byte("400 StatusBadRequest"))
 			return
-		}
+		}*/
 
 	default:
 		res.WriteHeader(http.StatusBadRequest)

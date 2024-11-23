@@ -4,3 +4,5 @@
 git add .
 git commit -m 'next commit'
 git push
+
+go run cmd/shortener/main.go
