@@ -24,7 +24,7 @@ func mainPage2(res http.ResponseWriter, req *http.Request) {
 		res.Write([]byte("http://" + beginUrl + "/" + cutUrl))
 		return
 	case http.MethodGet:
-		var tmpStr string = req.URL.String()[1:]
+		tmpStr := req.URL.String()[1:]
 		//fmt.Println(tmpStr + "   " + cutUrl)
 		if tmpStr == cutUrl {
 
