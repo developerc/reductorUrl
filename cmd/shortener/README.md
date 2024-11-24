@@ -6,3 +6,8 @@ git commit -m 'next commit8'
 git push
 
 go run cmd/shortener/main.go
+
+curl -X GET -i http://localhost:8080/0
+
+cd cmd/shortener/
+go test -v

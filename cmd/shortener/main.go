@@ -15,7 +15,11 @@ type ShortURLAttr struct {
 
 var shortURLAttr ShortURLAttr
 
-func mainPage2(res http.ResponseWriter, req *http.Request) {
+func HandlerPostGet(res http.ResponseWriter, req *http.Request) {
+	if shortURLAttr.MapURL == nil {
+		shortURLAttr = ShortURLAttr{}
+		shortURLAttr.MapURL = make(map[int]string)
+	}
 
 	switch req.Method {
 	case http.MethodPost:
@@ -51,7 +55,7 @@ func main() {
 	shortURLAttr = ShortURLAttr{}
 	shortURLAttr.MapURL = make(map[int]string)
 	mux := http.NewServeMux()
-	mux.HandleFunc(`/`, mainPage2)
+	mux.HandleFunc(`/`, HandlerPostGet)
 
 	err := http.ListenAndServe(`:8080`, mux)
 	if err != nil {
