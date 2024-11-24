@@ -73,7 +73,7 @@ func TestHandlerPostGet(t *testing.T) {
 				// проверяем код ответа
 				assert.Equal(t, test.want.code, res.StatusCode)
 				// получаем и проверяем тело запроса
-				//defer res.Body.Close()
+				defer res.Body.Close()
 				//resBody, err := io.ReadAll(res.Body)
 				//require.NoError(t, err)
 				assert.Equal(t, test.want.contentType, res.Header.Get("Location"))
@@ -85,6 +85,7 @@ func TestHandlerPostGet(t *testing.T) {
 				res := w.Result()
 				// проверяем код ответа
 				assert.Equal(t, test.want.code, res.StatusCode)
+				defer res.Body.Close()
 			}
 
 		})
