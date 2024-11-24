@@ -7,13 +7,13 @@ import (
 	"strconv"
 )
 
-type ShortUrlAttr struct {
-	BeginUrl string
+type ShortURLAttr struct {
+	BeginURL string
 	Cntr     int
-	MapUrl   map[int]string
+	MapURL   map[int]string
 }
 
-var shortUrlAttr ShortUrlAttr
+var shortURLAttr ShortURLAttr
 
 func mainPage2(res http.ResponseWriter, req *http.Request) {
 
@@ -24,20 +24,20 @@ func mainPage2(res http.ResponseWriter, req *http.Request) {
 			log.Println(err)
 			return
 		}
-		shortUrlAttr.MapUrl[shortUrlAttr.Cntr] = string(body)
-		shortUrlAttr.BeginUrl = req.Host
+		shortURLAttr.MapURL[shortURLAttr.Cntr] = string(body)
+		shortURLAttr.BeginURL = req.Host
 		res.Header().Set("Content-Type", "text/plain")
 		res.WriteHeader(http.StatusCreated)
-		res.Write([]byte("http://" + shortUrlAttr.BeginUrl + "/" + strconv.Itoa(shortUrlAttr.Cntr)))
-		shortUrlAttr.Cntr++
+		res.Write([]byte("http://" + shortURLAttr.BeginURL + "/" + strconv.Itoa(shortURLAttr.Cntr)))
+		shortURLAttr.Cntr++
 		return
 	case http.MethodGet:
 		i, err := strconv.Atoi(req.URL.String()[1:])
 		if err != nil {
 			log.Println(err)
 		}
-		longUrl := shortUrlAttr.MapUrl[i]
-		res.Header().Set("Location", longUrl)
+		longURL := shortURLAttr.MapURL[i]
+		res.Header().Set("Location", longURL)
 		res.WriteHeader(http.StatusTemporaryRedirect)
 		return
 
@@ -48,8 +48,8 @@ func mainPage2(res http.ResponseWriter, req *http.Request) {
 }
 
 func main() {
-	shortUrlAttr = ShortUrlAttr{}
-	shortUrlAttr.MapUrl = make(map[int]string)
+	shortURLAttr = ShortURLAttr{}
+	shortURLAttr.MapURL = make(map[int]string)
 	mux := http.NewServeMux()
 	mux.HandleFunc(`/`, mainPage2)
 
