@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/go-chi/chi/v5"
 )
 
 type ShortURLAttr struct {
@@ -15,50 +17,54 @@ type ShortURLAttr struct {
 
 var shortURLAttr ShortURLAttr
 
-func HandlerPostGet(res http.ResponseWriter, req *http.Request) {
+func PostHandler(res http.ResponseWriter, req *http.Request) {
 	if shortURLAttr.MapURL == nil {
 		shortURLAttr = ShortURLAttr{}
 		shortURLAttr.MapURL = make(map[int]string)
 	}
-
-	switch req.Method {
-	case http.MethodPost:
-		body, err := io.ReadAll(req.Body)
-		if err != nil {
-			log.Println(err)
-			return
-		}
-		shortURLAttr.MapURL[shortURLAttr.Cntr] = string(body)
-		shortURLAttr.BeginURL = req.Host
-		res.Header().Set("Content-Type", "text/plain")
-		res.WriteHeader(http.StatusCreated)
-		res.Write([]byte("http://" + shortURLAttr.BeginURL + "/" + strconv.Itoa(shortURLAttr.Cntr)))
-		shortURLAttr.Cntr++
+	shortURLAttr.Cntr++
+	body, err := io.ReadAll(req.Body)
+	if err != nil {
+		log.Println(err)
 		return
-	case http.MethodGet:
-		i, err := strconv.Atoi(req.URL.String()[1:])
-		if err != nil {
-			log.Println(err)
-		}
-		longURL := shortURLAttr.MapURL[i]
-		res.Header().Set("Location", longURL)
-		res.WriteHeader(http.StatusTemporaryRedirect)
-		return
-
-	default:
-		res.WriteHeader(http.StatusBadRequest)
-		res.Write([]byte("400 StatusBadRequest"))
 	}
+	shortURLAttr.MapURL[shortURLAttr.Cntr] = string(body)
+	shortURLAttr.BeginURL = req.Host
+	res.Header().Set("Content-Type", "text/plain")
+	res.WriteHeader(http.StatusCreated)
+	res.Write([]byte("http://" + shortURLAttr.BeginURL + "/" + strconv.Itoa(shortURLAttr.Cntr)))
+}
+
+func GetHandler(res http.ResponseWriter, req *http.Request) {
+	if shortURLAttr.MapURL == nil {
+		shortURLAttr = ShortURLAttr{}
+		shortURLAttr.MapURL = make(map[int]string)
+	}
+	i, err := strconv.Atoi(chi.URLParam(req, "id"))
+	if err != nil {
+		log.Println(err)
+	}
+	longURL := shortURLAttr.MapURL[i]
+	res.Header().Set("Location", longURL)
+	res.WriteHeader(http.StatusTemporaryRedirect)
+}
+
+func BadHandler(res http.ResponseWriter, req *http.Request) {
+	res.WriteHeader(http.StatusBadRequest)
+	res.Write([]byte("400 StatusBadRequest"))
 }
 
 func main() {
-	shortURLAttr = ShortURLAttr{}
-	shortURLAttr.MapURL = make(map[int]string)
-	mux := http.NewServeMux()
-	mux.HandleFunc(`/`, HandlerPostGet)
+	r := chi.NewRouter()
+	r.Post("/*", PostHandler)
+	r.Get("/{id}", GetHandler)
+	r.Put("/*", BadHandler)
+	r.Delete("/*", BadHandler)
+	r.Options("/*", BadHandler)
+	r.Head("/*", BadHandler)
+	r.Trace("/*", BadHandler)
+	r.Connect("/*", BadHandler)
+	r.Patch("/*", BadHandler)
 
-	err := http.ListenAndServe(`:8080`, mux)
-	if err != nil {
-		panic(err)
-	}
+	log.Fatal(http.ListenAndServe(":8080", r))
 }

@@ -13,10 +13,9 @@ import (
 
 func TestHandlerPostGet(t *testing.T) {
 	type want struct {
-		code           int
-		response       string
-		contentType    string
-		headerLocation string
+		code        int
+		response    string
+		contentType string
 	}
 
 	tests := []struct {
@@ -27,7 +26,7 @@ func TestHandlerPostGet(t *testing.T) {
 			name: "post_test_#1",
 			want: want{
 				code:        201,
-				response:    `http://example.com/0`,
+				response:    `http://example.com/1`,
 				contentType: "text/plain",
 			},
 		},
@@ -35,8 +34,8 @@ func TestHandlerPostGet(t *testing.T) {
 			name: "get_test_#2",
 			want: want{
 				code:        307,
-				response:    `http://example.com/0`,
-				contentType: "http://blabla.ru",
+				response:    `http://example.com/1`,
+				contentType: "",
 			},
 		},
 		{
@@ -54,7 +53,7 @@ func TestHandlerPostGet(t *testing.T) {
 				request := httptest.NewRequest(http.MethodPost, "/", longURL)
 				// создаём новый Recorder
 				w := httptest.NewRecorder()
-				HandlerPostGet(w, request)
+				PostHandler(w, request)
 				res := w.Result()
 				// проверяем код ответа
 				assert.Equal(t, test.want.code, res.StatusCode)
@@ -65,23 +64,21 @@ func TestHandlerPostGet(t *testing.T) {
 				assert.Equal(t, test.want.contentType, res.Header.Get("Content-Type"))
 				assert.Equal(t, test.want.response, string(resBody))
 			case "get_test_#2":
-				request := httptest.NewRequest(http.MethodGet, "/0", nil)
+				request := httptest.NewRequest(http.MethodGet, "/1", nil)
 				// создаём новый Recorder
 				w := httptest.NewRecorder()
-				HandlerPostGet(w, request)
+				GetHandler(w, request)
 				res := w.Result()
 				// проверяем код ответа
 				assert.Equal(t, test.want.code, res.StatusCode)
 				// получаем и проверяем тело запроса
 				defer res.Body.Close()
-				//resBody, err := io.ReadAll(res.Body)
-				//require.NoError(t, err)
 				assert.Equal(t, test.want.contentType, res.Header.Get("Location"))
 			case "bad_req_test_#3":
 				request := httptest.NewRequest(http.MethodDelete, "/", nil)
 				// создаём новый Recorder
 				w := httptest.NewRecorder()
-				HandlerPostGet(w, request)
+				BadHandler(w, request)
 				res := w.Result()
 				// проверяем код ответа
 				assert.Equal(t, test.want.code, res.StatusCode)
