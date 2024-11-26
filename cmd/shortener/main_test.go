@@ -26,7 +26,7 @@ func TestHandlerPostGet(t *testing.T) {
 			name: "post_test_#1",
 			want: want{
 				code:        201,
-				response:    `http://example.com/1`,
+				response:    `/1`,
 				contentType: "text/plain",
 			},
 		},
