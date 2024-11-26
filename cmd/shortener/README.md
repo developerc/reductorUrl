@@ -2,12 +2,12 @@
 
 В данной директории будет содержаться код, который скомпилируется в бинарное приложение
 git add .
-git commit -m 'next commit13'
+git commit -m 'next commit16'
 git push
 
 go run cmd/shortener/main.go
 
-curl -X GET -i http://localhost:8080/0
+curl -X GET -i http://localhost:8080/1
 
 cd cmd/shortener/
 go test -v
