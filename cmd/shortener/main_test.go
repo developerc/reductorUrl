@@ -7,11 +7,67 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/developerc/reductorUrl/internal/app"
+	"github.com/developerc/reductorUrl/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestHandlerPostGet(t *testing.T) {
+//var settings *config.ServerSettings
+//var shortURLAttr *app.ShortURLAttr
+
+func TestPostHandler(t *testing.T) {
+	//t.Error("this is error!")
+	settings := config.NewServerSettings()
+	shortURLAttr := app.NewShortURLAttr(*settings)
+
+	t.Run("#1_PostTest", func(t *testing.T) {
+		longURL := strings.NewReader("http://blabla.ru")
+		request := httptest.NewRequest(http.MethodPost, "/", longURL)
+		w := httptest.NewRecorder()
+		h := http.HandlerFunc(app.PostHandler(*shortURLAttr))
+		h(w, request)
+
+		result := w.Result()
+
+		assert.Equal(t, 201, result.StatusCode)
+		defer result.Body.Close()
+		resBody, err := io.ReadAll(result.Body)
+		require.NoError(t, err)
+		assert.Equal(t, "text/plain", result.Header.Get("Content-Type"))
+		assert.Equal(t, `http://localhost:8080/1`, string(resBody))
+	})
+
+	t.Run("#2_BadTest", func(t *testing.T) {
+		request := httptest.NewRequest(http.MethodDelete, "/", nil)
+		w := httptest.NewRecorder()
+		app.BadHandler(w, request)
+
+		result := w.Result()
+
+		assert.Equal(t, 400, result.StatusCode)
+		defer result.Body.Close()
+		//assert.Equal(t, "", result.Header.Get("Location"))
+	})
+}
+
+/*func TestGetHandler(t *testing.T) {
+
+	//settings := config.GetSrvSetGlob()
+	shortURLAttr := app.GetShortURLAttr()
+	request := httptest.NewRequest(http.MethodGet, "http://localhost:8080/1", nil)
+	w := httptest.NewRecorder()
+	h := http.HandlerFunc(app.GetHandler(*shortURLAttr))
+	h(w, request)
+
+	result := w.Result()
+
+	assert.Equal(t, 307, result.StatusCode)
+	defer result.Body.Close()
+	assert.Equal(t, "", result.Header.Get("Location"))
+}*/
+
+/*func TestHandlerPostGet(t *testing.T) {
 	type want struct {
 		code        int
 		response    string
@@ -87,4 +143,4 @@ func TestHandlerPostGet(t *testing.T) {
 
 		})
 	}
-}
+}*/

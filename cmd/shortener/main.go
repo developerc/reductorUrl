@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/developerc/reductorUrl/config"
+	"github.com/developerc/reductorUrl/internal/app"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -63,7 +64,8 @@ func BadHandler(res http.ResponseWriter, req *http.Request) {
 }
 
 func main() {
-	config.InitSettings()
+	app.Run()
+	/*config.InitSettings()
 	r := chi.NewRouter()
 	r.Post("/*", PostHandler)
 	r.Get("/{id}", GetHandler)
@@ -76,5 +78,5 @@ func main() {
 	r.Patch("/*", BadHandler)
 
 	//log.Fatal(http.ListenAndServe(":8080", r))
-	log.Fatal(http.ListenAndServe(config.ServerSettings.AdresRun, r))
+	log.Fatal(http.ListenAndServe(config.ServerSettings.AdresRun, r))*/
 }
