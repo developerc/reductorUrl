@@ -1,9 +1,13 @@
 package main
 
 import (
-	"github.com/developerc/reductorUrl/internal/app"
+	"log"
+
+	"github.com/developerc/reductorUrl/internal/server"
 )
 
 func main() {
-	app.Run()
+	if err := server.Run(); err != nil {
+		log.Fatal(err)
+	}
 }
