@@ -52,6 +52,10 @@ func (s Service) GetAdresRun() string {
 	return s.repo.(*ShortURLAttr).Settings.AdresRun
 }
 
+func (s Service) GetLogLevel() string {
+	return s.repo.(*ShortURLAttr).Settings.LogLevel
+}
+
 func NewInMemoryService() Service {
 	var shu ShortURLAttr = ShortURLAttr{}
 	shu.Settings = *config.NewServerSettings()
