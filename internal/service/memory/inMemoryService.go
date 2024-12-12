@@ -36,6 +36,7 @@ func (s Service) AddLink(link string) (string, error) {
 }
 
 func (s Service) GetLongLink(id string) (string, error) {
+	//log.Println("map: ", s.repo.(*ShortURLAttr))
 	i, err := strconv.Atoi(id)
 	if err != nil {
 		log.Println(err)

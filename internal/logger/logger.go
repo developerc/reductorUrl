@@ -1,7 +1,7 @@
 package logger
 
 import (
-	"net/http"
+	//"net/http"
 
 	"go.uber.org/zap"
 )
@@ -19,7 +19,8 @@ func Initialize(level string) error {
 		return err
 	}
 	// создаём новую конфигурацию логера
-	cfg := zap.NewProductionConfig()
+	//cfg := zap.NewProductionConfig()
+	cfg := zap.NewDevelopmentConfig()
 	// устанавливаем уровень
 	cfg.Level = lvl
 	// создаём логер на основе конфигурации
@@ -27,13 +28,14 @@ func Initialize(level string) error {
 	if err != nil {
 		return err
 	}
+	defer zl.Sync()
 	// устанавливаем синглтон
 	Log = zl
 	return nil
 }
 
 // RequestLogger — middleware-логер для входящих HTTP-запросов.
-func RequestLogger(h http.HandlerFunc) http.Handler {
+/*func RequestLogger(h http.HandlerFunc) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		Log.Debug("got incoming HTTP request",
 			zap.String("method", r.Method),
@@ -41,4 +43,4 @@ func RequestLogger(h http.HandlerFunc) http.Handler {
 		)
 		h(w, r)
 	})
-}
+}*/
