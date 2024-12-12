@@ -58,7 +58,7 @@ func (s Service) GetLogLevel() string {
 }
 
 func NewInMemoryService() Service {
-	var shu ShortURLAttr = ShortURLAttr{}
+	shu := ShortURLAttr{}
 	shu.Settings = *config.NewServerSettings()
 	shu.MapURL = make(map[int]string)
 	return Service{repo: &shu}
