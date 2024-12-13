@@ -51,7 +51,7 @@ func (s *Server) addLinkJSON(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	longURL, err := api.HandleApiShorten(buf)
+	longURL, err := api.HandleAPIShorten(buf)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

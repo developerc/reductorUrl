@@ -16,7 +16,7 @@ type ShortURL struct {
 	Result string `json:"result"`
 }
 
-func HandleApiShorten(buf bytes.Buffer) (string, error) {
+func HandleAPIShorten(buf bytes.Buffer) (string, error) {
 	var longURL LongURL
 	// десериализуем
 	if err := json.Unmarshal(buf.Bytes(), &longURL); err != nil {
