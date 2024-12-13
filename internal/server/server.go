@@ -1,11 +1,12 @@
 package server
 
 import (
+	"bytes"
 	"io"
 	"log"
 	"net/http"
 
-	//"github.com/go-chi/chi/middleware"
+	"github.com/developerc/reductorUrl/internal/api"
 	"github.com/developerc/reductorUrl/internal/middleware"
 	"github.com/go-chi/chi/v5"
 )
@@ -21,22 +22,6 @@ type Server struct {
 func NewServer(service svc) Server {
 	return Server{service: service}
 }
-
-// хандлер для addLink
-/*func middleware(next http.Handler) http.Handler {
-	start := time.Now()
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		uri := r.RequestURI
-		method := r.Method
-		duration := time.Since(start)
-		logger.Log.Sugar().Infoln(
-			"uri", uri,
-			"method", method,
-			"duration", duration,
-		)
-		next.ServeHTTP(w, r)
-	})
-}*/
 
 func (s *Server) addLink(w http.ResponseWriter, r *http.Request) {
 	var shortURL string
@@ -55,6 +40,36 @@ func (s *Server) addLink(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(shortURL))
 }
 
+func (s *Server) addLinkJSON(w http.ResponseWriter, r *http.Request) {
+	//fmt.Println("hello from addLinkJson")
+	var buf bytes.Buffer
+	var shortURL string
+	var jsonBytes []byte
+	// читаем тело запроса
+	_, err := buf.ReadFrom(r.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	longURL, err := api.HandleApiShorten(buf)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if shortURL, err = s.service.AddLink(string(longURL)); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if jsonBytes, err = api.ShortToJSON(shortURL); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	w.Write(jsonBytes)
+}
+
 func (s *Server) GetLongLink(w http.ResponseWriter, r *http.Request) {
 	log.Println("id: ", chi.URLParam(r, "id"))
 	id := chi.URLParam(r, "id")
@@ -68,50 +83,12 @@ func (s *Server) GetLongLink(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusTemporaryRedirect)
 }
 
-/*func (s *Server) WithLogging(h http.Handler) http.Handler {
-	logFn := func(w http.ResponseWriter, r *http.Request) {
-		uri := r.RequestURI
-		method := r.Method
-
-		// точка, где выполняется хендлер pingHandler
-		h.ServeHTTP(w, r) // обслуживание оригинального запроса
-
-		logger.Log.Sugar().Infoln(
-			"uri", uri,
-			"method", method,
-		)
-	}
-	return http.HandlerFunc(logFn)
-}*/
-
-/*func (s *Server) myHandler() http.Handler {
-
-	return http.HandlerFunc(s.addLink)
-}
-
-func rootHandle(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Привет"))
-}
-
-func (s *Server) ServeHTTP(res http.ResponseWriter, req *http.Request) {
-	data := []byte("Привет!")
-	res.Write(data)
-}*/
-
 func (s *Server) SetupRoutes() http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.Middleware)
-	r.Post("/*", s.addLink)
+	r.Post("/", s.addLink)
+	r.Post("/api/shorten", s.addLinkJSON)
 	r.Get("/{id}", s.GetLongLink)
 	return r
-	/*r.Post("/*", s.addLink)
-	r.Get("/{id}", s.GetLongLink)*/
-
-	/*r.Use(middleware.New(s.WithLogging(func ((w http.ResponseWriter, r *http.Request))  {
-
-	})))*/
-	/*r.Use(middleware.RequestID)
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)*/
 
 }
