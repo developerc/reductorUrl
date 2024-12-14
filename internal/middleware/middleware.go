@@ -62,3 +62,10 @@ func Middleware(h http.Handler) http.Handler {
 
 	})
 }
+
+/*func GzipHandle(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("hello from Compress")
+		h.ServeHTTP(w, r)
+	})
+}*/

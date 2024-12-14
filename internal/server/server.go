@@ -86,9 +86,9 @@ func (s *Server) GetLongLink(w http.ResponseWriter, r *http.Request) {
 func (s *Server) SetupRoutes() http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.Middleware)
+	r.Use(middleware.GzipHandle)
 	r.Post("/", s.addLink)
 	r.Post("/api/shorten", s.addLinkJSON)
 	r.Get("/{id}", s.GetLongLink)
 	return r
-
 }
