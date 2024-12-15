@@ -7,9 +7,9 @@ import (
 )
 
 type Event struct {
-	UUID         uint   `json:"uuid"`
-	Short_url    string `json:"short_url"`
-	Original_url string `json:"original_url"`
+	UUID        uint   `json:"uuid"`
+	ShortURL    string `json:"short_url"`
+	OriginalURL string `json:"original_url"`
 }
 
 type Producer struct {
@@ -128,7 +128,7 @@ func NewConsumer(filename string) error /*(*Consumer, error)*/ {
 }*/
 
 func (c *Consumer) GetEvents() ([]Event, error) {
-	var events []Event = make([]Event, 0)
+	events := make([]Event, 0)
 	c.scanner.Split(bufio.ScanLines)
 	for c.scanner.Scan() {
 		data := c.scanner.Bytes()

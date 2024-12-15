@@ -71,7 +71,7 @@ func NewInMemoryService() Service {
 		fmt.Println("error!")
 	}
 	for _, event := range events {
-		shu.MapURL[int(event.UUID)] = event.Original_url
+		shu.MapURL[int(event.UUID)] = event.OriginalURL
 	}
 	shu.Cntr = len(events)
 
@@ -85,7 +85,7 @@ func (shu *ShortURLAttr) AddLink(link string) (string, error) {
 }
 
 func addToFileStorage(cntr int, link string) error {
-	event := filestorage.Event{UUID: uint(cntr), Short_url: strconv.Itoa(cntr), Original_url: link}
+	event := filestorage.Event{UUID: uint(cntr), ShortURL: strconv.Itoa(cntr), OriginalURL: link}
 	if err := filestorage.GetProducer().WriteEvent(&event); err != nil {
 		return err
 	}
