@@ -7,9 +7,10 @@ import (
 )
 
 type ServerSettings struct {
-	AdresRun  string
-	AdresBase string
-	LogLevel  string
+	AdresRun    string
+	AdresBase   string
+	LogLevel    string
+	FileStorage string
 }
 
 var srvSetGlob ServerSettings
@@ -23,6 +24,7 @@ func NewServerSettings() *ServerSettings {
 	ar := flag.String("a", "localhost:8080", "address running server")
 	ab := flag.String("b", "http://localhost:8080", "base address shortener URL")
 	logLevel := flag.String("l", "info", "log level")
+	fileStorage := flag.String("f", "file_storage.txt", "file for storage data")
 	flag.Parse()
 
 	val, ok := os.LookupEnv("SERVER_ADDRESS")
@@ -50,6 +52,15 @@ func NewServerSettings() *ServerSettings {
 	} else {
 		srvSetGlob.LogLevel = val
 		fmt.Println("LogLevel from env: ", srvSetGlob.LogLevel)
+	}
+
+	val, ok = os.LookupEnv("FILE_STORAGE_PATH")
+	if !ok || val == "" {
+		srvSetGlob.FileStorage = *fileStorage
+		fmt.Println("FileStorage from flag: ", srvSetGlob.FileStorage)
+	} else {
+		srvSetGlob.FileStorage = val
+		fmt.Println("FileStorage from env: ", srvSetGlob.FileStorage)
 	}
 
 	return &srvSetGlob

@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/developerc/reductorUrl/internal/config"
+	"github.com/developerc/reductorUrl/internal/service/filestorage"
 )
 
 type repository interface {
@@ -30,7 +31,9 @@ type ShortURLAttr struct {
 func (s Service) AddLink(link string) (string, error) {
 	//fmt.Println("from service")
 	s.repo.(*ShortURLAttr).Cntr++
-	//s.repo.Cntr++
+	if err := addToFileStorage(s.repo.(*ShortURLAttr).Cntr, link); err != nil {
+		return "", err
+	}
 	s.repo.(*ShortURLAttr).MapURL[s.repo.(*ShortURLAttr).Cntr] = link
 	return s.repo.(*ShortURLAttr).Settings.AdresBase + "/" + strconv.Itoa(s.repo.(*ShortURLAttr).Cntr), nil
 }
@@ -61,17 +64,30 @@ func NewInMemoryService() Service {
 	shu := ShortURLAttr{}
 	shu.Settings = *config.NewServerSettings()
 	shu.MapURL = make(map[int]string)
+	//заполняем map значениями из файла file_storage.txt
+	filestorage.NewConsumer(shu.Settings.FileStorage)
+	events, err := filestorage.GetConsumer().GetEvents()
+	if err != nil {
+		fmt.Println("error!")
+	}
+	for _, event := range events {
+		shu.MapURL[int(event.Uuid)] = event.Original_url
+	}
+	shu.Cntr = len(events)
+
+	filestorage.NewProducer(shu.Settings.FileStorage)
 	return Service{repo: &shu}
 }
 
 func (shu *ShortURLAttr) AddLink(link string) (string, error) {
 	fmt.Println("from shu")
 	return "proba", nil
-	/*shu.Cntr++
-	shu.MapURL[shu.Cntr] = link
-	return shu.Settings.AdresBase + "/" + strconv.Itoa(shu.Cntr), nil*/
 }
 
-/*func (shu *ShortURLAttr) GetLink(cntr int) (string, error) {
-	return shu.MapURL[cntr], nil
-}*/
+func addToFileStorage(cntr int, link string) error {
+	event := filestorage.Event{Uuid: uint(cntr), Short_url: strconv.Itoa(cntr), Original_url: link}
+	if err := filestorage.GetProducer().WriteEvent(&event); err != nil {
+		return err
+	}
+	return nil
+}

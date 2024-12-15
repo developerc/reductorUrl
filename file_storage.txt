@@ -1,0 +1,7 @@
+{"uuid":1,"short_url":"1","original_url":"http://blabla1.ru"}
+{"uuid":2,"short_url":"2","original_url":"http://blabla2.ru"}
+{"uuid":3,"short_url":"3","original_url":"http://blabla3.ru"}
+{"uuid":4,"short_url":"4","original_url":"http://blabla4.ru"}
+{"uuid":5,"short_url":"5","original_url":"http://blabla5.ru"}
+{"uuid":6,"short_url":"6","original_url":"http://blabla6.ru"}
+{"uuid":7,"short_url":"7","original_url":"http://blabla7.ru"}
