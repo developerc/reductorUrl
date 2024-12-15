@@ -7,7 +7,7 @@ import (
 )
 
 type Event struct {
-	Uuid         uint   `json:"uuid"`
+	UUID         uint   `json:"uuid"`
 	Short_url    string `json:"short_url"`
 	Original_url string `json:"original_url"`
 }
