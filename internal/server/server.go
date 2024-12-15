@@ -37,15 +37,16 @@ func (s *Server) addLink(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(shortURL))
+	if _, err := w.Write([]byte(shortURL)); err != nil {
+		return
+	}
 }
 
 func (s *Server) addLinkJSON(w http.ResponseWriter, r *http.Request) {
-	//fmt.Println("hello from addLinkJson")
 	var buf bytes.Buffer
 	var shortURL string
 	var jsonBytes []byte
-	// читаем тело запроса
+
 	_, err := buf.ReadFrom(r.Body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -56,7 +57,7 @@ func (s *Server) addLinkJSON(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	if shortURL, err = s.service.AddLink(string(longURL)); err != nil {
+	if shortURL, err = s.service.AddLink(longURL); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -67,14 +68,16 @@ func (s *Server) addLinkJSON(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	w.Write(jsonBytes)
+	if _, err := w.Write(jsonBytes); err != nil {
+		return
+	}
 }
 
 func (s *Server) GetLongLink(w http.ResponseWriter, r *http.Request) {
 	log.Println("id: ", chi.URLParam(r, "id"))
 	id := chi.URLParam(r, "id")
 	longURL, err := GetService().GetLongLink(id)
-	//log.Println("longURL", longURL)
+
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

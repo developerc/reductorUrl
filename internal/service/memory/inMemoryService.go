@@ -1,24 +1,22 @@
 package memory
 
 import (
-	//"reductorUrl/internal/service"
 	"errors"
-	"fmt"
-	"log"
+
 	"strconv"
 
 	"github.com/developerc/reductorUrl/internal/config"
+	"github.com/developerc/reductorUrl/internal/logger"
 	"github.com/developerc/reductorUrl/internal/service/filestorage"
+	"go.uber.org/zap"
 )
 
 type repository interface {
 	AddLink(link string) (string, error)
-	//GetLongLink(id string) (string, error)
 }
 
 type Service struct {
 	repo repository
-	//shu  *ShortURLAttr
 }
 
 type ShortURLAttr struct {
@@ -27,9 +25,7 @@ type ShortURLAttr struct {
 	MapURL   map[int]string
 }
 
-// AddLink implements server.svc.
 func (s Service) AddLink(link string) (string, error) {
-	//fmt.Println("from service")
 	s.repo.(*ShortURLAttr).Cntr++
 	if err := addToFileStorage(s.repo.(*ShortURLAttr).Cntr, link); err != nil {
 		return "", err
@@ -39,10 +35,9 @@ func (s Service) AddLink(link string) (string, error) {
 }
 
 func (s Service) GetLongLink(id string) (string, error) {
-	//log.Println("map: ", s.repo.(*ShortURLAttr))
 	i, err := strconv.Atoi(id)
 	if err != nil {
-		log.Println(err)
+		logger.Log.Info("GetLongLink", zap.String("Atoi", "error"))
 		return "", err
 	}
 	longURL, ok := s.repo.(*ShortURLAttr).MapURL[i]
@@ -64,23 +59,26 @@ func NewInMemoryService() Service {
 	shu := ShortURLAttr{}
 	shu.Settings = *config.NewServerSettings()
 	shu.MapURL = make(map[int]string)
-	//заполняем map значениями из файла file_storage.txt
-	filestorage.NewConsumer(shu.Settings.FileStorage)
+
+	if err := filestorage.NewConsumer(shu.Settings.FileStorage); err != nil {
+		logger.Log.Info("NewInMemoryService", zap.String("GetEvents", err.Error()))
+	}
 	events, err := filestorage.GetConsumer().GetEvents()
 	if err != nil {
-		fmt.Println("error!")
+		logger.Log.Info("NewInMemoryService", zap.String("GetEvents", err.Error()))
 	}
 	for _, event := range events {
 		shu.MapURL[int(event.UUID)] = event.OriginalURL
 	}
 	shu.Cntr = len(events)
 
-	filestorage.NewProducer(shu.Settings.FileStorage)
+	if err := filestorage.NewProducer(shu.Settings.FileStorage); err != nil {
+		logger.Log.Info("NewInMemoryService", zap.String("GetEvents", err.Error()))
+	}
 	return Service{repo: &shu}
 }
 
 func (shu *ShortURLAttr) AddLink(link string) (string, error) {
-	fmt.Println("from shu")
 	return "proba", nil
 }
 
