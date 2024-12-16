@@ -1,6 +1,8 @@
 package logger
 
 import (
+	"log"
+
 	"go.uber.org/zap"
 )
 
@@ -18,7 +20,9 @@ func Initialize(level string) error {
 	if err != nil {
 		return err
 	}
-	defer zl.Sync()
+	if err := zl.Sync(); err != nil {
+		log.Println(err)
+	}
 	Log = zl
 	return nil
 }

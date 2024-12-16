@@ -2,7 +2,7 @@ package memory
 
 import (
 	"errors"
-
+	"math"
 	"strconv"
 
 	"github.com/developerc/reductorUrl/internal/config"
@@ -68,6 +68,10 @@ func NewInMemoryService() Service {
 		logger.Log.Info("NewInMemoryService", zap.String("GetEvents", err.Error()))
 	}
 	for _, event := range events {
+		if event.UUID > math.MaxInt32 {
+			event.UUID = math.MaxInt32
+			logger.Log.Info("NewInMemoryService", zap.String("GetEvents", "too big event.UUID"))
+		}
 		shu.MapURL[int(event.UUID)] = event.OriginalURL
 	}
 	shu.Cntr = len(events)
@@ -83,6 +87,9 @@ func (shu *ShortURLAttr) AddLink(link string) (string, error) {
 }
 
 func addToFileStorage(cntr int, link string) error {
+	if cntr < 0 {
+		return errors.New("not valid counter")
+	}
 	event := filestorage.Event{UUID: uint(cntr), ShortURL: strconv.Itoa(cntr), OriginalURL: link}
 	if err := filestorage.GetProducer().WriteEvent(&event); err != nil {
 		return err
