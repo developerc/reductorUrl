@@ -1,5 +1,6 @@
 package server
 
+/*
 import (
 	"net/http/httptest"
 
@@ -20,4 +21,4 @@ func NewTestHelper() TestHelper {
 		svc: &s,
 		srv: tsrv,
 	}
-}
+}*/
