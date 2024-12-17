@@ -23,7 +23,7 @@ func Run() error {
 	server = NewServer(service)
 
 	routes := server.SetupRoutes()
-	err := http.ListenAndServe(service.GetAdresRun(), routes)
+	err := http.ListenAndServe(service.GetAdresRun(), routes) //nolint:gosec // unnessesary error checking
 	return err
 }
 

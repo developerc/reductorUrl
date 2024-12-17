@@ -5,10 +5,12 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/developerc/reductorUrl/internal/api"
 	"github.com/developerc/reductorUrl/internal/middleware"
 	"github.com/go-chi/chi/v5"
+	m "github.com/go-chi/chi/v5/middleware"
 )
 
 type svc interface {
@@ -90,6 +92,7 @@ func (s *Server) SetupRoutes() http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.Middleware)
 	r.Use(middleware.GzipHandle)
+	r.Use(m.Timeout(3 * time.Second))
 	r.Post("/", s.addLink)
 	r.Post("/api/shorten", s.addLinkJSON)
 	r.Get("/{id}", s.GetLongLink)
