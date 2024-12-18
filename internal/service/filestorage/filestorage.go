@@ -3,6 +3,7 @@ package filestorage
 import (
 	"bufio"
 	"encoding/json"
+	"io/fs"
 	"os"
 )
 
@@ -34,7 +35,8 @@ func GetConsumer() *Consumer {
 }
 
 func NewProducer(filename string) error {
-	file, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
+	const filePermission fs.FileMode = 0666
+	file, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_APPEND, filePermission)
 	if err != nil {
 		return err
 	}
@@ -64,7 +66,8 @@ func (p *Producer) WriteEvent(event *Event) error {
 }
 
 func NewConsumer(filename string) error {
-	file, err := os.OpenFile(filename, os.O_RDONLY|os.O_CREATE, 0666)
+	const filePermission fs.FileMode = 0666
+	file, err := os.OpenFile(filename, os.O_RDONLY|os.O_CREATE, filePermission)
 	if err != nil {
 		return err
 	}
