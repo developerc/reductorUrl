@@ -19,7 +19,7 @@ type ShortURL struct {
 func HandleAPIShorten(buf bytes.Buffer) (string, error) {
 	var longURL LongURL
 	if err := json.Unmarshal(buf.Bytes(), &longURL); err != nil {
-		logger.Log.Info("HandleApiShorten", zap.String("error", "demarshalling"))
+		logger.GetLog().Info("HandleApiShorten", zap.String("error", "demarshalling"))
 		return "", err
 	}
 
@@ -30,7 +30,7 @@ func ShortToJSON(strShortURL string) ([]byte, error) {
 	shortURL := ShortURL{Result: strShortURL}
 	jsonBytes, err := json.Marshal(shortURL)
 	if err != nil {
-		logger.Log.Info("ShortToJSON", zap.String("error", "marshaling"))
+		logger.GetLog().Info("ShortToJSON", zap.String("error", "marshaling"))
 		return nil, nil
 	}
 	return jsonBytes, nil

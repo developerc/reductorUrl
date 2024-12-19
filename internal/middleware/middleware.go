@@ -46,7 +46,7 @@ func Middleware(h http.Handler) http.Handler {
 
 		h.ServeHTTP(&lw, r)
 
-		logger.Log.Sugar().Infoln(
+		logger.GetLog().Sugar().Infoln(
 			"uri", r.RequestURI,
 			"method", r.Method,
 			"status", responseData.status,

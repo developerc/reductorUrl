@@ -2,13 +2,12 @@ package memory
 
 import (
 	"errors"
+	"log"
 	"math"
 	"strconv"
 
 	"github.com/developerc/reductorUrl/internal/config"
-	"github.com/developerc/reductorUrl/internal/logger"
-	"github.com/developerc/reductorUrl/internal/service/filestorage"
-	"go.uber.org/zap"
+	filestorage "github.com/developerc/reductorUrl/internal/service/file_storage"
 )
 
 type repository interface {
@@ -37,7 +36,7 @@ func (s Service) AddLink(link string) (string, error) {
 func (s Service) GetLongLink(id string) (string, error) {
 	i, err := strconv.Atoi(id)
 	if err != nil {
-		logger.Log.Info("GetLongLink", zap.String("Atoi", "error"))
+		log.Println(err)
 		return "", err
 	}
 	longURL, ok := s.repo.(*ShortURLAttr).MapURL[i]
@@ -61,23 +60,22 @@ func NewInMemoryService() Service {
 	shu.MapURL = make(map[int]string)
 
 	if err := filestorage.NewConsumer(shu.Settings.FileStorage); err != nil {
-		logger.Log.Info("NewInMemoryService", zap.String("GetEvents", err.Error()))
+		log.Println(err)
 	}
 	events, err := filestorage.GetConsumer().GetEvents()
 	if err != nil {
-		logger.Log.Info("NewInMemoryService", zap.String("GetEvents", err.Error()))
+		log.Println(err)
 	}
 	for _, event := range events {
 		if event.UUID > math.MaxInt32 {
 			event.UUID = math.MaxInt32
-			logger.Log.Info("NewInMemoryService", zap.String("GetEvents", "too big event.UUID"))
 		}
 		shu.MapURL[int(event.UUID)] = event.OriginalURL
 	}
 	shu.Cntr = len(events)
 
 	if err := filestorage.NewProducer(shu.Settings.FileStorage); err != nil {
-		logger.Log.Info("NewInMemoryService", zap.String("GetEvents", err.Error()))
+		log.Println(err)
 	}
 	return Service{repo: &shu}
 }

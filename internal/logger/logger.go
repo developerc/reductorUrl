@@ -6,7 +6,7 @@ import (
 	"go.uber.org/zap"
 )
 
-var Log *zap.Logger = zap.NewNop()
+var zapLog *zap.Logger = zap.NewNop()
 
 func Initialize(level string) error {
 	lvl, err := zap.ParseAtomicLevel(level)
@@ -23,6 +23,10 @@ func Initialize(level string) error {
 	if err := zl.Sync(); err != nil {
 		log.Println(err)
 	}
-	Log = zl
+	zapLog = zl
 	return nil
+}
+
+func GetLog() *zap.Logger {
+	return zapLog
 }

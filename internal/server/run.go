@@ -18,7 +18,7 @@ func Run() error {
 		return err
 	}
 
-	logger.Log.Info("Running server", zap.String("address", service.GetAdresRun()))
+	logger.GetLog().Info("Running server", zap.String("address", service.GetAdresRun()))
 
 	server = NewServer(service)
 
