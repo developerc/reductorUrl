@@ -8,24 +8,26 @@ import (
 	"go.uber.org/zap"
 )
 
-var server Server
+var server *Server
 
 func Run() error {
 	service := memory.NewInMemoryService()
-
-	if err := logger.Initialize(service.GetLogLevel()); err != nil {
+	//if err := logger.Initialize(service.GetLogLevel()); err != nil {
+	zapLogger, err := logger.Initialize(service.GetLogLevel())
+	if err != nil {
 		return err
 	}
 
-	logger.GetLog().Info("Running server", zap.String("address", service.GetAdresRun()))
+	//logger.GetLog().Info("Running server", zap.String("address", service.GetAdresRun()))
+	zapLogger.Info("Running server", zap.String("address", service.GetAdresRun()))
 
 	server = NewServer(service)
 
 	routes := server.SetupRoutes()
-	err := http.ListenAndServe(service.GetAdresRun(), routes) //nolint:gosec // unnessesary error checking
+	err = http.ListenAndServe(service.GetAdresRun(), routes) //nolint:gosec // unnessesary error checking
 	return err
 }
 
-func GetServer() Server {
+func GetServer() *Server {
 	return server
 }

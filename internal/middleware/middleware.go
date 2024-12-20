@@ -1,10 +1,12 @@
 package middleware
 
 import (
+	"log"
 	"net/http"
 	"time"
 
 	"github.com/developerc/reductorUrl/internal/logger"
+	"github.com/developerc/reductorUrl/internal/service/memory"
 )
 
 type (
@@ -46,7 +48,13 @@ func Middleware(h http.Handler) http.Handler {
 
 		h.ServeHTTP(&lw, r)
 
-		logger.GetLog().Sugar().Infoln(
+		zapLogger, err := logger.Initialize(memory.NewInMemoryService().GetLogLevel())
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		//logger.GetLog().Sugar().Infoln(
+		zapLogger.Sugar().Infoln(
 			"uri", r.RequestURI,
 			"method", r.Method,
 			"status", responseData.status,

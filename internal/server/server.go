@@ -3,7 +3,6 @@ package server
 import (
 	"bytes"
 	"io"
-	"log"
 	"net/http"
 	"time"
 
@@ -22,8 +21,14 @@ type Server struct {
 	service svc
 }
 
-func NewServer(service svc) Server {
-	return Server{service: service}
+var srv Server
+
+func NewServer(service svc) *Server {
+	if srv.service != nil {
+		return &srv
+	}
+	srv = Server{service: service}
+	return &srv
 }
 
 func (s *Server) addLink(w http.ResponseWriter, r *http.Request) {
@@ -77,7 +82,6 @@ func (s *Server) addLinkJSON(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) GetLongLink(w http.ResponseWriter, r *http.Request) {
-	log.Println("id: ", chi.URLParam(r, "id"))
 	id := chi.URLParam(r, "id")
 	longURL, err := memory.NewInMemoryService().GetLongLink(id)
 

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/developerc/reductorUrl/internal/logger"
+	"github.com/developerc/reductorUrl/internal/service/memory"
 	"go.uber.org/zap"
 )
 
@@ -19,7 +20,12 @@ type ShortURL struct {
 func HandleAPIShorten(buf bytes.Buffer) (string, error) {
 	var longURL LongURL
 	if err := json.Unmarshal(buf.Bytes(), &longURL); err != nil {
-		logger.GetLog().Info("HandleApiShorten", zap.String("error", "demarshalling"))
+		zapLogger, err := logger.Initialize(memory.NewInMemoryService().GetLogLevel())
+		if err != nil {
+			return "", err
+		}
+		//logger.GetLog().Info("HandleApiShorten", zap.String("error", "demarshalling"))
+		zapLogger.Info("HandleApiShorten", zap.String("error", "demarshalling"))
 		return "", err
 	}
 
@@ -30,8 +36,13 @@ func ShortToJSON(strShortURL string) ([]byte, error) {
 	shortURL := ShortURL{Result: strShortURL}
 	jsonBytes, err := json.Marshal(shortURL)
 	if err != nil {
-		logger.GetLog().Info("ShortToJSON", zap.String("error", "marshaling"))
-		return nil, nil
+		zapLogger, err := logger.Initialize(memory.NewInMemoryService().GetLogLevel())
+		if err != nil {
+			return nil, err
+		}
+		//logger.GetLog().Info("ShortToJSON", zap.String("error", "marshaling"))
+		zapLogger.Info("HandleApiShorten", zap.String("error", "marshalling"))
+		return nil, err
 	}
 	return jsonBytes, nil
 }

@@ -6,27 +6,39 @@ import (
 	"go.uber.org/zap"
 )
 
-var zapLog *zap.Logger = zap.NewNop()
+type Logger interface{}
 
-func Initialize(level string) error {
+type ZapLogger struct {
+	log    Logger
+	zapLog *zap.Logger
+}
+
+// var zapLog *zap.Logger = zap.NewNop()
+var zapLogger ZapLogger
+
+func Initialize(level string) (*zap.Logger, error) {
+	if zapLogger.log != nil {
+		return zapLogger.zapLog, nil
+	}
+	zapLogger = ZapLogger{zapLog: zap.NewNop()}
 	lvl, err := zap.ParseAtomicLevel(level)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	cfg := zap.NewDevelopmentConfig()
 	cfg.Level = lvl
 	zl, err := cfg.Build()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if err := zl.Sync(); err != nil {
 		log.Println(err)
 	}
-	zapLog = zl
-	return nil
+	zapLogger.zapLog = zl
+	return zapLogger.zapLog, nil
 }
 
-func GetLog() *zap.Logger {
+/*func GetLog() *zap.Logger {
 	return zapLog
-}
+}*/
