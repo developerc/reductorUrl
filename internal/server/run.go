@@ -12,13 +12,12 @@ var server *Server
 
 func Run() error {
 	service := memory.NewInMemoryService()
-	//if err := logger.Initialize(service.GetLogLevel()); err != nil {
+
 	zapLogger, err := logger.Initialize(service.GetLogLevel())
 	if err != nil {
 		return err
 	}
 
-	//logger.GetLog().Info("Running server", zap.String("address", service.GetAdresRun()))
 	zapLogger.Info("Running server", zap.String("address", service.GetAdresRun()))
 
 	server = NewServer(service)

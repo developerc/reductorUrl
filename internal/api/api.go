@@ -24,7 +24,6 @@ func HandleAPIShorten(buf bytes.Buffer) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		//logger.GetLog().Info("HandleApiShorten", zap.String("error", "demarshalling"))
 		zapLogger.Info("HandleApiShorten", zap.String("error", "demarshalling"))
 		return "", err
 	}
@@ -40,7 +39,6 @@ func ShortToJSON(strShortURL string) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		//logger.GetLog().Info("ShortToJSON", zap.String("error", "marshaling"))
 		zapLogger.Info("HandleApiShorten", zap.String("error", "marshalling"))
 		return nil, err
 	}

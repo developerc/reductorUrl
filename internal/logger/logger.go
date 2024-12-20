@@ -13,7 +13,6 @@ type ZapLogger struct {
 	zapLog *zap.Logger
 }
 
-// var zapLog *zap.Logger = zap.NewNop()
 var zapLogger ZapLogger
 
 func Initialize(level string) (*zap.Logger, error) {
@@ -38,7 +37,3 @@ func Initialize(level string) (*zap.Logger, error) {
 	zapLogger.zapLog = zl
 	return zapLogger.zapLog, nil
 }
-
-/*func GetLog() *zap.Logger {
-	return zapLog
-}*/
