@@ -68,7 +68,6 @@ func NewInMemoryService() *Service {
 	if _, err := filestorage.NewConsumer(shu.Settings.FileStorage); err != nil {
 		log.Println(err)
 	}
-	//events, err := filestorage.GetConsumer().ListEvents()
 	consumer, err := filestorage.NewConsumer(shu.Settings.FileStorage)
 	if err != nil {
 		log.Println(err)
@@ -101,7 +100,6 @@ func addToFileStorage(cntr int, link string) error {
 		return errors.New("not valid counter")
 	}
 	event := filestorage.Event{UUID: uint(cntr), ShortURL: strconv.Itoa(cntr), OriginalURL: link}
-	//if err := filestorage.GetProducer().WriteEvent(&event); err != nil {
 	producer, err := filestorage.NewProducer(shu.Settings.FileStorage)
 	if err != nil {
 		return err

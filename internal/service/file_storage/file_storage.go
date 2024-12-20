@@ -36,14 +36,6 @@ type Consumer struct {
 var producer Producer
 var consumer Consumer
 
-/*func GetProducer() *Producer {
-	return &producer
-}*/
-
-/*func GetConsumer() *Consumer {
-	return &consumer
-}*/
-
 func NewProducer(filename string) (*Producer, error) {
 	if producer.evwr != nil {
 		return &producer, nil
