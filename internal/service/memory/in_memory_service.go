@@ -24,7 +24,7 @@ type ShortURLAttr struct {
 	MapURL   map[int]string
 }
 
-var service interface{}
+var service Service
 
 func (s Service) AddLink(link string) (string, error) {
 	s.repo.(*ShortURLAttr).Cntr++
@@ -56,9 +56,9 @@ func (s Service) GetLogLevel() string {
 	return s.repo.(*ShortURLAttr).Settings.LogLevel
 }
 
-func NewInMemoryService() Service {
-	if service != nil {
-		return service.(Service)
+func NewInMemoryService() *Service {
+	if service.repo != nil {
+		return &service
 	}
 	shu := ShortURLAttr{}
 	shu.Settings = *config.NewServerSettings()
@@ -83,7 +83,7 @@ func NewInMemoryService() Service {
 		log.Println(err)
 	}
 	service = Service{repo: &shu}
-	return service.(Service)
+	return &service
 }
 
 func (shu *ShortURLAttr) AddLink(link string) (string, error) {
