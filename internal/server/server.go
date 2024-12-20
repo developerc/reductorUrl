@@ -9,6 +9,7 @@ import (
 
 	"github.com/developerc/reductorUrl/internal/api"
 	"github.com/developerc/reductorUrl/internal/middleware"
+	"github.com/developerc/reductorUrl/internal/service/memory"
 	"github.com/go-chi/chi/v5"
 	m "github.com/go-chi/chi/v5/middleware"
 )
@@ -78,7 +79,7 @@ func (s *Server) addLinkJSON(w http.ResponseWriter, r *http.Request) {
 func (s *Server) GetLongLink(w http.ResponseWriter, r *http.Request) {
 	log.Println("id: ", chi.URLParam(r, "id"))
 	id := chi.URLParam(r, "id")
-	longURL, err := GetService().GetLongLink(id)
+	longURL, err := memory.NewInMemoryService().GetLongLink(id)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)

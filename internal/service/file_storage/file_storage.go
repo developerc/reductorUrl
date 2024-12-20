@@ -79,7 +79,7 @@ func NewConsumer(filename string) error {
 	return nil
 }
 
-func (c *Consumer) GetEvents() ([]Event, error) {
+func (c *Consumer) ListEvents() ([]Event, error) {
 	events := make([]Event, 0)
 	c.scanner.Split(bufio.ScanLines)
 	for c.scanner.Scan() {

@@ -24,6 +24,8 @@ type ShortURLAttr struct {
 	MapURL   map[int]string
 }
 
+var service interface{}
+
 func (s Service) AddLink(link string) (string, error) {
 	s.repo.(*ShortURLAttr).Cntr++
 	if err := addToFileStorage(s.repo.(*ShortURLAttr).Cntr, link); err != nil {
@@ -55,6 +57,9 @@ func (s Service) GetLogLevel() string {
 }
 
 func NewInMemoryService() Service {
+	if service != nil {
+		return service.(Service)
+	}
 	shu := ShortURLAttr{}
 	shu.Settings = *config.NewServerSettings()
 	shu.MapURL = make(map[int]string)
@@ -62,7 +67,7 @@ func NewInMemoryService() Service {
 	if err := filestorage.NewConsumer(shu.Settings.FileStorage); err != nil {
 		log.Println(err)
 	}
-	events, err := filestorage.GetConsumer().GetEvents()
+	events, err := filestorage.GetConsumer().ListEvents()
 	if err != nil {
 		log.Println(err)
 	}
@@ -77,7 +82,8 @@ func NewInMemoryService() Service {
 	if err := filestorage.NewProducer(shu.Settings.FileStorage); err != nil {
 		log.Println(err)
 	}
-	return Service{repo: &shu}
+	service = Service{repo: &shu}
+	return service.(Service)
 }
 
 func (shu *ShortURLAttr) AddLink(link string) (string, error) {

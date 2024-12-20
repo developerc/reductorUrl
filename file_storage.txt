@@ -5,3 +5,7 @@
 {"uuid":5,"short_url":"5","original_url":"http://blabla1.ru"}
 {"uuid":6,"short_url":"6","original_url":"http://blabla1.ru"}
 {"uuid":7,"short_url":"7","original_url":"http://blabla1.ru"}
+{"uuid":8,"short_url":"8","original_url":"'http://blabla.ru'"}
+{"uuid":9,"short_url":"9","original_url":"'http://blabla.ru'"}
+{"uuid":10,"short_url":"10","original_url":"'http://blabla.ru'"}
+{"uuid":11,"short_url":"11","original_url":"'http://blabla.ru'"}
