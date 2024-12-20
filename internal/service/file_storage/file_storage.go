@@ -13,12 +13,22 @@ type Event struct {
 	OriginalURL string `json:"original_url"`
 }
 
+type EventWriter interface {
+	WriteEvent(event *Event) error
+}
+
+type EventReader interface {
+	ListEvents() ([]Event, error)
+}
+
 type Producer struct {
+	evwr   EventWriter
 	file   *os.File
 	writer *bufio.Writer
 }
 
 type Consumer struct {
+	evre    EventReader
 	file    *os.File
 	scanner *bufio.Scanner
 }
@@ -26,26 +36,29 @@ type Consumer struct {
 var producer Producer
 var consumer Consumer
 
-func GetProducer() *Producer {
+/*func GetProducer() *Producer {
 	return &producer
-}
+}*/
 
-func GetConsumer() *Consumer {
+/*func GetConsumer() *Consumer {
 	return &consumer
-}
+}*/
 
-func NewProducer(filename string) error {
+func NewProducer(filename string) (*Producer, error) {
+	if producer.evwr != nil {
+		return &producer, nil
+	}
 	const filePermission fs.FileMode = 0666
 	file, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_APPEND, filePermission)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	producer = Producer{
 		file:   file,
 		writer: bufio.NewWriter(file),
 	}
-	return nil
+	return &producer, err
 }
 
 func (p *Producer) WriteEvent(event *Event) error {
@@ -65,18 +78,21 @@ func (p *Producer) WriteEvent(event *Event) error {
 	return p.writer.Flush()
 }
 
-func NewConsumer(filename string) error {
+func NewConsumer(filename string) (*Consumer, error) {
+	if consumer.evre != nil {
+		return &consumer, nil
+	}
 	const filePermission fs.FileMode = 0666
 	file, err := os.OpenFile(filename, os.O_RDONLY|os.O_CREATE, filePermission)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	consumer = Consumer{
 		file:    file,
 		scanner: bufio.NewScanner(file),
 	}
-	return nil
+	return &consumer, nil
 }
 
 func (c *Consumer) ListEvents() ([]Event, error) {

@@ -25,6 +25,7 @@ type ShortURLAttr struct {
 }
 
 var service Service
+var shu ShortURLAttr
 
 func (s Service) AddLink(link string) (string, error) {
 	s.repo.(*ShortURLAttr).Cntr++
@@ -60,14 +61,19 @@ func NewInMemoryService() *Service {
 	if service.repo != nil {
 		return &service
 	}
-	shu := ShortURLAttr{}
+	shu = ShortURLAttr{}
 	shu.Settings = *config.NewServerSettings()
 	shu.MapURL = make(map[int]string)
 
-	if err := filestorage.NewConsumer(shu.Settings.FileStorage); err != nil {
+	if _, err := filestorage.NewConsumer(shu.Settings.FileStorage); err != nil {
 		log.Println(err)
 	}
-	events, err := filestorage.GetConsumer().ListEvents()
+	//events, err := filestorage.GetConsumer().ListEvents()
+	consumer, err := filestorage.NewConsumer(shu.Settings.FileStorage)
+	if err != nil {
+		log.Println(err)
+	}
+	events, err := consumer.ListEvents()
 	if err != nil {
 		log.Println(err)
 	}
@@ -79,7 +85,7 @@ func NewInMemoryService() *Service {
 	}
 	shu.Cntr = len(events)
 
-	if err := filestorage.NewProducer(shu.Settings.FileStorage); err != nil {
+	if _, err := filestorage.NewProducer(shu.Settings.FileStorage); err != nil {
 		log.Println(err)
 	}
 	service = Service{repo: &shu}
@@ -95,8 +101,11 @@ func addToFileStorage(cntr int, link string) error {
 		return errors.New("not valid counter")
 	}
 	event := filestorage.Event{UUID: uint(cntr), ShortURL: strconv.Itoa(cntr), OriginalURL: link}
-	if err := filestorage.GetProducer().WriteEvent(&event); err != nil {
+	//if err := filestorage.GetProducer().WriteEvent(&event); err != nil {
+	producer, err := filestorage.NewProducer(shu.Settings.FileStorage)
+	if err != nil {
 		return err
 	}
+	producer.WriteEvent(&event)
 	return nil
 }
