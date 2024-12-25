@@ -15,17 +15,9 @@ type ShortURLAttr struct {
 }
 
 func (s Service) GetCounter() int {
-	//fmt.Printf("repo: %v , type %T\n", s.repo, s.repo)
 	val := reflect.ValueOf(s.repo)
-	//reflect.Value(s.repo)
-	//cntr := val.FieldByName("Cntr")
-	//fmt.Println("val.Kind(): ", val.Kind())
-	//fmt.Printf("Pointer to %v : %v\n", val.Elem().Type(), val.Elem())
-	//fmt.Println("cntr: ", val.Elem().FieldByName("Cntr"))
-	//fmt.Println("CanSet: ", val.Elem().FieldByName("Cntr").CanSet())
 	intCntr := val.Elem().FieldByName("Cntr").Int()
 
-	//fmt.Println("intCntr: ", intCntr)
 	return int(intCntr)
 }
 
@@ -53,7 +45,6 @@ func (s Service) GetLongURL(i int) (string, error) {
 		return "", errors.New("error, this is not a Map")
 	}
 	return mapURL.MapIndex(reflect.ValueOf(i)).String(), nil
-	//fmt.Println(str)
 }
 
 func (s Service) AddLongURL(i int, link string) {
@@ -75,7 +66,6 @@ func (s Service) GetAdresRun() string {
 	settings := val.Elem().FieldByName("Settings")
 	adresBase := settings.FieldByName("AdresRun")
 	return adresBase.String()
-	//return s.repo.(*ShortURLAttr).Settings.AdresRun
 }
 
 func (s Service) GetLogLevel() string {
@@ -83,5 +73,4 @@ func (s Service) GetLogLevel() string {
 	settings := val.Elem().FieldByName("Settings")
 	adresBase := settings.FieldByName("LogLevel")
 	return adresBase.String()
-	//return s.repo.(*ShortURLAttr).Settings.LogLevel
 }
