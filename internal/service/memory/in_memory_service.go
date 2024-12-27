@@ -44,7 +44,7 @@ func (s Service) GetLongLink(id string) (string, error) {
 }
 
 func (s Service) GetDSN() (string, error) {
-	dsn := s.repo.(*ShortURLAttr).Settings.DbStorage
+	dsn := s.repo.(*ShortURLAttr).Settings.DBStorage
 	return dsn, nil
 }
 

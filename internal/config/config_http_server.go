@@ -14,7 +14,7 @@ type ServerSettings struct {
 	AdresBase   string
 	LogLevel    string
 	FileStorage string
-	DbStorage   string
+	DBStorage   string
 }
 
 var serverSettings ServerSettings
@@ -69,11 +69,11 @@ func NewServerSettings() *ServerSettings {
 
 	val, ok = os.LookupEnv("DATABASE_DSN")
 	if !ok || val == "" {
-		serverSettings.DbStorage = *dbStorage
-		log.Println("DbStorage from flag:", serverSettings.DbStorage)
+		serverSettings.DBStorage = *dbStorage
+		log.Println("DbStorage from flag:", serverSettings.DBStorage)
 	} else {
-		serverSettings.DbStorage = val
-		log.Println("DbStorage from env:", serverSettings.DbStorage)
+		serverSettings.DBStorage = val
+		log.Println("DbStorage from env:", serverSettings.DBStorage)
 	}
 
 	return &serverSettings
