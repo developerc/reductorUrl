@@ -43,10 +43,10 @@ func (s Service) GetLongLink(id string) (string, error) {
 	return longURL, nil
 }
 
-func (s Service) GetDSN() (string, error) {
+/*func (s Service) GetDSN() (string, error) {
 	dsn := s.repo.(*ShortURLAttr).Settings.DBStorage
 	return dsn, nil
-}
+}*/
 
 func NewInMemoryService() *Service {
 	if service.repo != nil {
