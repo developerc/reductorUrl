@@ -8,6 +8,7 @@ import (
 
 	"github.com/developerc/reductorUrl/internal/api"
 	"github.com/developerc/reductorUrl/internal/middleware"
+	db "github.com/developerc/reductorUrl/internal/service/db_storage"
 	"github.com/developerc/reductorUrl/internal/service/memory"
 	"github.com/go-chi/chi/v5"
 	m "github.com/go-chi/chi/v5/middleware"
@@ -93,6 +94,15 @@ func (s *Server) GetLongLink(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusTemporaryRedirect)
 }
 
+func (s *Server) CheckPing(w http.ResponseWriter, r *http.Request) {
+	if db.CheckPing() != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	} else {
+		w.WriteHeader(http.StatusOK)
+	}
+
+}
+
 func (s *Server) SetupRoutes() http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.Middleware)
@@ -101,5 +111,6 @@ func (s *Server) SetupRoutes() http.Handler {
 	r.Post("/", s.addLink)
 	r.Post("/api/shorten", s.addLinkJSON)
 	r.Get("/{id}", s.GetLongLink)
+	r.Get("/ping", s.CheckPing)
 	return r
 }

@@ -14,6 +14,7 @@ type ServerSettings struct {
 	AdresBase   string
 	LogLevel    string
 	FileStorage string
+	DbStorage   string
 }
 
 var serverSettings ServerSettings
@@ -27,6 +28,7 @@ func NewServerSettings() *ServerSettings {
 	ab := flag.String("b", "http://localhost:8080", "base address shortener URL")
 	logLevel := flag.String("l", "info", "log level")
 	fileStorage := flag.String("f", "file_storage.txt", "file for storage data")
+	dbStorage := flag.String("d", "host=localhost user=admin password=admin dbname=test sslmode=disable", "address connect to DB")
 	flag.Parse()
 
 	val, ok := os.LookupEnv("SERVER_ADDRESS")
@@ -63,6 +65,15 @@ func NewServerSettings() *ServerSettings {
 	} else {
 		serverSettings.FileStorage = val
 		log.Println("FileStorage from env:", serverSettings.FileStorage)
+	}
+
+	val, ok = os.LookupEnv("DATABASE_DSN")
+	if !ok || val == "" {
+		serverSettings.DbStorage = *dbStorage
+		log.Println("DbStorage from flag:", serverSettings.DbStorage)
+	} else {
+		serverSettings.DbStorage = val
+		log.Println("DbStorage from env:", serverSettings.DbStorage)
 	}
 
 	return &serverSettings
