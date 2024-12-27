@@ -30,3 +30,9 @@ func Run() error {
 func GetServer() *Server {
 	return server
 }
+
+/*func (s *Server) GetService() *memory.Service{
+	val := reflect.ValueOf(s.service)
+	service := val.Elem().FieldByName("Service")
+
+}*/

@@ -84,7 +84,8 @@ func (s *Server) addLinkJSON(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) GetLongLink(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
-	longURL, err := memory.NewInMemoryService().GetLongLink(id)
+	//longURL, err := memory.NewInMemoryService().GetLongLink(id)
+	longURL, err := GetServer().service.(*memory.Service).GetLongLink(id)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
