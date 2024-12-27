@@ -1,13 +1,15 @@
 package memory
 
 import (
+	"bytes"
 	"errors"
 	"log"
-	"math"
 	"strconv"
 
 	"github.com/developerc/reductorUrl/internal/config"
+	"github.com/developerc/reductorUrl/internal/logger"
 	filestorage "github.com/developerc/reductorUrl/internal/service/file_storage"
+	"go.uber.org/zap"
 )
 
 type repository interface {
@@ -15,73 +17,112 @@ type repository interface {
 }
 
 type Service struct {
-	repo repository
+	repo   repository
+	logger *zap.Logger
 }
 
-var service Service
-var shu ShortURLAttr
+func (s *Service) AddLink(link string) (string, error) {
+	var shURL string
+	var err error
+	const memoryStorage string = "MemoryStorage"
+	const fileStorage string = "FileStorage"
+	const dbStorage string = "DBStorage"
 
-func (s Service) AddLink(link string) (string, error) {
 	s.IncrCounter()
-	if err := addToFileStorage(s.GetCounter(), link); err != nil {
-		return "", err
+	switch s.GetShortURLAttr().Settings.TypeStorage {
+	case memoryStorage:
+		s.AddLongURL(s.GetCounter(), link)
+		return s.GetAdresBase() + "/" + strconv.Itoa(s.GetCounter()), nil
+	case fileStorage:
+		if err := s.GetShortURLAttr().addToFileStorage(s.GetCounter(), link); err != nil {
+			return "", err
+		}
+		s.AddLongURL(s.GetCounter(), link)
+		return s.GetAdresBase() + "/" + strconv.Itoa(s.GetCounter()), nil
+	case dbStorage:
+		shURL, err = insertRecord(s.GetShortURLAttr(), link)
+		if err != nil {
+			return "", err
+		}
 	}
-	s.AddLongURL(s.GetCounter(), link)
-	return s.GetAdresBase() + "/" + strconv.Itoa(s.GetCounter()), nil
+	return s.GetAdresBase() + "/" + shURL, nil
 }
 
-func (s Service) GetLongLink(id string) (string, error) {
+func (s *Service) GetShortByOriginalURL(originalURL string) (string, error) {
+	shortURL, err := getShortByOriginalURL(s.GetShortURLAttr(), originalURL)
+	return s.GetAdresBase() + "/" + shortURL, err
+}
+
+func (s *Service) GetLongLink(id string) (string, error) {
+	var longURL string
 	i, err := strconv.Atoi(id)
 	if err != nil {
-		log.Println(err)
 		return "", err
 	}
-	longURL, err := s.GetLongURL(i)
-	if err != nil {
-		return "", err
+	switch s.GetShortURLAttr().Settings.TypeStorage {
+	case "MemoryStorage":
+		longURL, err = s.GetLongURL(i)
+		if err != nil {
+			return "", err
+		}
+	case "FileStorage":
+		longURL, err = s.GetLongURL(i)
+		if err != nil {
+			return "", err
+		}
+	case "DBStorage":
+		longURL, err = getLongByUUID(s.GetShortURLAttr(), i)
+		if err != nil {
+			return "", err
+		}
 	}
 	return longURL, nil
 }
 
-func NewInMemoryService() *Service {
-	if service.repo != nil {
-		return &service
+func (s *Service) HandleBatchJSON(buf bytes.Buffer) ([]byte, error) {
+	arrLongURL, err := listLongURL(buf)
+	if err != nil {
+		return nil, err
 	}
-	shu = ShortURLAttr{}
+	if len(arrLongURL) == 0 {
+		return nil, errors.New("error: length array is zero")
+	}
+
+	jsonBytes, err := s.handleArrLongURL(arrLongURL)
+	if err != nil {
+		return nil, err
+	}
+	return jsonBytes, nil
+}
+
+func NewInMemoryService() (*Service, error) {
+	var err error
+
+	shu := new(ShortURLAttr)
 	shu.Settings = *config.NewServerSettings()
 	shu.MapURL = make(map[int]string)
 
-	if _, err := filestorage.NewConsumer(shu.Settings.FileStorage); err != nil {
-		log.Println(err)
-	}
-	consumer, err := filestorage.NewConsumer(shu.Settings.FileStorage)
-	if err != nil {
-		log.Println(err)
-	}
-	events, err := consumer.ListEvents()
-	if err != nil {
-		log.Println(err)
-	}
-	for _, event := range events {
-		if event.UUID > math.MaxInt32 {
-			event.UUID = math.MaxInt32
+	switch shu.Settings.TypeStorage {
+	case "FileStorage":
+		if err := getFileSettings(shu); err != nil {
+			log.Println(err)
 		}
-		shu.MapURL[int(event.UUID)] = event.OriginalURL
+	case "DBStorage":
+		if err := createTable(shu); err != nil {
+			log.Println(err)
+		}
 	}
-	shu.Cntr = len(events)
 
-	if _, err := filestorage.NewProducer(shu.Settings.FileStorage); err != nil {
-		log.Println(err)
-	}
-	service = Service{repo: &shu}
-	return &service
+	service := Service{repo: shu}
+	service.logger, err = logger.Initialize(service.GetLogLevel())
+	return &service, err
 }
 
 func (shu *ShortURLAttr) AddLink(link string) (string, error) {
 	return "proba", nil
 }
 
-func addToFileStorage(cntr int, link string) error {
+func (shu *ShortURLAttr) addToFileStorage(cntr int, link string) error {
 	if cntr < 0 {
 		return errors.New("not valid counter")
 	}
@@ -90,6 +131,8 @@ func addToFileStorage(cntr int, link string) error {
 	if err != nil {
 		return err
 	}
-	producer.WriteEvent(&event)
+	if err := producer.WriteEvent(&event); err != nil {
+		log.Println(err)
+	}
 	return nil
 }
