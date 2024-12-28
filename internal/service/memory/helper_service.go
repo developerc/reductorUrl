@@ -76,6 +76,10 @@ func createTable(shu *ShortURLAttr) error {
 		shu.MapURL[key] = val
 	}
 	//log.Println(shu.MapURL)
+	err = rows.Err()
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
