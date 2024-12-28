@@ -9,6 +9,7 @@ import (
 
 	"github.com/developerc/reductorUrl/internal/config"
 	filestorage "github.com/developerc/reductorUrl/internal/service/file_storage"
+	//db "github.com/developerc/reductorUrl/internal/service/db_storage"
 )
 
 type repository interface {
@@ -35,6 +36,7 @@ func (s Service) AddLink(link string) (string, error) {
 	case "DBStorage":
 		{
 			// для DBStorage
+			//s.CreateTable()
 		}
 	}
 
@@ -73,7 +75,8 @@ func NewInMemoryService() *Service {
 	case "FileStorage":
 		getFileSettings(shu)
 	case "DBStorage":
-		getDBSettings(shu)
+		createTable(shu)
+		//db.CreateTable()
 	}
 
 	/*if _, err := filestorage.NewConsumer(shu.Settings.FileStorage); err != nil {
