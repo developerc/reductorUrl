@@ -36,33 +36,65 @@ func getFileSettings(shu *ShortURLAttr) {
 }
 
 func createTable(shu *ShortURLAttr) error {
-	/*zapLogger, err := logger.Initialize(memory.NewInMemoryService().GetLogLevel())
-	if err != nil {
-		return err
-	}*/
-	//service := memory.NewInMemoryService()
-	//dsn, err := service.GetDSN()
-	//dsn := s.repo.(*ShortURLAttr).Settings.DBStorage
 	dsn := shu.Settings.DBStorage
-	/*if err != nil {
-		zapLogger.Info("CreateTable", zap.String("error", err.Error()))
-		return err
-	}*/
 	db, err := sql.Open("pgx", dsn)
 	if err != nil {
-		//zapLogger.Info("CreateTable", zap.String("error", err.Error()))
+		log.Println(err)
+		return err
+	}
+	defer db.Close()
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+	_, err = db.ExecContext(ctx, "CREATE TABLE IF NOT EXISTS url_table( uuid serial primary key, short_url INT, original_url TEXT)")
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	log.Println("Table created")
+
+	var count int
+	db.QueryRowContext(ctx, "SELECT COUNT(*) FROM url_table").Scan(&count)
+	shu.Cntr = count
+	log.Println("Cntr: ", shu.Cntr)
+
+	rows, err := db.QueryContext(ctx, "SELECT short_url, original_url FROM url_table")
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var key int
+		var val string
+		err = rows.Scan(&key, &val)
+		if err != nil {
+			return err
+		}
+		//log.Println(key, val)
+		shu.MapURL[key] = val
+	}
+	//log.Println(shu.MapURL)
+
+	return nil
+}
+
+func insertRecord(shu *ShortURLAttr, originalURL string) error {
+	//shu.Cntr++
+	shu.MapURL[shu.Cntr] = originalURL
+	dsn := shu.Settings.DBStorage
+	db, err := sql.Open("pgx", dsn)
+	if err != nil {
 		log.Println(err)
 		return err
 	}
 	defer db.Close()
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
-	_, err = db.ExecContext(ctx, "CREATE TABLE IF NOT EXISTS url_table( uuid serial primary key, short_url INT, original_url TEXT)")
+	_, err = db.ExecContext(ctx, "insert into url_table(short_url, original_url) values ($1, $2)", shu.Cntr, originalURL)
 	if err != nil {
-		//zapLogger.Info("CreateTable", zap.String("error", err.Error()))
 		log.Println(err)
 		return err
 	}
-	log.Println("Table created")
+	log.Println("Record inserted")
 	return nil
 }
