@@ -56,8 +56,8 @@ func createTable(shu *ShortURLAttr) error {
 	db.QueryRowContext(ctx, "SELECT COUNT(*) FROM url_table").Scan(&count)
 	shu.Cntr = count
 	//log.Println("Cntr: ", shu.Cntr)
-
-	rows, err := db.QueryContext(ctx, "SELECT short_url, original_url FROM url_table")
+	var rows *sql.Rows
+	rows, err = db.QueryContext(ctx, "SELECT short_url, original_url FROM url_table")
 	if err != nil {
 		log.Println(err)
 		return err
