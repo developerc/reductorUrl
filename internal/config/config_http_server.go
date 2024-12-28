@@ -9,7 +9,8 @@ import (
 type SrvSettings interface{}
 
 type ServerSettings struct {
-	ss          SrvSettings
+	//ss          SrvSettings
+	TypeStorage string
 	AdresRun    string
 	AdresBase   string
 	LogLevel    string
@@ -17,13 +18,15 @@ type ServerSettings struct {
 	DBStorage   string
 }
 
-var serverSettings ServerSettings
+//var serverSettings ServerSettings
 
 func NewServerSettings() *ServerSettings {
-	if serverSettings.ss != nil {
+	/*//if serverSettings.ss != nil {
 		return &serverSettings
-	}
-	serverSettings = ServerSettings{}
+	}*/
+	serverSettings := ServerSettings{}
+	serverSettings.TypeStorage = "MemoryStorage"
+
 	ar := flag.String("a", "localhost:8080", "address running server")
 	ab := flag.String("b", "http://localhost:8080", "base address shortener URL")
 	logLevel := flag.String("l", "info", "log level")
@@ -61,8 +64,15 @@ func NewServerSettings() *ServerSettings {
 	val, ok = os.LookupEnv("FILE_STORAGE_PATH")
 	if !ok || val == "" {
 		serverSettings.FileStorage = *fileStorage
+		if isFlagPassed("f") && (len(serverSettings.FileStorage) > 0) {
+			serverSettings.TypeStorage = "FileStorage"
+		}
+		if len(serverSettings.FileStorage) == 0 {
+			serverSettings.FileStorage = "file_storage.txt"
+		}
 		log.Println("FileStorage from flag:", serverSettings.FileStorage)
 	} else {
+		serverSettings.TypeStorage = "FileStorage"
 		serverSettings.FileStorage = val
 		log.Println("FileStorage from env:", serverSettings.FileStorage)
 	}
@@ -70,11 +80,26 @@ func NewServerSettings() *ServerSettings {
 	val, ok = os.LookupEnv("DATABASE_DSN")
 	if !ok || val == "" {
 		serverSettings.DBStorage = *dbStorage
+		if isFlagPassed("d") && (len(serverSettings.DBStorage) > 0) {
+			serverSettings.TypeStorage = "DBStorage"
+		}
 		log.Println("DbStorage from flag:", serverSettings.DBStorage)
 	} else {
+		serverSettings.TypeStorage = "DBStorage"
 		serverSettings.DBStorage = val
 		log.Println("DbStorage from env:", serverSettings.DBStorage)
 	}
 
+	log.Println("serverSettings.TypeStorage: ", serverSettings.TypeStorage)
 	return &serverSettings
+}
+
+func isFlagPassed(name string) bool {
+	found := false
+	flag.Visit(func(f *flag.Flag) {
+		if f.Name == name {
+			found = true
+		}
+	})
+	return found
 }

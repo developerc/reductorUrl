@@ -1,3 +1,0 @@
-{"uuid":1,"short_url":"1","original_url":"'http://blabla.ru'"}
-{"uuid":2,"short_url":"2","original_url":"http://blabla1.ru"}
-{"uuid":3,"short_url":"3","original_url":"http://blabla5.ru"}

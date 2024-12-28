@@ -3,7 +3,8 @@ package memory
 import (
 	"errors"
 	"log"
-	"math"
+
+	//"math"
 	"strconv"
 
 	"github.com/developerc/reductorUrl/internal/config"
@@ -19,13 +20,24 @@ type Service struct {
 }
 
 var service Service
-var shu ShortURLAttr
+
+//var shu *ShortURLAttr
 
 func (s Service) AddLink(link string) (string, error) {
 	s.IncrCounter()
-	if err := addToFileStorage(s.GetCounter(), link); err != nil {
-		return "", err
+	switch s.repo.(*ShortURLAttr).Settings.TypeStorage {
+	case "FileStorage":
+		{
+			if err := s.repo.(*ShortURLAttr).addToFileStorage(s.GetCounter(), link); err != nil {
+				return "", err
+			}
+		}
+	case "DBStorage":
+		{
+			// для DBStorage
+		}
 	}
+
 	s.AddLongURL(s.GetCounter(), link)
 	return s.GetAdresBase() + "/" + strconv.Itoa(s.GetCounter()), nil
 }
@@ -52,11 +64,19 @@ func NewInMemoryService() *Service {
 	if service.repo != nil {
 		return &service
 	}
-	shu = ShortURLAttr{}
+	//shu = ShortURLAttr{}
+	shu := new(ShortURLAttr)
 	shu.Settings = *config.NewServerSettings()
 	shu.MapURL = make(map[int]string)
 
-	if _, err := filestorage.NewConsumer(shu.Settings.FileStorage); err != nil {
+	switch shu.Settings.TypeStorage {
+	case "FileStorage":
+		getFileSettings(shu)
+	case "DBStorage":
+		getDBSettings(shu)
+	}
+
+	/*if _, err := filestorage.NewConsumer(shu.Settings.FileStorage); err != nil {
 		log.Println(err)
 	}
 	consumer, err := filestorage.NewConsumer(shu.Settings.FileStorage)
@@ -77,8 +97,8 @@ func NewInMemoryService() *Service {
 
 	if _, err := filestorage.NewProducer(shu.Settings.FileStorage); err != nil {
 		log.Println(err)
-	}
-	service = Service{repo: &shu}
+	}*/
+	service = Service{repo: shu}
 	return &service
 }
 
@@ -86,7 +106,7 @@ func (shu *ShortURLAttr) AddLink(link string) (string, error) {
 	return "proba", nil
 }
 
-func addToFileStorage(cntr int, link string) error {
+func (shu *ShortURLAttr) addToFileStorage(cntr int, link string) error {
 	if cntr < 0 {
 		return errors.New("not valid counter")
 	}
