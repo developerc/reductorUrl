@@ -38,6 +38,16 @@ func (s Service) GetAdresBase() string {
 	return adresBase.String()
 }
 
+func (s Service) GetDSN() (string, error) {
+	val := reflect.ValueOf(s.repo)
+	settings := val.Elem().FieldByName("Settings")
+	dsn := settings.FieldByName("DBStorage").String()
+	if len(dsn) == 0 {
+		return "", errors.New("get wrong DSN")
+	}
+	return dsn, nil
+}
+
 func (s Service) GetLongURL(i int) (string, error) {
 	val := reflect.ValueOf(s.repo)
 	mapURL := val.Elem().FieldByName("MapURL")
