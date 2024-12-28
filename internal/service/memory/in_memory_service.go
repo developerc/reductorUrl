@@ -35,6 +35,7 @@ func (s Service) AddLink(link string) (string, error) {
 		}
 	case "DBStorage":
 		{
+			log.Println("AddLink for DBStorage")
 			// для DBStorage
 			//s.CreateTable()
 		}
