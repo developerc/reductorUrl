@@ -13,12 +13,12 @@ import (
 )
 
 type ArrLongURL struct {
-	CorellationId string `json:"correlation_id"`
+	CorellationID string `json:"correlation_id"`
 	OriginalURL   string `json:"original_url"`
 }
 
 type ArrShortURL struct {
-	CorellationId string `json:"correlation_id"`
+	CorellationID string `json:"correlation_id"`
 	ShortURL      string `json:"short_url"`
 }
 
@@ -41,7 +41,7 @@ func (s Service) handleArrLongURL(arrLongURL []ArrLongURL) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		shortURL := ArrShortURL{CorellationId: longURL.CorellationId, ShortURL: URL}
+		shortURL := ArrShortURL{CorellationID: longURL.CorellationID, ShortURL: URL}
 		arrShortURL = append(arrShortURL, shortURL)
 	}
 	//fmt.Println(arrShortURL)
