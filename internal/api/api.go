@@ -9,6 +9,11 @@ import (
 	"go.uber.org/zap"
 )
 
+/*type ArrLongURL struct {
+	CorellationID string `json:"correlation_id"`
+	OriginalURL   string `json:"original_url"`
+}*/
+
 type LongURL struct {
 	URL string `json:"url"`
 }
@@ -16,6 +21,17 @@ type LongURL struct {
 type ShortURL struct {
 	Result string `json:"result"`
 }
+
+/*func HandleBatchJSON(buf bytes.Buffer) (string, error) {
+	arrLongURL := make([]ArrLongURL, 0)
+	if err := json.Unmarshal(buf.Bytes(), &arrLongURL); err != nil {
+		zapLogger, err := logger.Initialize(memory.NewInMemoryService().GetLogLevel())
+		zapLogger.Info("HandleBatchJSON", zap.String("error", "demarshalling"))
+		return "", err
+	}
+	fmt.Println(arrLongURL)
+	return "", nil
+}*/
 
 func HandleAPIShorten(buf bytes.Buffer) (string, error) {
 	var longURL LongURL

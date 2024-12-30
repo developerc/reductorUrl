@@ -8,6 +8,7 @@ import (
 
 	"github.com/developerc/reductorUrl/internal/api"
 	"github.com/developerc/reductorUrl/internal/middleware"
+	db "github.com/developerc/reductorUrl/internal/service/db_storage"
 	"github.com/developerc/reductorUrl/internal/service/memory"
 	"github.com/go-chi/chi/v5"
 	m "github.com/go-chi/chi/v5/middleware"
@@ -21,14 +22,16 @@ type Server struct {
 	service svc
 }
 
-var srv Server
+//var srv Server
 
 func NewServer(service svc) *Server {
-	if srv.service != nil {
+	/*if srv.service != nil {
 		return &srv
-	}
-	srv = Server{service: service}
-	return &srv
+	}*/
+	//srv = Server{service: service}
+	srv := new(Server)
+	srv.service = service
+	return srv
 }
 
 func (s *Server) addLink(w http.ResponseWriter, r *http.Request) {
@@ -60,6 +63,7 @@ func (s *Server) addLinkJSON(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	//fmt.Println(buf.String())
 	longURL, err := api.HandleAPIShorten(buf)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -81,9 +85,30 @@ func (s *Server) addLinkJSON(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (s *Server) addBatchJSON(w http.ResponseWriter, r *http.Request) {
+	var buf bytes.Buffer
+	var jsonBytes []byte
+	_, err := buf.ReadFrom(r.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	//jsonBytes, err := s.GetServer().service.(*memory.Service).HandleBatchJSON(buf)
+	if jsonBytes, err = s.GetServer().service.(*memory.Service).HandleBatchJSON(buf); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	if _, err := w.Write(jsonBytes); err != nil {
+		return
+	}
+}
+
 func (s *Server) GetLongLink(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
-	longURL, err := memory.NewInMemoryService().GetLongLink(id)
+	//longURL, err := memory.NewInMemoryService().GetLongLink(id)
+	longURL, err := s.GetServer().service.(*memory.Service).GetLongLink(id)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -91,6 +116,15 @@ func (s *Server) GetLongLink(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Location", longURL)
 	w.WriteHeader(http.StatusTemporaryRedirect)
+}
+
+func (s *Server) CheckPing(w http.ResponseWriter, r *http.Request) {
+	if db.CheckPing() != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	} else {
+		w.WriteHeader(http.StatusOK)
+	}
+
 }
 
 func (s *Server) SetupRoutes() http.Handler {
@@ -101,5 +135,7 @@ func (s *Server) SetupRoutes() http.Handler {
 	r.Post("/", s.addLink)
 	r.Post("/api/shorten", s.addLinkJSON)
 	r.Get("/{id}", s.GetLongLink)
+	r.Get("/ping", s.CheckPing)
+	r.Post("/api/shorten/batch", s.addBatchJSON)
 	return r
 }
