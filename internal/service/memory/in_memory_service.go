@@ -1,7 +1,9 @@
 package memory
 
 import (
+	"bytes"
 	"errors"
+	"fmt"
 	"log"
 
 	//"math"
@@ -36,7 +38,9 @@ func (s Service) AddLink(link string) (string, error) {
 	case "DBStorage":
 		{
 			//log.Println("AddLink for DBStorage")
-			insertRecord(s.repo.(*ShortURLAttr), link)
+			if err := insertRecord(s.repo.(*ShortURLAttr), link); err != nil {
+				return "", err
+			}
 			// для DBStorage
 			//s.CreateTable()
 		}
@@ -57,6 +61,17 @@ func (s Service) GetLongLink(id string) (string, error) {
 		return "", err
 	}
 	return longURL, nil
+}
+
+func (s Service) HandleBatchJSON(buf bytes.Buffer) {
+	arrLongURL, err := listLongURL(buf)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	fmt.Println(arrLongURL)
+	//проверка на нулевую длину arrLongURL
+
 }
 
 /*func (s Service) GetDSN() (string, error) {
@@ -104,6 +119,8 @@ func NewInMemoryService() *Service {
 		log.Println(err)
 	}*/
 	service = Service{repo: shu}
+	//service := new(Service)
+	//service.repo = shu
 	return &service
 }
 

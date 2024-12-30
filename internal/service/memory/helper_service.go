@@ -1,14 +1,33 @@
 package memory
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
+	"encoding/json"
 	"log"
 	"math"
 	"time"
 
 	filestorage "github.com/developerc/reductorUrl/internal/service/file_storage"
 )
+
+type ArrLongURL struct {
+	CorellationId string `json:"correlation_id"`
+	OriginalURL   string `json:"original_url"`
+}
+
+func listLongURL(buf bytes.Buffer) ([]ArrLongURL, error) {
+	arrLongURL := make([]ArrLongURL, 0)
+	if err := json.Unmarshal(buf.Bytes(), &arrLongURL); err != nil {
+		//zapLogger, err := logger.Initialize(memory.NewInMemoryService().GetLogLevel())
+		//zapLogger.Info("HandleBatchJSON", zap.String("error", "demarshalling"))
+
+		return nil, err
+	}
+	//fmt.Println(arrLongURL)
+	return arrLongURL, nil
+}
 
 func getFileSettings(shu *ShortURLAttr) {
 	if _, err := filestorage.NewConsumer(shu.Settings.FileStorage); err != nil {

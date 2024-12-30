@@ -22,14 +22,16 @@ type Server struct {
 	service svc
 }
 
-var srv Server
+//var srv Server
 
 func NewServer(service svc) *Server {
-	if srv.service != nil {
+	/*if srv.service != nil {
 		return &srv
-	}
-	srv = Server{service: service}
-	return &srv
+	}*/
+	//srv = Server{service: service}
+	srv := new(Server)
+	srv.service = service
+	return srv
 }
 
 func (s *Server) addLink(w http.ResponseWriter, r *http.Request) {
@@ -83,10 +85,29 @@ func (s *Server) addLinkJSON(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (s *Server) addBatchJSON(w http.ResponseWriter, r *http.Request) {
+	var buf bytes.Buffer
+	_, err := buf.ReadFrom(r.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	s.GetServer().service.(*memory.Service).HandleBatchJSON(buf)
+	//s.GetServer().service.repo.(*memory.ShortURLAttr)
+	//s.GetServer().service.repo.(*memory.ShortURLAttr)
+	//s.GetServer().
+	//fmt.Println(buf.String())
+	/*_, err = api.HandleBatchJSON(buf)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}*/
+}
+
 func (s *Server) GetLongLink(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	//longURL, err := memory.NewInMemoryService().GetLongLink(id)
-	longURL, err := GetServer().service.(*memory.Service).GetLongLink(id)
+	longURL, err := s.GetServer().service.(*memory.Service).GetLongLink(id)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -114,5 +135,6 @@ func (s *Server) SetupRoutes() http.Handler {
 	r.Post("/api/shorten", s.addLinkJSON)
 	r.Get("/{id}", s.GetLongLink)
 	r.Get("/ping", s.CheckPing)
+	r.Post("/api/shorten/batch", s.addBatchJSON)
 	return r
 }
