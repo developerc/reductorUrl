@@ -87,21 +87,22 @@ func (s *Server) addLinkJSON(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) addBatchJSON(w http.ResponseWriter, r *http.Request) {
 	var buf bytes.Buffer
+	var jsonBytes []byte
 	_, err := buf.ReadFrom(r.Body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	s.GetServer().service.(*memory.Service).HandleBatchJSON(buf)
-	//s.GetServer().service.repo.(*memory.ShortURLAttr)
-	//s.GetServer().service.repo.(*memory.ShortURLAttr)
-	//s.GetServer().
-	//fmt.Println(buf.String())
-	/*_, err = api.HandleBatchJSON(buf)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	//jsonBytes, err := s.GetServer().service.(*memory.Service).HandleBatchJSON(buf)
+	if jsonBytes, err = s.GetServer().service.(*memory.Service).HandleBatchJSON(buf); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
-	}*/
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	if _, err := w.Write(jsonBytes); err != nil {
+		return
+	}
 }
 
 func (s *Server) GetLongLink(w http.ResponseWriter, r *http.Request) {

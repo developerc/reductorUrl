@@ -17,6 +17,11 @@ type ArrLongURL struct {
 	OriginalURL   string `json:"original_url"`
 }
 
+type ArrShortURL struct {
+	CorellationId string `json:"correlation_id"`
+	ShortURL      string `json:"short_url"`
+}
+
 func listLongURL(buf bytes.Buffer) ([]ArrLongURL, error) {
 	arrLongURL := make([]ArrLongURL, 0)
 	if err := json.Unmarshal(buf.Bytes(), &arrLongURL); err != nil {
@@ -27,6 +32,25 @@ func listLongURL(buf bytes.Buffer) ([]ArrLongURL, error) {
 	}
 	//fmt.Println(arrLongURL)
 	return arrLongURL, nil
+}
+
+func (s Service) handleArrLongURL(arrLongURL []ArrLongURL) ([]byte, error) {
+	arrShortURL := make([]ArrShortURL, 0)
+	for _, longURL := range arrLongURL {
+		URL, err := s.AddLink(longURL.OriginalURL)
+		if err != nil {
+			return nil, err
+		}
+		shortURL := ArrShortURL{CorellationId: longURL.CorellationId, ShortURL: URL}
+		arrShortURL = append(arrShortURL, shortURL)
+	}
+	//fmt.Println(arrShortURL)
+	jsonBytes, err := json.Marshal(arrShortURL)
+	if err != nil {
+		return nil, err
+	}
+	//fmt.Println(string(jsonBytes))
+	return jsonBytes, nil
 }
 
 func getFileSettings(shu *ShortURLAttr) {

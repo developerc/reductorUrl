@@ -3,7 +3,6 @@ package memory
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"log"
 
 	//"math"
@@ -26,7 +25,7 @@ var service Service
 
 //var shu *ShortURLAttr
 
-func (s Service) AddLink(link string) (string, error) {
+func (s *Service) AddLink(link string) (string, error) {
 	s.IncrCounter()
 	switch s.repo.(*ShortURLAttr).Settings.TypeStorage {
 	case "FileStorage":
@@ -63,21 +62,26 @@ func (s Service) GetLongLink(id string) (string, error) {
 	return longURL, nil
 }
 
-func (s Service) HandleBatchJSON(buf bytes.Buffer) {
+func (s Service) HandleBatchJSON(buf bytes.Buffer) ([]byte, error) {
 	arrLongURL, err := listLongURL(buf)
 	if err != nil {
 		log.Println(err)
-		return
+		return nil, err
 	}
-	fmt.Println(arrLongURL)
+	//fmt.Println(arrLongURL)
+
 	//проверка на нулевую длину arrLongURL
+	if len(arrLongURL) == 0 {
+		return nil, errors.New("error: length array is zero")
+	}
 
+	jsonBytes, err := s.handleArrLongURL(arrLongURL)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	return jsonBytes, nil
 }
-
-/*func (s Service) GetDSN() (string, error) {
-	dsn := s.repo.(*ShortURLAttr).Settings.DBStorage
-	return dsn, nil
-}*/
 
 func NewInMemoryService() *Service {
 	if service.repo != nil {
@@ -96,28 +100,6 @@ func NewInMemoryService() *Service {
 		//db.CreateTable()
 	}
 
-	/*if _, err := filestorage.NewConsumer(shu.Settings.FileStorage); err != nil {
-		log.Println(err)
-	}
-	consumer, err := filestorage.NewConsumer(shu.Settings.FileStorage)
-	if err != nil {
-		log.Println(err)
-	}
-	events, err := consumer.ListEvents()
-	if err != nil {
-		log.Println(err)
-	}
-	for _, event := range events {
-		if event.UUID > math.MaxInt32 {
-			event.UUID = math.MaxInt32
-		}
-		shu.MapURL[int(event.UUID)] = event.OriginalURL
-	}
-	shu.Cntr = len(events)
-
-	if _, err := filestorage.NewProducer(shu.Settings.FileStorage); err != nil {
-		log.Println(err)
-	}*/
 	service = Service{repo: shu}
 	//service := new(Service)
 	//service.repo = shu
