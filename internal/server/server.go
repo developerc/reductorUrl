@@ -2,7 +2,10 @@ package server
 
 import (
 	"bytes"
+	"errors"
+	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"time"
 
@@ -12,6 +15,8 @@ import (
 	"github.com/developerc/reductorUrl/internal/service/memory"
 	"github.com/go-chi/chi/v5"
 	m "github.com/go-chi/chi/v5/middleware"
+	"github.com/jackc/pgerrcode"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 type svc interface {
@@ -42,7 +47,25 @@ func (s *Server) addLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if shortURL, err = s.service.AddLink(string(body)); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgerrcode.IsIntegrityConstraintViolation(pgErr.Code) && pgErr.ConstraintName == "must_be_different" {
+			log.Println("Такой оригинальный URL уже существует")
+			shortURL, err := s.GetServer().service.(*memory.Service).GetShortByOriginalURL(string(body))
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			fmt.Println(shortURL)
+			w.Header().Set("Content-Type", "text/plain")
+			w.WriteHeader(http.StatusConflict)
+			if _, err := w.Write([]byte(shortURL)); err != nil {
+				return
+			}
+			//http.Error(w, err.Error(), http.StatusConflict)
+		} else {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+
 		return
 	}
 
@@ -70,7 +93,31 @@ func (s *Server) addLinkJSON(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if shortURL, err = s.service.AddLink(longURL); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgerrcode.IsIntegrityConstraintViolation(pgErr.Code) && pgErr.ConstraintName == "must_be_different" {
+			log.Println("Такой оригинальный URL уже существует")
+			shortURL, err := s.GetServer().service.(*memory.Service).GetShortByOriginalURL(longURL)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			fmt.Println(shortURL)
+			jsonBytes, err := api.ShortToJSON(shortURL)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusConflict)
+			if _, err := w.Write(jsonBytes); err != nil {
+				return
+			}
+		} else {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+
+		//log.Println("error from addLinkJSON: ", err)
+
 		return
 	}
 	if jsonBytes, err = api.ShortToJSON(shortURL); err != nil {

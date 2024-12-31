@@ -26,18 +26,29 @@ var service Service
 //var shu *ShortURLAttr
 
 func (s *Service) AddLink(link string) (string, error) {
+	var shURL string
+	var err error
 	s.IncrCounter()
 	switch s.repo.(*ShortURLAttr).Settings.TypeStorage {
+	case "MemoryStorage":
+		{
+			s.AddLongURL(s.GetCounter(), link)
+			return s.GetAdresBase() + "/" + strconv.Itoa(s.GetCounter()), nil
+		}
+
 	case "FileStorage":
 		{
-			if err := s.repo.(*ShortURLAttr).addToFileStorage(s.GetCounter(), link); err != nil {
+			if err = s.repo.(*ShortURLAttr).addToFileStorage(s.GetCounter(), link); err != nil {
 				return "", err
 			}
+			s.AddLongURL(s.GetCounter(), link)
+			return s.GetAdresBase() + "/" + strconv.Itoa(s.GetCounter()), nil
 		}
 	case "DBStorage":
 		{
-			//log.Println("AddLink for DBStorage")
-			if err := insertRecord(s.repo.(*ShortURLAttr), link); err != nil {
+			//log.Println("link: ", link)
+			shURL, err = insertRecord(s.repo.(*ShortURLAttr), link)
+			if err != nil {
 				return "", err
 			}
 			// для DBStorage
@@ -45,20 +56,52 @@ func (s *Service) AddLink(link string) (string, error) {
 		}
 	}
 
-	s.AddLongURL(s.GetCounter(), link)
-	return s.GetAdresBase() + "/" + strconv.Itoa(s.GetCounter()), nil
+	//s.AddLongURL(s.GetCounter(), link)
+	//return s.GetAdresBase() + "/" + strconv.Itoa(s.GetCounter()), nil
+	return s.GetAdresBase() + "/" + shURL, nil
+}
+
+func (s Service) GetShortByOriginalURL(originalURL string) (string, error) {
+	shortURL, err := getShortByOriginalURL(s.repo.(*ShortURLAttr), originalURL)
+	return s.GetAdresBase() + "/" + shortURL, err
 }
 
 func (s Service) GetLongLink(id string) (string, error) {
+	var longURL string
 	i, err := strconv.Atoi(id)
 	if err != nil {
 		log.Println(err)
 		return "", err
 	}
-	longURL, err := s.GetLongURL(i)
+	switch s.repo.(*ShortURLAttr).Settings.TypeStorage {
+	case "MemoryStorage":
+		{
+			longURL, err = s.GetLongURL(i)
+			if err != nil {
+				return "", err
+			}
+			//return longURL, nil
+		}
+	case "FileStorage":
+		{
+			longURL, err = s.GetLongURL(i)
+			if err != nil {
+				return "", err
+			}
+			//return longURL, nil
+		}
+	case "DBStorage":
+		{
+			longURL, err = getLongByUUID(s.repo.(*ShortURLAttr), i)
+			if err != nil {
+				return "", err
+			}
+		}
+	}
+	/*longURL, err := s.GetLongURL(i)
 	if err != nil {
 		return "", err
-	}
+	}*/
 	return longURL, nil
 }
 

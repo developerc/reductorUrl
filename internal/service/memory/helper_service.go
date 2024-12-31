@@ -5,11 +5,16 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"strconv"
+
+	//"errors"
 	"log"
 	"math"
 	"time"
 
 	filestorage "github.com/developerc/reductorUrl/internal/service/file_storage"
+	//"github.com/jackc/pgerrcode"
+	//"github.com/jackc/pgx/v5/pgconn"
 )
 
 type ArrLongURL struct {
@@ -88,7 +93,7 @@ func createTable(shu *ShortURLAttr) error {
 	defer db.Close()
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
-	_, err = db.ExecContext(ctx, "CREATE TABLE IF NOT EXISTS url_table( uuid serial primary key, short_url INT, original_url TEXT)")
+	_, err = db.ExecContext(ctx, "CREATE TABLE IF NOT EXISTS url_table( uuid serial primary key, original_url TEXT CONSTRAINT must_be_different UNIQUE)")
 	if err != nil {
 		log.Println(err)
 		return err
@@ -100,7 +105,7 @@ func createTable(shu *ShortURLAttr) error {
 	shu.Cntr = count
 	//log.Println("Cntr: ", shu.Cntr)
 	var rows *sql.Rows
-	rows, err = db.QueryContext(ctx, "SELECT short_url, original_url FROM url_table")
+	rows, err = db.QueryContext(ctx, "SELECT uuid, original_url FROM url_table")
 	if err != nil {
 		log.Println(err)
 		return err
@@ -127,23 +132,77 @@ func createTable(shu *ShortURLAttr) error {
 	return nil
 }
 
-func insertRecord(shu *ShortURLAttr, originalURL string) error {
+func insertRecord(shu *ShortURLAttr, originalURL string) (string, error) {
 	//shu.Cntr++
-	shu.MapURL[shu.Cntr] = originalURL
+	//shu.MapURL[shu.Cntr] = originalURL
 	dsn := shu.Settings.DBStorage
 	db, err := sql.Open("pgx", dsn)
 	if err != nil {
 		log.Println(err)
-		return err
+		return "", err
 	}
 	defer db.Close()
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
-	_, err = db.ExecContext(ctx, "insert into url_table(short_url, original_url) values ($1, $2)", shu.Cntr, originalURL)
+	_, err = db.ExecContext(ctx, "insert into url_table( original_url) values ($1)", originalURL)
+
 	if err != nil {
 		log.Println(err)
-		return err
+		/*var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgerrcode.IsIntegrityConstraintViolation(pgErr.Code) && pgErr.ConstraintName == "must_be_different" {
+			log.Println("Такой оригинальный URL уже существует")
+		}*/
+		return "", err
 	}
+
+	shURL, err := getShortByOriginalURL(shu, originalURL)
+	if err != nil {
+		log.Println(err)
+		return "", err
+	}
+	//log.Println(shURL)
+
 	log.Println("Record inserted")
-	return nil
+	return shURL, nil
+}
+
+func getShortByOriginalURL(shu *ShortURLAttr, originalURL string) (string, error) {
+	//shu.MapURL[shu.Cntr] = originalURL
+	dsn := shu.Settings.DBStorage
+	db, err := sql.Open("pgx", dsn)
+	if err != nil {
+		log.Println(err)
+		return "", err
+	}
+	defer db.Close()
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	row := db.QueryRowContext(ctx, "SELECT uuid FROM url_table WHERE original_url=$1", originalURL)
+	var shURL int
+	err = row.Scan(&shURL)
+	if err != nil {
+		return "", err
+	}
+	//fmt.Println(shURL, origURL)
+	return strconv.Itoa(shURL), err
+}
+
+func getLongByUUID(shu *ShortURLAttr, uuid int) (string, error) {
+	//shu.MapURL[shu.Cntr] = originalURL
+	dsn := shu.Settings.DBStorage
+	db, err := sql.Open("pgx", dsn)
+	if err != nil {
+		log.Println(err)
+		return "", err
+	}
+	defer db.Close()
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	row := db.QueryRowContext(ctx, "SELECT original_url FROM url_table WHERE uuid=$1", uuid)
+	var longURL string
+	err = row.Scan(&longURL)
+	if err != nil {
+		return "", err
+	}
+	return longURL, nil
 }
