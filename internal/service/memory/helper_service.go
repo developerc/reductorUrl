@@ -39,7 +39,7 @@ func listLongURL(buf bytes.Buffer) ([]ArrLongURL, error) {
 	return arrLongURL, nil
 }
 
-func (s Service) handleArrLongURL(arrLongURL []ArrLongURL) ([]byte, error) {
+func (s *Service) handleArrLongURL(arrLongURL []ArrLongURL) ([]byte, error) {
 	arrShortURL := make([]ArrShortURL, 0)
 	for _, longURL := range arrLongURL {
 		URL, err := s.AddLink(longURL.OriginalURL)

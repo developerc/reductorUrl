@@ -61,12 +61,12 @@ func (s *Service) AddLink(link string) (string, error) {
 	return s.GetAdresBase() + "/" + shURL, nil
 }
 
-func (s Service) GetShortByOriginalURL(originalURL string) (string, error) {
+func (s *Service) GetShortByOriginalURL(originalURL string) (string, error) {
 	shortURL, err := getShortByOriginalURL(s.repo.(*ShortURLAttr), originalURL)
 	return s.GetAdresBase() + "/" + shortURL, err
 }
 
-func (s Service) GetLongLink(id string) (string, error) {
+func (s *Service) GetLongLink(id string) (string, error) {
 	var longURL string
 	i, err := strconv.Atoi(id)
 	if err != nil {
@@ -105,7 +105,7 @@ func (s Service) GetLongLink(id string) (string, error) {
 	return longURL, nil
 }
 
-func (s Service) HandleBatchJSON(buf bytes.Buffer) ([]byte, error) {
+func (s *Service) HandleBatchJSON(buf bytes.Buffer) ([]byte, error) {
 	arrLongURL, err := listLongURL(buf)
 	if err != nil {
 		log.Println(err)
@@ -124,6 +124,10 @@ func (s Service) HandleBatchJSON(buf bytes.Buffer) ([]byte, error) {
 		return nil, err
 	}
 	return jsonBytes, nil
+}
+
+func (s *Service) GetService() *Service {
+	return s
 }
 
 func NewInMemoryService() *Service {
