@@ -25,9 +25,25 @@ func TestPost(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, "http://localhost:8080/1", shortURL)
 	})
+
+	t.Run("#2_PostJSONTest", func(t *testing.T) {
+		longURL := strings.NewReader("{\"url\": \"http://blabla.ru\"}")
+		request := httptest.NewRequest(http.MethodPost, "/api/shorten", longURL)
+		w := httptest.NewRecorder()
+		srv.addLinkJSON(w, request)
+		res := w.Result()
+		res.Body.Close()
+		assert.Equal(t, 201, res.StatusCode)
+	})
+
+	t.Run("#3_GetTest", func(t *testing.T) {
+		resp, err := svc.GetLongLink("1")
+		require.NoError(t, err)
+		assert.Equal(t, "http://blabla.ru", resp)
+	})
 }
 
-func TestPostJSON(t *testing.T) {
+/*func TestPostJSON(t *testing.T) {
 	svc, err := memory.NewInMemoryService()
 	require.NoError(t, err)
 	srv, err := NewServer(svc)
@@ -59,4 +75,4 @@ func TestGet(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, "http://blabla.ru", resp)
 	})
-}
+}*/
