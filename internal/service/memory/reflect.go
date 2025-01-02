@@ -4,24 +4,16 @@ import (
 	"errors"
 	"log"
 	"reflect"
-
-	"github.com/developerc/reductorUrl/internal/config"
 )
 
-type ShortURLAttr struct {
-	Settings config.ServerSettings
-	Cntr     int
-	MapURL   map[int]string
-}
-
-func (s Service) GetCounter() int {
+func (s *Service) GetCounter() int {
 	val := reflect.ValueOf(s.repo)
 	intCntr := val.Elem().FieldByName("Cntr").Int()
 
 	return int(intCntr)
 }
 
-func (s Service) IncrCounter() {
+func (s *Service) IncrCounter() {
 	val := reflect.ValueOf(s.repo)
 	field := val.Elem().FieldByName("Cntr")
 	intCntr := field.Int()
@@ -31,14 +23,24 @@ func (s Service) IncrCounter() {
 	}
 }
 
-func (s Service) GetAdresBase() string {
+func (s *Service) GetAdresBase() string {
 	val := reflect.ValueOf(s.repo)
 	settings := val.Elem().FieldByName("Settings")
 	adresBase := settings.FieldByName("AdresBase")
 	return adresBase.String()
 }
 
-func (s Service) GetLongURL(i int) (string, error) {
+func (s *Service) GetDSN() (string, error) {
+	val := reflect.ValueOf(s.repo)
+	settings := val.Elem().FieldByName("Settings")
+	dsn := settings.FieldByName("DBStorage").String()
+	if dsn == "" {
+		return "", errors.New("get wrong DSN")
+	}
+	return dsn, nil
+}
+
+func (s *Service) GetLongURL(i int) (string, error) {
 	val := reflect.ValueOf(s.repo)
 	mapURL := val.Elem().FieldByName("MapURL")
 	if mapURL.Kind() != reflect.Map {
@@ -47,7 +49,7 @@ func (s Service) GetLongURL(i int) (string, error) {
 	return mapURL.MapIndex(reflect.ValueOf(i)).String(), nil
 }
 
-func (s Service) AddLongURL(i int, link string) {
+func (s *Service) AddLongURL(i int, link string) {
 	val := reflect.ValueOf(s.repo)
 	mapURL := val.Elem().FieldByName("MapURL")
 	if mapURL.Kind() != reflect.Map {
@@ -61,16 +63,21 @@ func (s Service) AddLongURL(i int, link string) {
 	mapURL.SetMapIndex(reflect.ValueOf(i), reflect.ValueOf(link))
 }
 
-func (s Service) GetAdresRun() string {
+func (s *Service) GetAdresRun() string {
 	val := reflect.ValueOf(s.repo)
 	settings := val.Elem().FieldByName("Settings")
 	adresBase := settings.FieldByName("AdresRun")
 	return adresBase.String()
 }
 
-func (s Service) GetLogLevel() string {
+func (s *Service) GetLogLevel() string {
 	val := reflect.ValueOf(s.repo)
 	settings := val.Elem().FieldByName("Settings")
 	adresBase := settings.FieldByName("LogLevel")
 	return adresBase.String()
+}
+
+func (s *Service) GetShortURLAttr() *ShortURLAttr {
+	val := reflect.ValueOf(s.repo)
+	return (*ShortURLAttr)(val.UnsafePointer())
 }
