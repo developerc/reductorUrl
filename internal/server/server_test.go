@@ -13,8 +13,10 @@ import (
 )
 
 func TestPost(t *testing.T) {
-	svc := memory.NewInMemoryService()
-	srv := NewServer(svc)
+	svc, err := memory.NewInMemoryService()
+	require.NoError(t, err)
+	srv, err := NewServer(svc)
+	require.NoError(t, err)
 	tsrv := httptest.NewServer(srv.SetupRoutes())
 	defer tsrv.Close()
 
@@ -26,8 +28,10 @@ func TestPost(t *testing.T) {
 }
 
 func TestPostJSON(t *testing.T) {
-	svc := memory.NewInMemoryService()
-	srv := NewServer(svc)
+	svc, err := memory.NewInMemoryService()
+	require.NoError(t, err)
+	srv, err := NewServer(svc)
+	require.NoError(t, err)
 	tsrv := httptest.NewServer(srv.SetupRoutes())
 	defer tsrv.Close()
 
@@ -43,8 +47,10 @@ func TestPostJSON(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
-	svc := memory.NewInMemoryService()
-	srv := NewServer(svc)
+	svc, err := memory.NewInMemoryService()
+	require.NoError(t, err)
+	srv, err := NewServer(svc)
+	require.NoError(t, err)
 	tsrv := httptest.NewServer(srv.SetupRoutes())
 	defer tsrv.Close()
 

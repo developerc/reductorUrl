@@ -1,6 +1,6 @@
 package dbstorage
 
-import (
+/*import (
 	"context"
 	"database/sql"
 	"time"
@@ -12,12 +12,16 @@ import (
 )
 
 func CheckPing() error {
-	zapLogger, err := logger.Initialize(memory.NewInMemoryService().GetLogLevel())
+	zapLogger, err := logger.Initialize("Info")
 	if err != nil {
 		return err
 	}
 
-	service := memory.NewInMemoryService()
+	service, err := memory.NewInMemoryService()
+	if err != nil {
+		zapLogger.Info("CheckPing", zap.String("error", err.Error()))
+		return err
+	}
 	dsn, err := service.GetDSN()
 	if err != nil {
 		zapLogger.Info("CheckPing", zap.String("error", err.Error()))
@@ -36,7 +40,7 @@ func CheckPing() error {
 		return err
 	}
 	return nil
-}
+}*/
 
 /*func CreateTable() error {
 	zapLogger, err := logger.Initialize(memory.NewInMemoryService().GetLogLevel())

@@ -3,7 +3,6 @@ package server
 import (
 	"net/http"
 
-	"github.com/developerc/reductorUrl/internal/logger"
 	"github.com/developerc/reductorUrl/internal/service/memory"
 	"go.uber.org/zap"
 )
@@ -11,16 +10,22 @@ import (
 //var server *Server
 
 func Run() error {
-	service := memory.NewInMemoryService()
-
-	zapLogger, err := logger.Initialize(service.GetLogLevel())
+	service, err := memory.NewInMemoryService()
+	if err != nil {
+		return err
+	}
+	/*zapLogger, err := logger.Initialize(service.GetLogLevel())
 	if err != nil {
 		return err
 	}
 
-	zapLogger.Info("Running server", zap.String("address", service.GetAdresRun()))
+	zapLogger.Info("Running server", zap.String("address", service.GetAdresRun()))*/
 
-	server := NewServer(service)
+	server, err := NewServer(service)
+	if err != nil {
+		return err
+	}
+	server.logger.Info("Running server", zap.String("address", service.GetAdresRun()))
 
 	routes := server.SetupRoutes()
 	err = http.ListenAndServe(service.GetAdresRun(), routes) //nolint:gosec // unnessesary error checking

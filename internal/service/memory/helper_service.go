@@ -13,6 +13,7 @@ import (
 	"time"
 
 	filestorage "github.com/developerc/reductorUrl/internal/service/file_storage"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	//"github.com/jackc/pgerrcode"
 	//"github.com/jackc/pgx/v5/pgconn"
 )
@@ -205,4 +206,22 @@ func getLongByUUID(shu *ShortURLAttr, uuid int) (string, error) {
 		return "", err
 	}
 	return longURL, nil
+}
+
+func (s *Service) CheckPing() error {
+	dsn, err := s.GetDSN()
+	if err != nil {
+		return err
+	}
+	db, err := sql.Open("pgx", dsn)
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+	if err = db.PingContext(ctx); err != nil {
+		return err
+	}
+	return nil
 }

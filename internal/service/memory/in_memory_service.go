@@ -3,13 +3,16 @@ package memory
 import (
 	"bytes"
 	"errors"
-	"log"
+
+	//"log"
 
 	//"math"
 	"strconv"
 
 	"github.com/developerc/reductorUrl/internal/config"
+	"github.com/developerc/reductorUrl/internal/logger"
 	filestorage "github.com/developerc/reductorUrl/internal/service/file_storage"
+	"go.uber.org/zap"
 	//db "github.com/developerc/reductorUrl/internal/service/db_storage"
 )
 
@@ -18,10 +21,11 @@ type repository interface {
 }
 
 type Service struct {
-	repo repository
+	repo   repository
+	logger *zap.Logger
 }
 
-var service Service
+//var service Service
 
 //var shu *ShortURLAttr
 
@@ -70,7 +74,7 @@ func (s *Service) GetLongLink(id string) (string, error) {
 	var longURL string
 	i, err := strconv.Atoi(id)
 	if err != nil {
-		log.Println(err)
+		//log.Println(err)
 		return "", err
 	}
 	switch s.repo.(*ShortURLAttr).Settings.TypeStorage {
@@ -108,7 +112,7 @@ func (s *Service) GetLongLink(id string) (string, error) {
 func (s *Service) HandleBatchJSON(buf bytes.Buffer) ([]byte, error) {
 	arrLongURL, err := listLongURL(buf)
 	if err != nil {
-		log.Println(err)
+		//log.Println(err)
 		return nil, err
 	}
 	//fmt.Println(arrLongURL)
@@ -120,21 +124,19 @@ func (s *Service) HandleBatchJSON(buf bytes.Buffer) ([]byte, error) {
 
 	jsonBytes, err := s.handleArrLongURL(arrLongURL)
 	if err != nil {
-		log.Println(err)
+		//log.Println(err)
 		return nil, err
 	}
 	return jsonBytes, nil
 }
 
-func (s *Service) GetService() *Service {
-	return s
-}
-
-func NewInMemoryService() *Service {
-	if service.repo != nil {
-		return &service
-	}
+func NewInMemoryService() (*Service, error) {
+	var err error
+	/*if service.repo != nil {
+		return &service, err
+	}*/
 	//shu = ShortURLAttr{}
+
 	shu := new(ShortURLAttr)
 	shu.Settings = *config.NewServerSettings()
 	shu.MapURL = make(map[int]string)
@@ -147,10 +149,12 @@ func NewInMemoryService() *Service {
 		//db.CreateTable()
 	}
 
-	service = Service{repo: shu}
+	service := Service{repo: shu}
+	service.logger, err = logger.Initialize(service.GetLogLevel())
+	//srv.logger, err = logger.Initialize(service.(*memory.Service).GetLogLevel())
 	//service := new(Service)
 	//service.repo = shu
-	return &service
+	return &service, err
 }
 
 func (shu *ShortURLAttr) AddLink(link string) (string, error) {

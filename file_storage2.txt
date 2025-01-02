@@ -10,3 +10,13 @@
 {"uuid":10,"short_url":"10","original_url":"https://blabla12.ru"}
 {"uuid":11,"short_url":"11","original_url":"https://blabla13.ru"}
 {"uuid":12,"short_url":"12","original_url":"https://blabla14.ru"}
+{"uuid":13,"short_url":"13","original_url":"http://blabla.ru"}
+{"uuid":14,"short_url":"14","original_url":"http://blabla2.ru"}
+{"uuid":15,"short_url":"15","original_url":"https://blabla12.ru"}
+{"uuid":16,"short_url":"16","original_url":"https://blabla13.ru"}
+{"uuid":17,"short_url":"17","original_url":"https://blabla14.ru"}
+{"uuid":18,"short_url":"18","original_url":"http://blabla.ru"}
+{"uuid":19,"short_url":"19","original_url":"http://blabla2.ru"}
+{"uuid":20,"short_url":"20","original_url":"http://blabla40.ru"}
+{"uuid":21,"short_url":"21","original_url":"http://blabla41.ru"}
+{"uuid":22,"short_url":"22","original_url":"http://blabla42.ru"}

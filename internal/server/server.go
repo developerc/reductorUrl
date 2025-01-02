@@ -3,20 +3,24 @@ package server
 import (
 	"bytes"
 	"errors"
-	"fmt"
+
+	//"fmt"
 	"io"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/developerc/reductorUrl/internal/api"
+	"github.com/developerc/reductorUrl/internal/logger"
 	"github.com/developerc/reductorUrl/internal/middleware"
-	db "github.com/developerc/reductorUrl/internal/service/db_storage"
+
+	//db "github.com/developerc/reductorUrl/internal/service/db_storage"
 	"github.com/developerc/reductorUrl/internal/service/memory"
 	"github.com/go-chi/chi/v5"
 	m "github.com/go-chi/chi/v5/middleware"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
+	"go.uber.org/zap"
 )
 
 type svc interface {
@@ -25,18 +29,25 @@ type svc interface {
 
 type Server struct {
 	service svc
+	logger  *zap.Logger
 }
 
 //var srv Server
 
-func NewServer(service svc) *Server {
+func NewServer(service svc) (*Server, error) {
 	/*if srv.service != nil {
 		return &srv
 	}*/
 	//srv = Server{service: service}
+	var err error
 	srv := new(Server)
 	srv.service = service
-	return srv
+	srv.logger, err = logger.Initialize(service.(*memory.Service).GetLogLevel())
+	if err != nil {
+		//log.Println(err)
+		return srv, err
+	}
+	return srv, nil
 }
 
 func (s *Server) addLink(w http.ResponseWriter, r *http.Request) {
@@ -55,7 +66,7 @@ func (s *Server) addLink(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			fmt.Println(shortURL)
+			//fmt.Println(shortURL)
 			w.Header().Set("Content-Type", "text/plain")
 			w.WriteHeader(http.StatusConflict)
 			if _, err := w.Write([]byte(shortURL)); err != nil {
@@ -101,7 +112,7 @@ func (s *Server) addLinkJSON(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			fmt.Println(shortURL)
+			//fmt.Println(shortURL)
 			jsonBytes, err := api.ShortToJSON(shortURL)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -166,7 +177,8 @@ func (s *Server) GetLongLink(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) CheckPing(w http.ResponseWriter, r *http.Request) {
-	if db.CheckPing() != nil {
+	//if db.CheckPing() != nil {
+	if s.service.(*memory.Service).CheckPing() != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	} else {
 		w.WriteHeader(http.StatusOK)
