@@ -17,6 +17,7 @@ type ServerSettings struct {
 	DBStorage   string
 }
 
+//gocyclo:ignore
 func NewServerSettings() *ServerSettings {
 	serverSettings := ServerSettings{}
 	serverSettings.TypeStorage = "MemoryStorage"
@@ -58,10 +59,10 @@ func NewServerSettings() *ServerSettings {
 	val, ok = os.LookupEnv("FILE_STORAGE_PATH")
 	if !ok || val == "" {
 		serverSettings.FileStorage = *fileStorage
-		if isFlagPassed("f") && (len(serverSettings.FileStorage) > 0) {
+		if isFlagPassed("f") && (serverSettings.FileStorage != "") {
 			serverSettings.TypeStorage = "FileStorage"
 		}
-		if len(serverSettings.FileStorage) == 0 {
+		if serverSettings.FileStorage == "" {
 			serverSettings.FileStorage = "file_storage.txt"
 		}
 		log.Println("FileStorage from flag:", serverSettings.FileStorage)
@@ -74,7 +75,7 @@ func NewServerSettings() *ServerSettings {
 	val, ok = os.LookupEnv("DATABASE_DSN")
 	if !ok || val == "" {
 		serverSettings.DBStorage = *dbStorage
-		if isFlagPassed("d") && (len(serverSettings.DBStorage) > 0) {
+		if isFlagPassed("d") && (serverSettings.DBStorage != "") {
 			serverSettings.TypeStorage = "DBStorage"
 		}
 		log.Println("DbStorage from flag:", serverSettings.DBStorage)

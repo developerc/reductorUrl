@@ -24,29 +24,25 @@ type Service struct {
 func (s *Service) AddLink(link string) (string, error) {
 	var shURL string
 	var err error
+	const memoryStorage string = "MemoryStorage"
+	const fileStorage string = "FileStorage"
+	const dbStorage string = "DBStorage"
 
 	s.IncrCounter()
 	switch s.GetShortURLAttr().Settings.TypeStorage {
-	case "MemoryStorage":
-		{
-			s.AddLongURL(s.GetCounter(), link)
-			return s.GetAdresBase() + "/" + strconv.Itoa(s.GetCounter()), nil
+	case memoryStorage:
+		s.AddLongURL(s.GetCounter(), link)
+		return s.GetAdresBase() + "/" + strconv.Itoa(s.GetCounter()), nil
+	case fileStorage:
+		if err := s.GetShortURLAttr().addToFileStorage(s.GetCounter(), link); err != nil {
+			return "", err
 		}
-
-	case "FileStorage":
-		{
-			if err = s.GetShortURLAttr().addToFileStorage(s.GetCounter(), link); err != nil {
-				return "", err
-			}
-			s.AddLongURL(s.GetCounter(), link)
-			return s.GetAdresBase() + "/" + strconv.Itoa(s.GetCounter()), nil
-		}
-	case "DBStorage":
-		{
-			shURL, err = insertRecord(s.GetShortURLAttr(), link)
-			if err != nil {
-				return "", err
-			}
+		s.AddLongURL(s.GetCounter(), link)
+		return s.GetAdresBase() + "/" + strconv.Itoa(s.GetCounter()), nil
+	case dbStorage:
+		shURL, err = insertRecord(s.GetShortURLAttr(), link)
+		if err != nil {
+			return "", err
 		}
 	}
 	return s.GetAdresBase() + "/" + shURL, nil
@@ -65,25 +61,19 @@ func (s *Service) GetLongLink(id string) (string, error) {
 	}
 	switch s.GetShortURLAttr().Settings.TypeStorage {
 	case "MemoryStorage":
-		{
-			longURL, err = s.GetLongURL(i)
-			if err != nil {
-				return "", err
-			}
+		longURL, err = s.GetLongURL(i)
+		if err != nil {
+			return "", err
 		}
 	case "FileStorage":
-		{
-			longURL, err = s.GetLongURL(i)
-			if err != nil {
-				return "", err
-			}
+		longURL, err = s.GetLongURL(i)
+		if err != nil {
+			return "", err
 		}
 	case "DBStorage":
-		{
-			longURL, err = getLongByUUID(s.GetShortURLAttr(), i)
-			if err != nil {
-				return "", err
-			}
+		longURL, err = getLongByUUID(s.GetShortURLAttr(), i)
+		if err != nil {
+			return "", err
 		}
 	}
 	return longURL, nil
@@ -118,7 +108,9 @@ func NewInMemoryService() (*Service, error) {
 			log.Println(err)
 		}
 	case "DBStorage":
-		createTable(shu)
+		if err := createTable(shu); err != nil {
+			log.Println(err)
+		}
 	}
 
 	service := Service{repo: shu}
@@ -139,6 +131,8 @@ func (shu *ShortURLAttr) addToFileStorage(cntr int, link string) error {
 	if err != nil {
 		return err
 	}
-	producer.WriteEvent(&event)
+	if err := producer.WriteEvent(&event); err != nil {
+		log.Println(err)
+	}
 	return nil
 }

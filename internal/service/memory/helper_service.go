@@ -88,15 +88,19 @@ func createTable(shu *ShortURLAttr) error {
 		return err
 	}
 	defer db.Close()
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	const duration uint = 20
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(duration)*time.Second)
 	defer cancel()
-	_, err = db.ExecContext(ctx, "CREATE TABLE IF NOT EXISTS url_table( uuid serial primary key, original_url TEXT CONSTRAINT must_be_different UNIQUE)")
+	const cr string = "CREATE TABLE IF NOT EXISTS url_table( uuid serial primary key, original_url TEXT CONSTRAINT must_be_different UNIQUE)"
+	_, err = db.ExecContext(ctx, cr)
 	if err != nil {
 		return err
 	}
 
 	var count int
-	db.QueryRowContext(ctx, "SELECT COUNT(*) FROM url_table").Scan(&count)
+	if err := db.QueryRowContext(ctx, "SELECT COUNT(*) FROM url_table").Scan(&count); err != nil {
+		return err
+	}
 	shu.Cntr = count
 	var rows *sql.Rows
 	rows, err = db.QueryContext(ctx, "SELECT uuid, original_url FROM url_table")
@@ -192,7 +196,7 @@ func (s *Service) CheckPing() error {
 	defer db.Close()
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
-	if err = db.PingContext(ctx); err != nil {
+	if err := db.PingContext(ctx); err != nil {
 		return err
 	}
 	return nil

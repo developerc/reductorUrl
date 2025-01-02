@@ -34,7 +34,7 @@ func (s *Service) GetDSN() (string, error) {
 	val := reflect.ValueOf(s.repo)
 	settings := val.Elem().FieldByName("Settings")
 	dsn := settings.FieldByName("DBStorage").String()
-	if len(dsn) == 0 {
+	if dsn == "" {
 		return "", errors.New("get wrong DSN")
 	}
 	return dsn, nil
