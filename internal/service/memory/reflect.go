@@ -4,14 +4,7 @@ import (
 	"errors"
 	"log"
 	"reflect"
-	//"github.com/developerc/reductorUrl/internal/config"
 )
-
-/*type ShortURLAttr struct {
-	Settings config.ServerSettings
-	Cntr     int
-	MapURL   map[int]string
-}*/
 
 func (s *Service) GetCounter() int {
 	val := reflect.ValueOf(s.repo)

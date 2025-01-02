@@ -3,19 +3,13 @@ package memory
 import (
 	"bytes"
 	"errors"
-
-	//"fmt"
-
-	//"log"
-
-	//"math"
+	"log"
 	"strconv"
 
 	"github.com/developerc/reductorUrl/internal/config"
 	"github.com/developerc/reductorUrl/internal/logger"
 	filestorage "github.com/developerc/reductorUrl/internal/service/file_storage"
 	"go.uber.org/zap"
-	//db "github.com/developerc/reductorUrl/internal/service/db_storage"
 )
 
 type repository interface {
@@ -27,16 +21,10 @@ type Service struct {
 	logger *zap.Logger
 }
 
-//var service Service
-
-//var shu *ShortURLAttr
-
 func (s *Service) AddLink(link string) (string, error) {
 	var shURL string
 	var err error
-	//---
-	//fmt.Println("s.GetShortURLAttr().Settings: ", s.GetShortURLAttr().Settings)
-	//---
+
 	s.IncrCounter()
 	switch s.GetShortURLAttr().Settings.TypeStorage {
 	case "MemoryStorage":
@@ -55,18 +43,12 @@ func (s *Service) AddLink(link string) (string, error) {
 		}
 	case "DBStorage":
 		{
-			//log.Println("link: ", link)
 			shURL, err = insertRecord(s.GetShortURLAttr(), link)
 			if err != nil {
 				return "", err
 			}
-			// для DBStorage
-			//s.CreateTable()
 		}
 	}
-
-	//s.AddLongURL(s.GetCounter(), link)
-	//return s.GetAdresBase() + "/" + strconv.Itoa(s.GetCounter()), nil
 	return s.GetAdresBase() + "/" + shURL, nil
 }
 
@@ -79,7 +61,6 @@ func (s *Service) GetLongLink(id string) (string, error) {
 	var longURL string
 	i, err := strconv.Atoi(id)
 	if err != nil {
-		//log.Println(err)
 		return "", err
 	}
 	switch s.GetShortURLAttr().Settings.TypeStorage {
@@ -89,7 +70,6 @@ func (s *Service) GetLongLink(id string) (string, error) {
 			if err != nil {
 				return "", err
 			}
-			//return longURL, nil
 		}
 	case "FileStorage":
 		{
@@ -97,7 +77,6 @@ func (s *Service) GetLongLink(id string) (string, error) {
 			if err != nil {
 				return "", err
 			}
-			//return longURL, nil
 		}
 	case "DBStorage":
 		{
@@ -107,29 +86,20 @@ func (s *Service) GetLongLink(id string) (string, error) {
 			}
 		}
 	}
-	/*longURL, err := s.GetLongURL(i)
-	if err != nil {
-		return "", err
-	}*/
 	return longURL, nil
 }
 
 func (s *Service) HandleBatchJSON(buf bytes.Buffer) ([]byte, error) {
 	arrLongURL, err := listLongURL(buf)
 	if err != nil {
-		//log.Println(err)
 		return nil, err
 	}
-	//fmt.Println(arrLongURL)
-
-	//проверка на нулевую длину arrLongURL
 	if len(arrLongURL) == 0 {
 		return nil, errors.New("error: length array is zero")
 	}
 
 	jsonBytes, err := s.handleArrLongURL(arrLongURL)
 	if err != nil {
-		//log.Println(err)
 		return nil, err
 	}
 	return jsonBytes, nil
@@ -137,10 +107,6 @@ func (s *Service) HandleBatchJSON(buf bytes.Buffer) ([]byte, error) {
 
 func NewInMemoryService() (*Service, error) {
 	var err error
-	/*if service.repo != nil {
-		return &service, err
-	}*/
-	//shu = ShortURLAttr{}
 
 	shu := new(ShortURLAttr)
 	shu.Settings = *config.NewServerSettings()
@@ -148,17 +114,15 @@ func NewInMemoryService() (*Service, error) {
 
 	switch shu.Settings.TypeStorage {
 	case "FileStorage":
-		getFileSettings(shu)
+		if err := getFileSettings(shu); err != nil {
+			log.Println(err)
+		}
 	case "DBStorage":
 		createTable(shu)
-		//db.CreateTable()
 	}
 
 	service := Service{repo: shu}
 	service.logger, err = logger.Initialize(service.GetLogLevel())
-	//srv.logger, err = logger.Initialize(service.(*memory.Service).GetLogLevel())
-	//service := new(Service)
-	//service.repo = shu
 	return &service, err
 }
 

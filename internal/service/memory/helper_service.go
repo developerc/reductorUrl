@@ -5,18 +5,13 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"strconv"
-
-	//"errors"
-	"log"
 	"math"
+	"strconv"
 	"time"
 
 	"github.com/developerc/reductorUrl/internal/config"
 	filestorage "github.com/developerc/reductorUrl/internal/service/file_storage"
 	_ "github.com/jackc/pgx/v5/stdlib"
-	//"github.com/jackc/pgerrcode"
-	//"github.com/jackc/pgx/v5/pgconn"
 )
 
 type ShortURLAttr struct {
@@ -38,12 +33,8 @@ type ArrShortURL struct {
 func listLongURL(buf bytes.Buffer) ([]ArrLongURL, error) {
 	arrLongURL := make([]ArrLongURL, 0)
 	if err := json.Unmarshal(buf.Bytes(), &arrLongURL); err != nil {
-		//zapLogger, err := logger.Initialize(memory.NewInMemoryService().GetLogLevel())
-		//zapLogger.Info("HandleBatchJSON", zap.String("error", "demarshalling"))
-
 		return nil, err
 	}
-	//fmt.Println(arrLongURL)
 	return arrLongURL, nil
 }
 
@@ -57,26 +48,24 @@ func (s *Service) handleArrLongURL(arrLongURL []ArrLongURL) ([]byte, error) {
 		shortURL := ArrShortURL{CorellationID: longURL.CorellationID, ShortURL: URL}
 		arrShortURL = append(arrShortURL, shortURL)
 	}
-	//fmt.Println(arrShortURL)
 	jsonBytes, err := json.Marshal(arrShortURL)
 	if err != nil {
 		return nil, err
 	}
-	//fmt.Println(string(jsonBytes))
 	return jsonBytes, nil
 }
 
-func getFileSettings(shu *ShortURLAttr) {
+func getFileSettings(shu *ShortURLAttr) error {
 	if _, err := filestorage.NewConsumer(shu.Settings.FileStorage); err != nil {
-		log.Println(err)
+		return err
 	}
 	consumer, err := filestorage.NewConsumer(shu.Settings.FileStorage)
 	if err != nil {
-		log.Println(err)
+		return err
 	}
 	events, err := consumer.ListEvents()
 	if err != nil {
-		log.Println(err)
+		return err
 	}
 	for _, event := range events {
 		if event.UUID > math.MaxInt32 {
@@ -87,15 +76,15 @@ func getFileSettings(shu *ShortURLAttr) {
 	shu.Cntr = len(events)
 
 	if _, err := filestorage.NewProducer(shu.Settings.FileStorage); err != nil {
-		log.Println(err)
+		return err
 	}
+	return nil
 }
 
 func createTable(shu *ShortURLAttr) error {
 	dsn := shu.Settings.DBStorage
 	db, err := sql.Open("pgx", dsn)
 	if err != nil {
-		log.Println(err)
 		return err
 	}
 	defer db.Close()
@@ -103,19 +92,15 @@ func createTable(shu *ShortURLAttr) error {
 	defer cancel()
 	_, err = db.ExecContext(ctx, "CREATE TABLE IF NOT EXISTS url_table( uuid serial primary key, original_url TEXT CONSTRAINT must_be_different UNIQUE)")
 	if err != nil {
-		log.Println(err)
 		return err
 	}
-	log.Println("Table created")
 
 	var count int
 	db.QueryRowContext(ctx, "SELECT COUNT(*) FROM url_table").Scan(&count)
 	shu.Cntr = count
-	//log.Println("Cntr: ", shu.Cntr)
 	var rows *sql.Rows
 	rows, err = db.QueryContext(ctx, "SELECT uuid, original_url FROM url_table")
 	if err != nil {
-		log.Println(err)
 		return err
 	}
 	defer rows.Close()
@@ -125,13 +110,10 @@ func createTable(shu *ShortURLAttr) error {
 		var val string
 		err = rows.Scan(&key, &val)
 		if err != nil {
-			log.Println(err)
 			return err
 		}
-		//log.Println(key, val)
 		shu.MapURL[key] = val
 	}
-	//log.Println(shu.MapURL)
 	err = rows.Err()
 	if err != nil {
 		return err
@@ -141,12 +123,9 @@ func createTable(shu *ShortURLAttr) error {
 }
 
 func insertRecord(shu *ShortURLAttr, originalURL string) (string, error) {
-	//shu.Cntr++
-	//shu.MapURL[shu.Cntr] = originalURL
 	dsn := shu.Settings.DBStorage
 	db, err := sql.Open("pgx", dsn)
 	if err != nil {
-		log.Println(err)
 		return "", err
 	}
 	defer db.Close()
@@ -155,31 +134,20 @@ func insertRecord(shu *ShortURLAttr, originalURL string) (string, error) {
 	_, err = db.ExecContext(ctx, "insert into url_table( original_url) values ($1)", originalURL)
 
 	if err != nil {
-		log.Println(err)
-		/*var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) && pgerrcode.IsIntegrityConstraintViolation(pgErr.Code) && pgErr.ConstraintName == "must_be_different" {
-			log.Println("Такой оригинальный URL уже существует")
-		}*/
 		return "", err
 	}
 
 	shURL, err := getShortByOriginalURL(shu, originalURL)
 	if err != nil {
-		log.Println(err)
 		return "", err
 	}
-	//log.Println(shURL)
-
-	log.Println("Record inserted")
 	return shURL, nil
 }
 
 func getShortByOriginalURL(shu *ShortURLAttr, originalURL string) (string, error) {
-	//shu.MapURL[shu.Cntr] = originalURL
 	dsn := shu.Settings.DBStorage
 	db, err := sql.Open("pgx", dsn)
 	if err != nil {
-		log.Println(err)
 		return "", err
 	}
 	defer db.Close()
@@ -191,16 +159,13 @@ func getShortByOriginalURL(shu *ShortURLAttr, originalURL string) (string, error
 	if err != nil {
 		return "", err
 	}
-	//fmt.Println(shURL, origURL)
 	return strconv.Itoa(shURL), err
 }
 
 func getLongByUUID(shu *ShortURLAttr, uuid int) (string, error) {
-	//shu.MapURL[shu.Cntr] = originalURL
 	dsn := shu.Settings.DBStorage
 	db, err := sql.Open("pgx", dsn)
 	if err != nil {
-		log.Println(err)
 		return "", err
 	}
 	defer db.Close()

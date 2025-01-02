@@ -3,19 +3,16 @@ package server
 import (
 	"bytes"
 	"errors"
-	"reflect"
-
-	//"fmt"
 	"io"
 	"log"
 	"net/http"
+	"reflect"
 	"time"
 
 	"github.com/developerc/reductorUrl/internal/api"
 	"github.com/developerc/reductorUrl/internal/logger"
 	"github.com/developerc/reductorUrl/internal/middleware"
 
-	//db "github.com/developerc/reductorUrl/internal/service/db_storage"
 	"github.com/developerc/reductorUrl/internal/service/memory"
 	"github.com/go-chi/chi/v5"
 	m "github.com/go-chi/chi/v5/middleware"
@@ -33,20 +30,13 @@ type Server struct {
 	logger  *zap.Logger
 }
 
-//var srv Server
-
 func NewServer(service svc) (*Server, error) {
-	/*if srv.service != nil {
-		return &srv
-	}*/
-	//srv = Server{service: service}
 	var err error
 	srv := new(Server)
 	srv.service = service
 	srv.logger, err = logger.Initialize(srv.getService().GetLogLevel())
 
 	if err != nil {
-		//log.Println(err)
 		return srv, err
 	}
 	return srv, nil
@@ -68,13 +58,11 @@ func (s *Server) addLink(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			//fmt.Println(shortURL)
 			w.Header().Set("Content-Type", "text/plain")
 			w.WriteHeader(http.StatusConflict)
 			if _, err := w.Write([]byte(shortURL)); err != nil {
 				return
 			}
-			//http.Error(w, err.Error(), http.StatusConflict)
 		} else {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
@@ -99,7 +87,6 @@ func (s *Server) addLinkJSON(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	//fmt.Println(buf.String())
 	longURL, err := api.HandleAPIShorten(buf)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -114,7 +101,6 @@ func (s *Server) addLinkJSON(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			//fmt.Println(shortURL)
 			jsonBytes, err := api.ShortToJSON(shortURL)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -128,9 +114,6 @@ func (s *Server) addLinkJSON(w http.ResponseWriter, r *http.Request) {
 		} else {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
-
-		//log.Println("error from addLinkJSON: ", err)
-
 		return
 	}
 	if jsonBytes, err = api.ShortToJSON(shortURL); err != nil {
@@ -153,7 +136,6 @@ func (s *Server) addBatchJSON(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	//jsonBytes, err := s.GetServer().service.(*memory.Service).HandleBatchJSON(buf)
 	if jsonBytes, err = s.getService().HandleBatchJSON(buf); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -167,7 +149,6 @@ func (s *Server) addBatchJSON(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) GetLongLink(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
-	//longURL, err := memory.NewInMemoryService().GetLongLink(id)
 	longURL, err := s.getService().GetLongLink(id)
 
 	if err != nil {
@@ -179,7 +160,6 @@ func (s *Server) GetLongLink(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) CheckPing(w http.ResponseWriter, r *http.Request) {
-	//if db.CheckPing() != nil {
 	if s.getService().CheckPing() != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	} else {

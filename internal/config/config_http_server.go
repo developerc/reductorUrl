@@ -9,7 +9,6 @@ import (
 type SrvSettings interface{}
 
 type ServerSettings struct {
-	//ss          SrvSettings
 	TypeStorage string
 	AdresRun    string
 	AdresBase   string
@@ -18,12 +17,7 @@ type ServerSettings struct {
 	DBStorage   string
 }
 
-//var serverSettings ServerSettings
-
 func NewServerSettings() *ServerSettings {
-	/*//if serverSettings.ss != nil {
-		return &serverSettings
-	}*/
 	serverSettings := ServerSettings{}
 	serverSettings.TypeStorage = "MemoryStorage"
 

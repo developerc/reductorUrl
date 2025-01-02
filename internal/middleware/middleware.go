@@ -52,7 +52,7 @@ func Middleware(h http.Handler) http.Handler {
 			log.Println(err)
 			return
 		}
-		//logger.GetLog().Sugar().Infoln(
+
 		zapLogger.Sugar().Infoln(
 			"uri", r.RequestURI,
 			"method", r.Method,
