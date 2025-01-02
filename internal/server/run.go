@@ -32,9 +32,9 @@ func Run() error {
 	return err
 }
 
-func (s *Server) GetServer() *Server {
+/*func (s *Server) GetServer() *Server {
 	return s
-}
+}*/
 
 /*func (s *Server) GetService() *memory.Service{
 	val := reflect.ValueOf(s.service)

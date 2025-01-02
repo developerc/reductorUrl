@@ -4,15 +4,14 @@ import (
 	"errors"
 	"log"
 	"reflect"
-
-	"github.com/developerc/reductorUrl/internal/config"
+	//"github.com/developerc/reductorUrl/internal/config"
 )
 
-type ShortURLAttr struct {
+/*type ShortURLAttr struct {
 	Settings config.ServerSettings
 	Cntr     int
 	MapURL   map[int]string
-}
+}*/
 
 func (s *Service) GetCounter() int {
 	val := reflect.ValueOf(s.repo)
@@ -83,4 +82,9 @@ func (s *Service) GetLogLevel() string {
 	settings := val.Elem().FieldByName("Settings")
 	adresBase := settings.FieldByName("LogLevel")
 	return adresBase.String()
+}
+
+func (s *Service) GetShortURLAttr() *ShortURLAttr {
+	val := reflect.ValueOf(s.repo)
+	return (*ShortURLAttr)(val.UnsafePointer())
 }

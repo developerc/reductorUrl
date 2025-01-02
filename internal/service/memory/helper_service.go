@@ -12,11 +12,18 @@ import (
 	"math"
 	"time"
 
+	"github.com/developerc/reductorUrl/internal/config"
 	filestorage "github.com/developerc/reductorUrl/internal/service/file_storage"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	//"github.com/jackc/pgerrcode"
 	//"github.com/jackc/pgx/v5/pgconn"
 )
+
+type ShortURLAttr struct {
+	Settings config.ServerSettings
+	Cntr     int
+	MapURL   map[int]string
+}
 
 type ArrLongURL struct {
 	CorellationID string `json:"correlation_id"`

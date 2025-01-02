@@ -3,6 +3,7 @@ package server
 import (
 	"bytes"
 	"errors"
+	"reflect"
 
 	//"fmt"
 	"io"
@@ -42,7 +43,8 @@ func NewServer(service svc) (*Server, error) {
 	var err error
 	srv := new(Server)
 	srv.service = service
-	srv.logger, err = logger.Initialize(service.(*memory.Service).GetLogLevel())
+	srv.logger, err = logger.Initialize(srv.getService().GetLogLevel())
+
 	if err != nil {
 		//log.Println(err)
 		return srv, err
@@ -61,7 +63,7 @@ func (s *Server) addLink(w http.ResponseWriter, r *http.Request) {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgerrcode.IsIntegrityConstraintViolation(pgErr.Code) && pgErr.ConstraintName == "must_be_different" {
 			log.Println("Такой оригинальный URL уже существует")
-			shortURL, err := s.GetServer().service.(*memory.Service).GetShortByOriginalURL(string(body))
+			shortURL, err := s.getService().GetShortByOriginalURL(string(body))
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
@@ -107,7 +109,7 @@ func (s *Server) addLinkJSON(w http.ResponseWriter, r *http.Request) {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgerrcode.IsIntegrityConstraintViolation(pgErr.Code) && pgErr.ConstraintName == "must_be_different" {
 			log.Println("Такой оригинальный URL уже существует")
-			shortURL, err := s.GetServer().service.(*memory.Service).GetShortByOriginalURL(longURL)
+			shortURL, err := s.getService().GetShortByOriginalURL(longURL)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
@@ -152,7 +154,7 @@ func (s *Server) addBatchJSON(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//jsonBytes, err := s.GetServer().service.(*memory.Service).HandleBatchJSON(buf)
-	if jsonBytes, err = s.GetServer().service.(*memory.Service).HandleBatchJSON(buf); err != nil {
+	if jsonBytes, err = s.getService().HandleBatchJSON(buf); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -166,7 +168,7 @@ func (s *Server) addBatchJSON(w http.ResponseWriter, r *http.Request) {
 func (s *Server) GetLongLink(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	//longURL, err := memory.NewInMemoryService().GetLongLink(id)
-	longURL, err := s.GetServer().service.(*memory.Service).GetLongLink(id)
+	longURL, err := s.getService().GetLongLink(id)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -178,12 +180,16 @@ func (s *Server) GetLongLink(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) CheckPing(w http.ResponseWriter, r *http.Request) {
 	//if db.CheckPing() != nil {
-	if s.service.(*memory.Service).CheckPing() != nil {
+	if s.getService().CheckPing() != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	} else {
 		w.WriteHeader(http.StatusOK)
 	}
+}
 
+func (s *Server) getService() *memory.Service {
+	val := reflect.ValueOf(s.service)
+	return (*memory.Service)(val.UnsafePointer())
 }
 
 func (s *Server) SetupRoutes() http.Handler {

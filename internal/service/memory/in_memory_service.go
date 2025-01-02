@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"errors"
 
+	//"fmt"
+
 	//"log"
 
 	//"math"
@@ -32,8 +34,11 @@ type Service struct {
 func (s *Service) AddLink(link string) (string, error) {
 	var shURL string
 	var err error
+	//---
+	//fmt.Println("s.GetShortURLAttr().Settings: ", s.GetShortURLAttr().Settings)
+	//---
 	s.IncrCounter()
-	switch s.repo.(*ShortURLAttr).Settings.TypeStorage {
+	switch s.GetShortURLAttr().Settings.TypeStorage {
 	case "MemoryStorage":
 		{
 			s.AddLongURL(s.GetCounter(), link)
@@ -42,7 +47,7 @@ func (s *Service) AddLink(link string) (string, error) {
 
 	case "FileStorage":
 		{
-			if err = s.repo.(*ShortURLAttr).addToFileStorage(s.GetCounter(), link); err != nil {
+			if err = s.GetShortURLAttr().addToFileStorage(s.GetCounter(), link); err != nil {
 				return "", err
 			}
 			s.AddLongURL(s.GetCounter(), link)
@@ -51,7 +56,7 @@ func (s *Service) AddLink(link string) (string, error) {
 	case "DBStorage":
 		{
 			//log.Println("link: ", link)
-			shURL, err = insertRecord(s.repo.(*ShortURLAttr), link)
+			shURL, err = insertRecord(s.GetShortURLAttr(), link)
 			if err != nil {
 				return "", err
 			}
@@ -66,7 +71,7 @@ func (s *Service) AddLink(link string) (string, error) {
 }
 
 func (s *Service) GetShortByOriginalURL(originalURL string) (string, error) {
-	shortURL, err := getShortByOriginalURL(s.repo.(*ShortURLAttr), originalURL)
+	shortURL, err := getShortByOriginalURL(s.GetShortURLAttr(), originalURL)
 	return s.GetAdresBase() + "/" + shortURL, err
 }
 
@@ -77,7 +82,7 @@ func (s *Service) GetLongLink(id string) (string, error) {
 		//log.Println(err)
 		return "", err
 	}
-	switch s.repo.(*ShortURLAttr).Settings.TypeStorage {
+	switch s.GetShortURLAttr().Settings.TypeStorage {
 	case "MemoryStorage":
 		{
 			longURL, err = s.GetLongURL(i)
@@ -96,7 +101,7 @@ func (s *Service) GetLongLink(id string) (string, error) {
 		}
 	case "DBStorage":
 		{
-			longURL, err = getLongByUUID(s.repo.(*ShortURLAttr), i)
+			longURL, err = getLongByUUID(s.GetShortURLAttr(), i)
 			if err != nil {
 				return "", err
 			}
