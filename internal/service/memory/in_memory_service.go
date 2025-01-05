@@ -30,16 +30,16 @@ func (s *Service) AddLink(link string) (string, error) {
 
 	s.IncrCounter()
 	switch s.GetShortURLAttr().Settings.TypeStorage {
-	case memoryStorage:
+	case config.MemoryStorage:
 		s.AddLongURL(s.GetCounter(), link)
 		return s.GetAdresBase() + "/" + strconv.Itoa(s.GetCounter()), nil
-	case fileStorage:
+	case config.FileStorage:
 		if err := s.GetShortURLAttr().addToFileStorage(s.GetCounter(), link); err != nil {
 			return "", err
 		}
 		s.AddLongURL(s.GetCounter(), link)
 		return s.GetAdresBase() + "/" + strconv.Itoa(s.GetCounter()), nil
-	case dbStorage:
+	case config.DBStorage:
 		shURL, err = insertRecord(s.GetShortURLAttr(), link)
 		if err != nil {
 			return "", err
@@ -60,17 +60,17 @@ func (s *Service) GetLongLink(id string) (string, error) {
 		return "", err
 	}
 	switch s.GetShortURLAttr().Settings.TypeStorage {
-	case "MemoryStorage":
+	case config.MemoryStorage:
 		longURL, err = s.GetLongURL(i)
 		if err != nil {
 			return "", err
 		}
-	case "FileStorage":
+	case config.FileStorage:
 		longURL, err = s.GetLongURL(i)
 		if err != nil {
 			return "", err
 		}
-	case "DBStorage":
+	case config.DBStorage:
 		longURL, err = getLongByUUID(s.GetShortURLAttr(), i)
 		if err != nil {
 			return "", err
@@ -103,11 +103,11 @@ func NewInMemoryService() (*Service, error) {
 	shu.MapURL = make(map[int]string)
 
 	switch shu.Settings.TypeStorage {
-	case "FileStorage":
+	case config.FileStorage:
 		if err := getFileSettings(shu); err != nil {
 			log.Println(err)
 		}
-	case "DBStorage":
+	case config.DBStorage:
 		if err := createTable(shu); err != nil {
 			log.Println(err)
 		}
