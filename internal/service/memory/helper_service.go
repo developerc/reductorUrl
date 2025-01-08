@@ -11,6 +11,7 @@ import (
 
 	"github.com/developerc/reductorUrl/internal/config"
 	filestorage "github.com/developerc/reductorUrl/internal/service/file_storage"
+	"github.com/jackc/pgx/v5"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
@@ -18,6 +19,7 @@ type ShortURLAttr struct {
 	Settings config.ServerSettings
 	Cntr     int
 	MapURL   map[int]string
+	DB       *sql.DB
 }
 
 type ArrLongURL struct {
@@ -39,13 +41,50 @@ func listLongURL(buf bytes.Buffer) ([]ArrLongURL, error) {
 }
 
 func (s *Service) handleArrLongURL(arrLongURL []ArrLongURL) ([]byte, error) {
-	arrShortURL := make([]ArrShortURL, 0)
-	for _, longURL := range arrLongURL {
-		URL, err := s.AddLink(longURL.OriginalURL)
+	//typeStorage := s.GetShortURLAttr().Settings.TypeStorage
+	shu := s.GetShortURLAttr()
+	if shu.Settings.TypeStorage != config.DBStorage {
+		arrShortURL := make([]ArrShortURL, 0)
+		for _, longURL := range arrLongURL {
+			URL, err := s.AddLink(longURL.OriginalURL)
+			if err != nil {
+				return nil, err
+			}
+			shortURL := ArrShortURL{CorellationID: longURL.CorellationID, ShortURL: URL}
+			arrShortURL = append(arrShortURL, shortURL)
+		}
+		jsonBytes, err := json.Marshal(arrShortURL)
 		if err != nil {
 			return nil, err
 		}
-		shortURL := ArrShortURL{CorellationID: longURL.CorellationID, ShortURL: URL}
+		return jsonBytes, nil
+	}
+
+	//fmt.Println("arrLongURL: ", arrLongURL)
+	ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second*2)
+	defer cancelFunc()
+	conn, err := pgx.Connect(ctx, shu.Settings.DBStorage)
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close(ctx)
+	batch := &pgx.Batch{}
+	for _, longURL := range arrLongURL {
+		batch.Queue("insert into url( original_url) values ($1)", longURL.OriginalURL)
+	}
+	br := conn.SendBatch(ctx, batch)
+	_, err = br.Exec()
+	if err != nil {
+		return nil, err
+	}
+
+	arrShortURL := make([]ArrShortURL, 0)
+	for _, longURL := range arrLongURL {
+		short, err := getShortByOriginalURL(shu, longURL.OriginalURL)
+		if err != nil {
+			return nil, err
+		}
+		shortURL := ArrShortURL{CorellationID: longURL.CorellationID, ShortURL: s.GetAdresBase() + "/" + short}
 		arrShortURL = append(arrShortURL, shortURL)
 	}
 	jsonBytes, err := json.Marshal(arrShortURL)
@@ -82,28 +121,28 @@ func getFileSettings(shu *ShortURLAttr) error {
 }
 
 func createTable(shu *ShortURLAttr) error {
-	dsn := shu.Settings.DBStorage
+	/*dsn := shu.Settings.DBStorage
 	db, err := sql.Open("pgx", dsn)
 	if err != nil {
 		return err
 	}
-	defer db.Close()
+	defer db.Close()*/
 	const duration uint = 20
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(duration)*time.Second)
 	defer cancel()
-	const cr string = "CREATE TABLE IF NOT EXISTS url_table( uuid serial primary key, original_url TEXT CONSTRAINT must_be_different UNIQUE)"
-	_, err = db.ExecContext(ctx, cr)
+	const cr string = "CREATE TABLE IF NOT EXISTS url( uuid serial primary key, original_url TEXT CONSTRAINT must_be_different UNIQUE)"
+	_, err := shu.DB.ExecContext(ctx, cr)
 	if err != nil {
 		return err
 	}
 
 	var count int
-	if err := db.QueryRowContext(ctx, "SELECT COUNT(*) FROM url_table").Scan(&count); err != nil {
+	if err := shu.DB.QueryRowContext(ctx, "SELECT COUNT(*) FROM url").Scan(&count); err != nil {
 		return err
 	}
 	shu.Cntr = count
 	var rows *sql.Rows
-	rows, err = db.QueryContext(ctx, "SELECT uuid, original_url FROM url_table")
+	rows, err = shu.DB.QueryContext(ctx, "SELECT uuid, original_url FROM url")
 	if err != nil {
 		return err
 	}
@@ -127,15 +166,15 @@ func createTable(shu *ShortURLAttr) error {
 }
 
 func insertRecord(shu *ShortURLAttr, originalURL string) (string, error) {
-	dsn := shu.Settings.DBStorage
+	/*dsn := shu.Settings.DBStorage
 	db, err := sql.Open("pgx", dsn)
 	if err != nil {
 		return "", err
 	}
-	defer db.Close()
+	defer db.Close()*/
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
-	_, err = db.ExecContext(ctx, "insert into url_table( original_url) values ($1)", originalURL)
+	_, err := shu.DB.ExecContext(ctx, "insert into url( original_url) values ($1)", originalURL)
 
 	if err != nil {
 		return "", err
@@ -149,17 +188,17 @@ func insertRecord(shu *ShortURLAttr, originalURL string) (string, error) {
 }
 
 func getShortByOriginalURL(shu *ShortURLAttr, originalURL string) (string, error) {
-	dsn := shu.Settings.DBStorage
+	/*dsn := shu.Settings.DBStorage
 	db, err := sql.Open("pgx", dsn)
 	if err != nil {
 		return "", err
 	}
-	defer db.Close()
+	defer db.Close()*/
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
-	row := db.QueryRowContext(ctx, "SELECT uuid FROM url_table WHERE original_url=$1", originalURL)
+	row := shu.DB.QueryRowContext(ctx, "SELECT uuid FROM url WHERE original_url=$1", originalURL)
 	var shURL int
-	err = row.Scan(&shURL)
+	err := row.Scan(&shURL)
 	if err != nil {
 		return "", err
 	}
@@ -167,25 +206,25 @@ func getShortByOriginalURL(shu *ShortURLAttr, originalURL string) (string, error
 }
 
 func getLongByUUID(shu *ShortURLAttr, uuid int) (string, error) {
-	dsn := shu.Settings.DBStorage
+	/*dsn := shu.Settings.DBStorage
 	db, err := sql.Open("pgx", dsn)
 	if err != nil {
 		return "", err
 	}
-	defer db.Close()
+	defer db.Close()*/
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
-	row := db.QueryRowContext(ctx, "SELECT original_url FROM url_table WHERE uuid=$1", uuid)
+	row := shu.DB.QueryRowContext(ctx, "SELECT original_url FROM url WHERE uuid=$1", uuid)
 	var longURL string
-	err = row.Scan(&longURL)
+	err := row.Scan(&longURL)
 	if err != nil {
 		return "", err
 	}
 	return longURL, nil
 }
 
-func (s *Service) CheckPing() error {
-	dsn, err := s.GetDSN()
+func (s *Service) Ping() error {
+	/*dsn, err := s.GetDSN()
 	if err != nil {
 		return err
 	}
@@ -193,10 +232,11 @@ func (s *Service) CheckPing() error {
 	if err != nil {
 		return err
 	}
-	defer db.Close()
+	defer db.Close()*/
+	//s.GetShortURLAttr().DB
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
-	if err := db.PingContext(ctx); err != nil {
+	if err := s.GetShortURLAttr().DB.PingContext(ctx); err != nil {
 		return err
 	}
 	return nil

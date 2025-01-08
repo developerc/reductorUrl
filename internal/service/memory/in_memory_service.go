@@ -2,18 +2,28 @@ package memory
 
 import (
 	"bytes"
+	"database/sql"
 	"errors"
+	"fmt"
 	"log"
+
+	//"net/http"
 	"strconv"
 
 	"github.com/developerc/reductorUrl/internal/config"
 	"github.com/developerc/reductorUrl/internal/logger"
 	filestorage "github.com/developerc/reductorUrl/internal/service/file_storage"
+	"github.com/jackc/pgerrcode"
+	"github.com/jackc/pgx/v5/pgconn"
 	"go.uber.org/zap"
 )
 
 type repository interface {
 	AddLink(link string) (string, error)
+	Ping() error
+	GetLongLink(id string) (string, error)
+	HandleBatchJSON(buf bytes.Buffer) ([]byte, error)
+	HandleBatchJSONPgx(buf bytes.Buffer) ([]byte, error)
 }
 
 type Service struct {
@@ -21,12 +31,20 @@ type Service struct {
 	logger *zap.Logger
 }
 
+type ErrorURLExists struct {
+	s string
+}
+
+func (e *ErrorURLExists) Error() string {
+	return e.s
+}
+
 func (s *Service) AddLink(link string) (string, error) {
 	var shURL string
 	var err error
-	const memoryStorage string = "MemoryStorage"
+	/*const memoryStorage string = "MemoryStorage"
 	const fileStorage string = "FileStorage"
-	const dbStorage string = "DBStorage"
+	const dbStorage string = "DBStorage"*/
 
 	s.IncrCounter()
 	switch s.GetShortURLAttr().Settings.TypeStorage {
@@ -42,6 +60,14 @@ func (s *Service) AddLink(link string) (string, error) {
 	case config.DBStorage:
 		shURL, err = insertRecord(s.GetShortURLAttr(), link)
 		if err != nil {
+			var pgErr *pgconn.PgError
+			if errors.As(err, &pgErr) && pgerrcode.IsIntegrityConstraintViolation(pgErr.Code) && pgErr.ConstraintName == "must_be_different" {
+				shortURL, err := s.GetShortByOriginalURL(link)
+				if err != nil {
+					return "", err
+				}
+				return shortURL, &ErrorURLExists{"this original URL exists"}
+			}
 			return "", err
 		}
 	}
@@ -79,6 +105,19 @@ func (s *Service) GetLongLink(id string) (string, error) {
 	return longURL, nil
 }
 
+func (s *Service) HandleBatchJSONPgx(buf bytes.Buffer) ([]byte, error) {
+	arrLongURL, err := listLongURL(buf)
+	if err != nil {
+		return nil, err
+	}
+	if len(arrLongURL) == 0 {
+		return nil, errors.New("error: length array is zero")
+	}
+	fmt.Println("arrLongURL: ", arrLongURL)
+
+	return nil, nil
+}
+
 func (s *Service) HandleBatchJSON(buf bytes.Buffer) ([]byte, error) {
 	arrLongURL, err := listLongURL(buf)
 	if err != nil {
@@ -108,6 +147,12 @@ func NewInMemoryService() (*Service, error) {
 			log.Println(err)
 		}
 	case config.DBStorage:
+		dsn := shu.Settings.DBStorage
+		shu.DB, err = sql.Open("pgx", dsn)
+		if err != nil {
+			return nil, err
+		}
+		//defer shu.DB.Close()
 		if err := createTable(shu); err != nil {
 			log.Println(err)
 		}
@@ -119,7 +164,7 @@ func NewInMemoryService() (*Service, error) {
 }
 
 func (shu *ShortURLAttr) AddLink(link string) (string, error) {
-	return "proba", nil
+	return "", nil
 }
 
 func (shu *ShortURLAttr) addToFileStorage(cntr int, link string) error {
@@ -135,4 +180,20 @@ func (shu *ShortURLAttr) addToFileStorage(cntr int, link string) error {
 		log.Println(err)
 	}
 	return nil
+}
+
+func (shu *ShortURLAttr) Ping() error {
+	return nil
+}
+
+func (shu *ShortURLAttr) GetLongLink(id string) (string, error) {
+	return "", nil
+}
+
+func (shu *ShortURLAttr) HandleBatchJSON(buf bytes.Buffer) ([]byte, error) {
+	return nil, nil
+}
+
+func (shu *ShortURLAttr) HandleBatchJSONPgx(buf bytes.Buffer) ([]byte, error) {
+	return nil, nil
 }
