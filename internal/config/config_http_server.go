@@ -9,8 +9,6 @@ import (
 	"go.uber.org/zap"
 )
 
-//type SrvSettings interface{}
-
 type TypeStorage int
 
 const (

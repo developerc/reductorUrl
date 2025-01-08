@@ -4,10 +4,7 @@ import (
 	"bytes"
 	"database/sql"
 	"errors"
-	"fmt"
 	"log"
-
-	//"net/http"
 	"strconv"
 
 	"github.com/developerc/reductorUrl/internal/config"
@@ -23,7 +20,6 @@ type repository interface {
 	Ping() error
 	GetLongLink(id string) (string, error)
 	HandleBatchJSON(buf bytes.Buffer) ([]byte, error)
-	HandleBatchJSONPgx(buf bytes.Buffer) ([]byte, error)
 }
 
 type Service struct {
@@ -42,9 +38,6 @@ func (e *ErrorURLExists) Error() string {
 func (s *Service) AddLink(link string) (string, error) {
 	var shURL string
 	var err error
-	/*const memoryStorage string = "MemoryStorage"
-	const fileStorage string = "FileStorage"
-	const dbStorage string = "DBStorage"*/
 
 	s.IncrCounter()
 	switch s.GetShortURLAttr().Settings.TypeStorage {
@@ -105,19 +98,6 @@ func (s *Service) GetLongLink(id string) (string, error) {
 	return longURL, nil
 }
 
-func (s *Service) HandleBatchJSONPgx(buf bytes.Buffer) ([]byte, error) {
-	arrLongURL, err := listLongURL(buf)
-	if err != nil {
-		return nil, err
-	}
-	if len(arrLongURL) == 0 {
-		return nil, errors.New("error: length array is zero")
-	}
-	fmt.Println("arrLongURL: ", arrLongURL)
-
-	return nil, nil
-}
-
 func (s *Service) HandleBatchJSON(buf bytes.Buffer) ([]byte, error) {
 	arrLongURL, err := listLongURL(buf)
 	if err != nil {
@@ -152,7 +132,6 @@ func NewInMemoryService() (*Service, error) {
 		if err != nil {
 			return nil, err
 		}
-		//defer shu.DB.Close()
 		if err := createTable(shu); err != nil {
 			log.Println(err)
 		}
@@ -191,9 +170,5 @@ func (shu *ShortURLAttr) GetLongLink(id string) (string, error) {
 }
 
 func (shu *ShortURLAttr) HandleBatchJSON(buf bytes.Buffer) ([]byte, error) {
-	return nil, nil
-}
-
-func (shu *ShortURLAttr) HandleBatchJSONPgx(buf bytes.Buffer) ([]byte, error) {
 	return nil, nil
 }

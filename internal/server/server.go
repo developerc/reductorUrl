@@ -2,9 +2,7 @@ package server
 
 import (
 	"bytes"
-	//"errors"
 	"io"
-	//"log"
 	"net/http"
 	"time"
 
@@ -15,9 +13,6 @@ import (
 	"github.com/developerc/reductorUrl/internal/service/memory"
 	"github.com/go-chi/chi/v5"
 	m "github.com/go-chi/chi/v5/middleware"
-
-	//"github.com/jackc/pgerrcode"
-	//"github.com/jackc/pgx/v5/pgconn"
 	"go.uber.org/zap"
 )
 
@@ -26,13 +21,11 @@ type svc interface {
 	Ping() error
 	GetLongLink(id string) (string, error)
 	HandleBatchJSON(buf bytes.Buffer) ([]byte, error)
-	HandleBatchJSONPgx(buf bytes.Buffer) ([]byte, error)
 }
 
 type Server struct {
 	service svc
 	logger  *zap.Logger
-	//svc     *memory.Service
 }
 
 func NewServer(service svc) (*Server, error) {
@@ -55,7 +48,6 @@ func (s *Server) addLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if shortURL, err = s.service.AddLink(string(body)); err != nil {
-		//var errURLExits *memory.ErrorURLExists
 		if _, ok := err.(*memory.ErrorURLExists); ok {
 			s.logger.Info("Add link", zap.String("error", err.Error()))
 			w.Header().Set("Content-Type", "text/plain")
@@ -66,24 +58,6 @@ func (s *Server) addLink(w http.ResponseWriter, r *http.Request) {
 		} else {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
-		//if errors.As(err, &memory.ErrorURLExists){}
-		/*var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) && pgerrcode.IsIntegrityConstraintViolation(pgErr.Code) && pgErr.ConstraintName == "must_be_different" {
-			log.Println("Такой оригинальный URL уже существует")
-			shortURL, err := s.getService().GetShortByOriginalURL(string(body))
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			w.Header().Set("Content-Type", "text/plain")
-			w.WriteHeader(http.StatusConflict)
-			if _, err := w.Write([]byte(shortURL)); err != nil {
-				return
-			}
-		} else {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}*/
-
 		return
 	}
 
@@ -125,27 +99,6 @@ func (s *Server) addLinkJSON(w http.ResponseWriter, r *http.Request) {
 		} else {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
-		/*var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) && pgerrcode.IsIntegrityConstraintViolation(pgErr.Code) && pgErr.ConstraintName == "must_be_different" {
-			log.Println("Такой оригинальный URL уже существует")
-			shortURL, err := s.getService().GetShortByOriginalURL(longURL)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			jsonBytes, err := api.ShortToJSON(shortURL)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusConflict)
-			if _, err := w.Write(jsonBytes); err != nil {
-				return
-			}
-		} else {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}*/
 		return
 	}
 	if jsonBytes, err = api.ShortToJSON(shortURL); err != nil {
@@ -181,8 +134,6 @@ func (s *Server) addBatchJSON(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) GetLongLink(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
-	//longURL, err := s.getService().GetLongLink(id)
-	//longURL, err := s.svc.GetLongLink(id)
 	longURL, err := s.service.GetLongLink(id)
 
 	if err != nil {
@@ -194,18 +145,12 @@ func (s *Server) GetLongLink(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) CheckPing(w http.ResponseWriter, r *http.Request) {
-	//if s.getService().CheckPing() != nil {
 	if s.service.Ping() != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	} else {
 		w.WriteHeader(http.StatusOK)
 	}
 }
-
-/*func (s *Server) getService() *memory.Service {
-	val := reflect.ValueOf(s.service)
-	return (*memory.Service)(val.UnsafePointer())
-}*/
 
 func (s *Server) SetupRoutes() http.Handler {
 	r := chi.NewRouter()

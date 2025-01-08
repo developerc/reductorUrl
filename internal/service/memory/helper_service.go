@@ -41,7 +41,6 @@ func listLongURL(buf bytes.Buffer) ([]ArrLongURL, error) {
 }
 
 func (s *Service) handleArrLongURL(arrLongURL []ArrLongURL) ([]byte, error) {
-	//typeStorage := s.GetShortURLAttr().Settings.TypeStorage
 	shu := s.GetShortURLAttr()
 	if shu.Settings.TypeStorage != config.DBStorage {
 		arrShortURL := make([]ArrShortURL, 0)
@@ -60,7 +59,6 @@ func (s *Service) handleArrLongURL(arrLongURL []ArrLongURL) ([]byte, error) {
 		return jsonBytes, nil
 	}
 
-	//fmt.Println("arrLongURL: ", arrLongURL)
 	ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second*2)
 	defer cancelFunc()
 	conn, err := pgx.Connect(ctx, shu.Settings.DBStorage)
@@ -121,12 +119,6 @@ func getFileSettings(shu *ShortURLAttr) error {
 }
 
 func createTable(shu *ShortURLAttr) error {
-	/*dsn := shu.Settings.DBStorage
-	db, err := sql.Open("pgx", dsn)
-	if err != nil {
-		return err
-	}
-	defer db.Close()*/
 	const duration uint = 20
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(duration)*time.Second)
 	defer cancel()
@@ -166,12 +158,6 @@ func createTable(shu *ShortURLAttr) error {
 }
 
 func insertRecord(shu *ShortURLAttr, originalURL string) (string, error) {
-	/*dsn := shu.Settings.DBStorage
-	db, err := sql.Open("pgx", dsn)
-	if err != nil {
-		return "", err
-	}
-	defer db.Close()*/
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 	_, err := shu.DB.ExecContext(ctx, "insert into url( original_url) values ($1)", originalURL)
@@ -188,12 +174,6 @@ func insertRecord(shu *ShortURLAttr, originalURL string) (string, error) {
 }
 
 func getShortByOriginalURL(shu *ShortURLAttr, originalURL string) (string, error) {
-	/*dsn := shu.Settings.DBStorage
-	db, err := sql.Open("pgx", dsn)
-	if err != nil {
-		return "", err
-	}
-	defer db.Close()*/
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 	row := shu.DB.QueryRowContext(ctx, "SELECT uuid FROM url WHERE original_url=$1", originalURL)
@@ -206,12 +186,6 @@ func getShortByOriginalURL(shu *ShortURLAttr, originalURL string) (string, error
 }
 
 func getLongByUUID(shu *ShortURLAttr, uuid int) (string, error) {
-	/*dsn := shu.Settings.DBStorage
-	db, err := sql.Open("pgx", dsn)
-	if err != nil {
-		return "", err
-	}
-	defer db.Close()*/
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 	row := shu.DB.QueryRowContext(ctx, "SELECT original_url FROM url WHERE uuid=$1", uuid)
@@ -224,16 +198,6 @@ func getLongByUUID(shu *ShortURLAttr, uuid int) (string, error) {
 }
 
 func (s *Service) Ping() error {
-	/*dsn, err := s.GetDSN()
-	if err != nil {
-		return err
-	}
-	db, err := sql.Open("pgx", dsn)
-	if err != nil {
-		return err
-	}
-	defer db.Close()*/
-	//s.GetShortURLAttr().DB
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 	if err := s.GetShortURLAttr().DB.PingContext(ctx); err != nil {
