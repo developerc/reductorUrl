@@ -21,6 +21,7 @@ type svc interface {
 	Ping() error
 	GetLongLink(id string) (string, error)
 	HandleBatchJSON(buf bytes.Buffer) ([]byte, error)
+	AsURLExists(err error) bool
 }
 
 type Server struct {
@@ -48,7 +49,8 @@ func (s *Server) addLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if shortURL, err = s.service.AddLink(string(body)); err != nil {
-		if _, ok := err.(*memory.ErrorURLExists); ok {
+		//if _, ok := err.(*memory.ErrorURLExists); ok {
+		if s.service.AsURLExists(err) {
 			s.logger.Info("Add link", zap.String("error", err.Error()))
 			w.Header().Set("Content-Type", "text/plain")
 			w.WriteHeader(http.StatusConflict)
@@ -78,7 +80,7 @@ func (s *Server) addLinkJSON(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	longURL, err := api.HandleAPIShorten(buf)
+	longURL, err := api.HandleAPIShorten(buf, s.logger)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -86,7 +88,7 @@ func (s *Server) addLinkJSON(w http.ResponseWriter, r *http.Request) {
 	if shortURL, err = s.service.AddLink(longURL); err != nil {
 		if _, ok := err.(*memory.ErrorURLExists); ok {
 			s.logger.Info("Add link JSON", zap.String("error", err.Error()))
-			jsonBytes, err := api.ShortToJSON(shortURL)
+			jsonBytes, err := api.ShortToJSON(shortURL, s.logger)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
@@ -101,7 +103,7 @@ func (s *Server) addLinkJSON(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	if jsonBytes, err = api.ShortToJSON(shortURL); err != nil {
+	if jsonBytes, err = api.ShortToJSON(shortURL, s.logger); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

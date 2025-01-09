@@ -20,11 +20,19 @@ type repository interface {
 	Ping() error
 	GetLongLink(id string) (string, error)
 	HandleBatchJSON(buf bytes.Buffer) ([]byte, error)
+	AsURLExists(err error) bool
 }
 
 type Service struct {
 	repo   repository
 	logger *zap.Logger
+}
+
+// AsURLExists implements server.svc.
+func (s *Service) AsURLExists(err error) bool {
+	//panic("unimplemented")
+	var errorURLExists ErrorURLExists
+	return errorURLExists.AsURLExists(err)
 }
 
 type ErrorURLExists struct {
@@ -33,6 +41,10 @@ type ErrorURLExists struct {
 
 func (e *ErrorURLExists) Error() string {
 	return e.s
+}
+
+func (e *ErrorURLExists) AsURLExists(err error) bool {
+	return errors.As(err, &e)
 }
 
 func (s *Service) AddLink(link string) (string, error) {
@@ -171,4 +183,8 @@ func (shu *ShortURLAttr) GetLongLink(id string) (string, error) {
 
 func (shu *ShortURLAttr) HandleBatchJSON(buf bytes.Buffer) ([]byte, error) {
 	return nil, nil
+}
+
+func (shu *ShortURLAttr) AsURLExists(err error) bool {
+	return true
 }
