@@ -126,44 +126,44 @@ func getFileSettings(shu *ShortURLAttr) error {
 	return nil
 }
 
-func createTable(shu *ShortURLAttr) error {
-	const duration uint = 20
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(duration)*time.Second)
-	defer cancel()
-	const cr string = "CREATE TABLE IF NOT EXISTS url( uuid serial primary key, original_url TEXT CONSTRAINT must_be_different UNIQUE)"
-	_, err := shu.DB.ExecContext(ctx, cr)
-	if err != nil {
-		return err
-	}
+/*func createTable(shu *ShortURLAttr) error {
+const duration uint = 20
+ctx, cancel := context.WithTimeout(context.Background(), time.Duration(duration)*time.Second)
+defer cancel()
+const cr string = "CREATE TABLE IF NOT EXISTS url( uuid serial primary key, original_url TEXT CONSTRAINT must_be_different UNIQUE)"
+_, err := shu.DB.ExecContext(ctx, cr)
+if err != nil {
+	return err
+}*/
 
-	var count int
-	if err := shu.DB.QueryRowContext(ctx, "SELECT COUNT(*) FROM url").Scan(&count); err != nil {
-		return err
-	}
-	shu.Cntr = count
-	var rows *sql.Rows
-	rows, err = shu.DB.QueryContext(ctx, "SELECT uuid, original_url FROM url")
-	if err != nil {
-		return err
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var key int
-		var val string
-		err = rows.Scan(&key, &val)
-		if err != nil {
-			return err
-		}
-		shu.MapURL[key] = val
-	}
-	err = rows.Err()
-	if err != nil {
-		return err
-	}
-
-	return nil
+/*var count int
+if err := shu.DB.QueryRowContext(ctx, "SELECT COUNT(*) FROM url").Scan(&count); err != nil {
+	return err
 }
+shu.Cntr = count
+var rows *sql.Rows
+rows, err = shu.DB.QueryContext(ctx, "SELECT uuid, original_url FROM url")
+if err != nil {
+	return err
+}
+defer rows.Close()
+
+for rows.Next() {
+	var key int
+	var val string
+	err = rows.Scan(&key, &val)
+	if err != nil {
+		return err
+	}
+	shu.MapURL[key] = val
+}
+err = rows.Err()
+if err != nil {
+	return err
+}*/
+
+//return nil
+//}
 
 func insertRecord(shu *ShortURLAttr, originalURL string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
@@ -193,7 +193,7 @@ func getShortByOriginalURL(shu *ShortURLAttr, originalURL string) (string, error
 	return strconv.Itoa(shURL), err
 }
 
-func getLongByUUID(shu *ShortURLAttr, uuid int) (string, error) {
+/*func getLongByUUID(shu *ShortURLAttr, uuid int) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 	row := shu.DB.QueryRowContext(ctx, "SELECT original_url FROM url WHERE uuid=$1", uuid)
@@ -203,7 +203,7 @@ func getLongByUUID(shu *ShortURLAttr, uuid int) (string, error) {
 		return "", err
 	}
 	return longURL, nil
-}
+}*/
 
 func (s *Service) Ping() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)

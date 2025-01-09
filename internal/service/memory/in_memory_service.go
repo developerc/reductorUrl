@@ -9,6 +9,7 @@ import (
 
 	"github.com/developerc/reductorUrl/internal/config"
 	"github.com/developerc/reductorUrl/internal/logger"
+	dbstorage "github.com/developerc/reductorUrl/internal/service/db_storage"
 	filestorage "github.com/developerc/reductorUrl/internal/service/file_storage"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -102,7 +103,7 @@ func (s *Service) GetLongLink(id string) (string, error) {
 			return "", err
 		}
 	case config.DBStorage:
-		longURL, err = getLongByUUID(s.GetShortURLAttr(), i)
+		longURL, err = dbstorage.GetLongByUUID(s.GetShortURLAttr().DB, i)
 		if err != nil {
 			return "", err
 		}
@@ -144,7 +145,8 @@ func NewInMemoryService() (*Service, error) {
 		if err != nil {
 			return nil, err
 		}
-		if err := createTable(shu); err != nil {
+		//if err := createTable(shu); err != nil {
+		if err := dbstorage.CreateTable(shu.DB); err != nil {
 			log.Println(err)
 		}
 	}
