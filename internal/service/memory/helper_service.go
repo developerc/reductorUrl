@@ -10,8 +10,11 @@ import (
 	"time"
 
 	"github.com/developerc/reductorUrl/internal/config"
+	"github.com/developerc/reductorUrl/internal/general"
+	dbstorage "github.com/developerc/reductorUrl/internal/service/db_storage"
 	filestorage "github.com/developerc/reductorUrl/internal/service/file_storage"
-	"github.com/jackc/pgx/v5"
+
+	//"github.com/jackc/pgx/v5"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
@@ -22,25 +25,25 @@ type ShortURLAttr struct {
 	DB       *sql.DB
 }
 
-type ArrLongURL struct {
+/*type ArrLongURL struct {
 	CorellationID string `json:"correlation_id"`
 	OriginalURL   string `json:"original_url"`
-}
+}*/
 
 type ArrShortURL struct {
 	CorellationID string `json:"correlation_id"`
 	ShortURL      string `json:"short_url"`
 }
 
-func listLongURL(buf bytes.Buffer) ([]ArrLongURL, error) {
-	arrLongURL := make([]ArrLongURL, 0)
+func listLongURL(buf bytes.Buffer) ([]general.ArrLongURL, error) {
+	arrLongURL := make([]general.ArrLongURL, 0)
 	if err := json.Unmarshal(buf.Bytes(), &arrLongURL); err != nil {
 		return nil, err
 	}
 	return arrLongURL, nil
 }
 
-func (s *Service) handleArrLongURL(arrLongURL []ArrLongURL) ([]byte, error) {
+func (s *Service) handleArrLongURL(arrLongURL []general.ArrLongURL) ([]byte, error) {
 	shu := s.GetShortURLAttr()
 	if shu.Settings.TypeStorage != config.DBStorage {
 		arrShortURL := make([]ArrShortURL, 0)
@@ -59,7 +62,12 @@ func (s *Service) handleArrLongURL(arrLongURL []ArrLongURL) ([]byte, error) {
 		return jsonBytes, nil
 	}
 
-	ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second*2)
+	if err := dbstorage.InsertBatch(arrLongURL, shu.Settings.DBStorage); err != nil {
+		return nil, err
+	}
+
+	//---
+	/*ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second*2)
 	defer cancelFunc()
 	conn, err := pgx.Connect(ctx, shu.Settings.DBStorage)
 	if err != nil {
@@ -74,8 +82,8 @@ func (s *Service) handleArrLongURL(arrLongURL []ArrLongURL) ([]byte, error) {
 	_, err = br.Exec()
 	if err != nil {
 		return nil, err
-	}
-
+	}*/
+	//---
 	arrShortURL := make([]ArrShortURL, 0)
 	for _, longURL := range arrLongURL {
 		short, err := getShortByOriginalURL(shu, longURL.OriginalURL)
