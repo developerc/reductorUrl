@@ -6,7 +6,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"math"
-	"strconv"
+
+	//"strconv"
 	"time"
 
 	"github.com/developerc/reductorUrl/internal/config"
@@ -86,7 +87,7 @@ func (s *Service) handleArrLongURL(arrLongURL []general.ArrLongURL) ([]byte, err
 	//---
 	arrShortURL := make([]ArrShortURL, 0)
 	for _, longURL := range arrLongURL {
-		short, err := getShortByOriginalURL(shu, longURL.OriginalURL)
+		short, err := dbstorage.GetShortByOriginalURL(shu.DB, longURL.OriginalURL)
 		if err != nil {
 			return nil, err
 		}
@@ -165,7 +166,7 @@ if err != nil {
 //return nil
 //}
 
-func insertRecord(shu *ShortURLAttr, originalURL string) (string, error) {
+/*func insertRecord(shu *ShortURLAttr, originalURL string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 	_, err := shu.DB.ExecContext(ctx, "insert into url( original_url) values ($1)", originalURL)
@@ -174,14 +175,14 @@ func insertRecord(shu *ShortURLAttr, originalURL string) (string, error) {
 		return "", err
 	}
 
-	shURL, err := getShortByOriginalURL(shu, originalURL)
+	shURL, err := dbstorage.GetShortByOriginalURL(shu.DB, originalURL)
 	if err != nil {
 		return "", err
 	}
 	return shURL, nil
-}
+}*/
 
-func getShortByOriginalURL(shu *ShortURLAttr, originalURL string) (string, error) {
+/*func getShortByOriginalURL(shu *ShortURLAttr, originalURL string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 	row := shu.DB.QueryRowContext(ctx, "SELECT uuid FROM url WHERE original_url=$1", originalURL)
@@ -191,7 +192,7 @@ func getShortByOriginalURL(shu *ShortURLAttr, originalURL string) (string, error
 		return "", err
 	}
 	return strconv.Itoa(shURL), err
-}
+}*/
 
 /*func getLongByUUID(shu *ShortURLAttr, uuid int) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)

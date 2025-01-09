@@ -64,7 +64,7 @@ func (s *Service) AddLink(link string) (string, error) {
 		s.AddLongURL(s.GetCounter(), link)
 		return s.GetAdresBase() + "/" + strconv.Itoa(s.GetCounter()), nil
 	case config.DBStorage:
-		shURL, err = insertRecord(s.GetShortURLAttr(), link)
+		shURL, err = dbstorage.InsertRecord(s.GetShortURLAttr().DB, link)
 		if err != nil {
 			var pgErr *pgconn.PgError
 			if errors.As(err, &pgErr) && pgerrcode.IsIntegrityConstraintViolation(pgErr.Code) && pgErr.ConstraintName == "must_be_different" {
@@ -81,7 +81,7 @@ func (s *Service) AddLink(link string) (string, error) {
 }
 
 func (s *Service) GetShortByOriginalURL(originalURL string) (string, error) {
-	shortURL, err := getShortByOriginalURL(s.GetShortURLAttr(), originalURL)
+	shortURL, err := dbstorage.GetShortByOriginalURL(s.GetShortURLAttr().DB, originalURL)
 	return s.GetAdresBase() + "/" + shortURL, err
 }
 

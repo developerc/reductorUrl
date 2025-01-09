@@ -3,6 +3,7 @@ package dbstorage
 import (
 	"context"
 	"database/sql"
+	"strconv"
 	"time"
 
 	"github.com/developerc/reductorUrl/internal/general"
@@ -53,4 +54,32 @@ func GetLongByUUID(db *sql.DB, uuid int) (string, error) {
 		return "", err
 	}
 	return longURL, nil
+}
+
+func GetShortByOriginalURL(db *sql.DB, originalURL string) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	row := db.QueryRowContext(ctx, "SELECT uuid FROM url WHERE original_url=$1", originalURL)
+	var shURL int
+	err := row.Scan(&shURL)
+	if err != nil {
+		return "", err
+	}
+	return strconv.Itoa(shURL), err
+}
+
+func InsertRecord(db *sql.DB, originalURL string) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	_, err := db.ExecContext(ctx, "insert into url( original_url) values ($1)", originalURL)
+
+	if err != nil {
+		return "", err
+	}
+
+	shURL, err := GetShortByOriginalURL(db, originalURL)
+	if err != nil {
+		return "", err
+	}
+	return shURL, nil
 }
