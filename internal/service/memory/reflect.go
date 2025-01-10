@@ -1,47 +1,37 @@
 package memory
 
 func (s *Service) GetCounter() int {
-	shu := s.repo.GetShu()
-	return shu.Cntr
+	return s.repo.GetShu().Cntr
 }
 
 func (s *Service) IncrCounter() {
-	shu := s.repo.GetShu()
-	shu.Cntr++
+	s.repo.GetShu().Cntr++
 }
 
 func (s *Service) GetAdresBase() string {
-	shu := s.repo.GetShu()
-	return shu.Settings.AdresBase
+	return s.repo.GetShu().Settings.AdresBase
 }
 
 func (s *Service) GetDSN() (string, error) {
-	shu := s.repo.GetShu()
-	return shu.Settings.DBStorage, nil
+	return s.repo.GetShu().Settings.DBStorage, nil
 }
 
 func (s *Service) GetLongURL(i int) (string, error) {
-	shu := s.repo.GetShu()
-	return shu.MapURL[i], nil
+	return s.repo.GetShu().MapURL[i], nil
 }
 
 func (s *Service) AddLongURL(i int, link string) {
-	shu := s.repo.GetShu()
-	shu.MapURL[i] = link
+	s.repo.GetShu().MapURL[i] = link
 }
 
 func (s *Service) GetAdresRun() string {
-	shu := s.repo.GetShu()
-	return shu.Settings.AdresRun
+	return s.repo.GetShu().Settings.AdresRun
 }
 
 func (s *Service) GetLogLevel() string {
-	shu := s.repo.GetShu()
-	return shu.Settings.LogLevel
+	return s.repo.GetShu().Settings.LogLevel
 }
 
 func (s *Service) GetShortURLAttr() *ShortURLAttr {
 	return s.repo.GetShu()
-	/*val := reflect.ValueOf(s.repo)
-	return (*ShortURLAttr)(val.UnsafePointer())*/
 }
