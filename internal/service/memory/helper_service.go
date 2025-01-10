@@ -6,16 +6,12 @@ import (
 	"database/sql"
 	"encoding/json"
 	"math"
-
-	//"strconv"
 	"time"
 
 	"github.com/developerc/reductorUrl/internal/config"
 	"github.com/developerc/reductorUrl/internal/general"
 	dbstorage "github.com/developerc/reductorUrl/internal/service/db_storage"
 	filestorage "github.com/developerc/reductorUrl/internal/service/file_storage"
-
-	//"github.com/jackc/pgx/v5"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
@@ -25,11 +21,6 @@ type ShortURLAttr struct {
 	MapURL   map[int]string
 	DB       *sql.DB
 }
-
-/*type ArrLongURL struct {
-	CorellationID string `json:"correlation_id"`
-	OriginalURL   string `json:"original_url"`
-}*/
 
 type ArrShortURL struct {
 	CorellationID string `json:"correlation_id"`
@@ -67,24 +58,6 @@ func (s *Service) handleArrLongURL(arrLongURL []general.ArrLongURL) ([]byte, err
 		return nil, err
 	}
 
-	//---
-	/*ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second*2)
-	defer cancelFunc()
-	conn, err := pgx.Connect(ctx, shu.Settings.DBStorage)
-	if err != nil {
-		return nil, err
-	}
-	defer conn.Close(ctx)
-	batch := &pgx.Batch{}
-	for _, longURL := range arrLongURL {
-		batch.Queue("insert into url( original_url) values ($1)", longURL.OriginalURL)
-	}
-	br := conn.SendBatch(ctx, batch)
-	_, err = br.Exec()
-	if err != nil {
-		return nil, err
-	}*/
-	//---
 	arrShortURL := make([]ArrShortURL, 0)
 	for _, longURL := range arrLongURL {
 		short, err := dbstorage.GetShortByOriginalURL(shu.DB, longURL.OriginalURL)
@@ -126,85 +99,6 @@ func getFileSettings(shu *ShortURLAttr) error {
 	}
 	return nil
 }
-
-/*func createTable(shu *ShortURLAttr) error {
-const duration uint = 20
-ctx, cancel := context.WithTimeout(context.Background(), time.Duration(duration)*time.Second)
-defer cancel()
-const cr string = "CREATE TABLE IF NOT EXISTS url( uuid serial primary key, original_url TEXT CONSTRAINT must_be_different UNIQUE)"
-_, err := shu.DB.ExecContext(ctx, cr)
-if err != nil {
-	return err
-}*/
-
-/*var count int
-if err := shu.DB.QueryRowContext(ctx, "SELECT COUNT(*) FROM url").Scan(&count); err != nil {
-	return err
-}
-shu.Cntr = count
-var rows *sql.Rows
-rows, err = shu.DB.QueryContext(ctx, "SELECT uuid, original_url FROM url")
-if err != nil {
-	return err
-}
-defer rows.Close()
-
-for rows.Next() {
-	var key int
-	var val string
-	err = rows.Scan(&key, &val)
-	if err != nil {
-		return err
-	}
-	shu.MapURL[key] = val
-}
-err = rows.Err()
-if err != nil {
-	return err
-}*/
-
-//return nil
-//}
-
-/*func insertRecord(shu *ShortURLAttr, originalURL string) (string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	defer cancel()
-	_, err := shu.DB.ExecContext(ctx, "insert into url( original_url) values ($1)", originalURL)
-
-	if err != nil {
-		return "", err
-	}
-
-	shURL, err := dbstorage.GetShortByOriginalURL(shu.DB, originalURL)
-	if err != nil {
-		return "", err
-	}
-	return shURL, nil
-}*/
-
-/*func getShortByOriginalURL(shu *ShortURLAttr, originalURL string) (string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	defer cancel()
-	row := shu.DB.QueryRowContext(ctx, "SELECT uuid FROM url WHERE original_url=$1", originalURL)
-	var shURL int
-	err := row.Scan(&shURL)
-	if err != nil {
-		return "", err
-	}
-	return strconv.Itoa(shURL), err
-}*/
-
-/*func getLongByUUID(shu *ShortURLAttr, uuid int) (string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	defer cancel()
-	row := shu.DB.QueryRowContext(ctx, "SELECT original_url FROM url WHERE uuid=$1", uuid)
-	var longURL string
-	err := row.Scan(&longURL)
-	if err != nil {
-		return "", err
-	}
-	return longURL, nil
-}*/
 
 func (s *Service) Ping() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)

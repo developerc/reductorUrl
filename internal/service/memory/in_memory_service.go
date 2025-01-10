@@ -22,7 +22,6 @@ type repository interface {
 	GetLongLink(id string) (string, error)
 	HandleBatchJSON(buf bytes.Buffer) ([]byte, error)
 	AsURLExists(err error) bool
-	//GetShortURLAttr() *ShortURLAttr
 }
 
 type Service struct {
@@ -30,9 +29,7 @@ type Service struct {
 	logger *zap.Logger
 }
 
-// AsURLExists implements server.svc.
 func (s *Service) AsURLExists(err error) bool {
-	//panic("unimplemented")
 	var errorURLExists ErrorURLExists
 	return errorURLExists.AsURLExists(err)
 }
@@ -146,7 +143,6 @@ func NewInMemoryService() (*Service, error) {
 		if err != nil {
 			return nil, err
 		}
-		//if err := createTable(shu); err != nil {
 		if err := dbstorage.CreateTable(shu.DB); err != nil {
 			log.Println(err)
 		}
@@ -191,7 +187,3 @@ func (shu *ShortURLAttr) HandleBatchJSON(buf bytes.Buffer) ([]byte, error) {
 func (shu *ShortURLAttr) AsURLExists(err error) bool {
 	return true
 }
-
-/*func (shu *ShortURLAttr) GetShortURLAttr() *ShortURLAttr {
-	return shu
-}*/

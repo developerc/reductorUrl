@@ -49,7 +49,6 @@ func (s *Server) addLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if shortURL, err = s.service.AddLink(string(body)); err != nil {
-		//if _, ok := err.(*memory.ErrorURLExists); ok {
 		if s.service.AsURLExists(err) {
 			s.logger.Info("Add link", zap.String("error", err.Error()))
 			w.Header().Set("Content-Type", "text/plain")
