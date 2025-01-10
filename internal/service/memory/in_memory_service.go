@@ -22,6 +22,7 @@ type repository interface {
 	GetLongLink(id string) (string, error)
 	HandleBatchJSON(buf bytes.Buffer) ([]byte, error)
 	AsURLExists(err error) bool
+	GetShu() *ShortURLAttr
 }
 
 type Service struct {
@@ -186,4 +187,8 @@ func (shu *ShortURLAttr) HandleBatchJSON(buf bytes.Buffer) ([]byte, error) {
 
 func (shu *ShortURLAttr) AsURLExists(err error) bool {
 	return true
+}
+
+func (shu *ShortURLAttr) GetShu() *ShortURLAttr {
+	return shu
 }
