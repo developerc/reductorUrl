@@ -23,12 +23,18 @@ type repository interface {
 	HandleBatchJSON(buf bytes.Buffer) ([]byte, error)
 	AsURLExists(err error) bool
 	GetShu() *ShortURLAttr
+	GetCripto() (string, error)
 }
 
 type Service struct {
 	repo   repository
 	logger *zap.Logger
 }
+
+// GetCripto implements server.svc.
+/*func (s *Service) GetCripto() ([]byte, error) {
+	panic("unimplemented")
+}*/
 
 func (s *Service) AsURLExists(err error) bool {
 	var errorURLExists ErrorURLExists
@@ -191,4 +197,8 @@ func (shu *ShortURLAttr) AsURLExists(err error) bool {
 
 func (shu *ShortURLAttr) GetShu() *ShortURLAttr {
 	return shu
+}
+
+func (shu *ShortURLAttr) GetCripto() (string, error) {
+	return "", nil
 }

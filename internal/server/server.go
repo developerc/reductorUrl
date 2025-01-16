@@ -2,6 +2,7 @@ package server
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -22,6 +23,7 @@ type svc interface {
 	GetLongLink(id string) (string, error)
 	HandleBatchJSON(buf bytes.Buffer) ([]byte, error)
 	AsURLExists(err error) bool
+	GetCripto() (string, error)
 }
 
 type Server struct {
@@ -154,20 +156,28 @@ func (s *Server) CheckPing(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) UserURLs(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("hello"))
-	/*cookie, err := r.Cookie("exampleCookie")
+	/*w.WriteHeader(http.StatusOK)
+	w.Write([]byte("hello"))*/
+	cookie, err := r.Cookie("exampleCookie")
 	if err != nil {
 		fmt.Println("no cookies!")
+		cripto, err := s.service.GetCripto()
+		fmt.Println("from UserURLs cripto: ", cripto)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 		c := http.Cookie{
 			Name:  "exampleCookie",
-			Value: "cripto _text",
+			Value: string(cripto),
 		}
 		http.SetCookie(w, &c)
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-	fmt.Println("cookie.Value: " + cookie.Value)*/
+	fmt.Println("cookie.Value: " + cookie.Value)
+	w.WriteHeader(http.StatusOK)
+	//return
 	/*fmt.Println("from UserURLs")
 	cookie, err := r.Cookie("exampleCookie")
 	if err != nil {
