@@ -25,6 +25,7 @@ type svc interface {
 	AsURLExists(err error) bool
 	GetCripto() (string, error)
 	FetchURLs() ([]byte, error)
+	IsRegisteredCookie(cookie string) bool
 }
 
 type Server struct {
@@ -46,12 +47,36 @@ func NewServer(service svc) (*Server, error) {
 
 func (s *Server) addLink(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("from addLink")
+	existCookie := true
 	var shortURL string
+	var cripto string
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	//здесь проверяем пришла ли кука
+	cookie, err := r.Cookie("idUser")
+	if err != nil {
+		fmt.Println(err)
+		existCookie = false
+	} else {
+		if s.service.IsRegisteredCookie(cookie.Value) == false { //проверим есть ли такая кука в списке
+			existCookie = false
+		}
+	}
+
+	if existCookie { //если пришла, берем эту куку
+		cripto = cookie.Value
+	} else { //если нет, генерируем куку
+		cripto, err = s.service.GetCripto()
+		fmt.Println("from UserURLs cripto: ", cripto)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+
 	if shortURL, err = s.service.AddLink(string(body)); err != nil {
 		if s.service.AsURLExists(err) {
 			s.logger.Info("Add link", zap.String("error", err.Error()))
@@ -66,6 +91,14 @@ func (s *Server) addLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//если кука сгенерирована, добавляем куку
+	if !existCookie {
+		c := http.Cookie{
+			Name:  "idUser",
+			Value: cripto,
+		}
+		http.SetCookie(w, &c)
+	}
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusCreated)
 	if _, err := w.Write([]byte(shortURL)); err != nil {

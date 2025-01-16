@@ -25,11 +25,17 @@ type repository interface {
 	GetShu() *ShortURLAttr
 	GetCripto() (string, error)
 	FetchURLs() ([]byte, error)
+	IsRegisteredCookie(cookie string) bool
 }
 
 type Service struct {
 	repo   repository
 	logger *zap.Logger
+}
+
+// IsRegisteredCookie implements server.svc.
+func (s *Service) IsRegisteredCookie(cookie string) bool {
+	return false
 }
 
 // GetCripto implements server.svc.
@@ -182,6 +188,13 @@ func (shu *ShortURLAttr) addToFileStorage(cntr int, link string) error {
 		log.Println(err)
 	}
 	return nil
+}
+
+func (shu *ShortURLAttr) IsRegisteredCookie(cookie string) bool {
+	if _, ok := shu.MapCookie[cookie]; ok {
+		return true
+	}
+	return false
 }
 
 func (shu *ShortURLAttr) Ping() error {
