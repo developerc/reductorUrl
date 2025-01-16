@@ -2,7 +2,6 @@ package server
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -155,7 +154,9 @@ func (s *Server) CheckPing(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) UserURLs(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie("exampleCookie")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("hello"))
+	/*cookie, err := r.Cookie("exampleCookie")
 	if err != nil {
 		fmt.Println("no cookies!")
 		c := http.Cookie{
@@ -166,7 +167,7 @@ func (s *Server) UserURLs(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-	fmt.Println("cookie.Value: " + cookie.Value)
+	fmt.Println("cookie.Value: " + cookie.Value)*/
 	/*fmt.Println("from UserURLs")
 	cookie, err := r.Cookie("exampleCookie")
 	if err != nil {
