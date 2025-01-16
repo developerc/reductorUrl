@@ -16,15 +16,24 @@ import (
 )
 
 type ShortURLAttr struct {
-	Settings config.ServerSettings
-	Cntr     int
-	MapURL   map[int]string
-	DB       *sql.DB
+	Settings  config.ServerSettings
+	Cntr      int
+	MapURL    map[int]string
+	MapCookie map[string]bool
+	DB        *sql.DB
 }
 
 type ArrShortURL struct {
 	CorellationID string `json:"correlation_id"`
 	ShortURL      string `json:"short_url"`
+}
+
+func CreateMapCookie(shu *ShortURLAttr) (map[string]bool, error) {
+	mapCookie, err := dbstorage.CreateMapCookie(shu.DB)
+	if err != nil {
+		return nil, err
+	}
+	return mapCookie, nil
 }
 
 func (s *Service) FetchURLs() ([]byte, error) {

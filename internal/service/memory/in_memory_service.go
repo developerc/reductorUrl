@@ -154,6 +154,10 @@ func NewInMemoryService() (*Service, error) {
 		if err := dbstorage.CreateTable(shu.DB); err != nil {
 			log.Println(err)
 		}
+		shu.MapCookie, err = CreateMapCookie(shu)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	service := Service{repo: shu}

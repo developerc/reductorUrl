@@ -11,6 +11,34 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
+func CreateMapCookie(db *sql.DB) (map[string]bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	rows, err := db.QueryContext(ctx, "SELECT DISTINCT cookie FROM url")
+	if err != nil {
+		//fmt.Println(err)
+		return nil, err
+	}
+	defer rows.Close()
+	mapCookie := make(map[string]bool)
+	for rows.Next() {
+		var cookie string
+		err = rows.Scan(&cookie)
+		if err != nil {
+			//fmt.Println(err)
+			return nil, err
+		}
+		mapCookie[cookie] = true
+	}
+	// проверяем на ошибки
+	err = rows.Err()
+	if err != nil {
+		//fmt.Println(err)
+		return nil, err
+	}
+	return mapCookie, nil
+}
+
 func InsertBatch(arrLongURL []general.ArrLongURL, dbStorage string) error {
 	ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second*2)
 	defer cancelFunc()
@@ -36,7 +64,7 @@ func CreateTable(db *sql.DB) error {
 	const duration uint = 20
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(duration)*time.Second)
 	defer cancel()
-	const cr string = "CREATE TABLE IF NOT EXISTS url( uuid serial primary key, original_url TEXT CONSTRAINT must_be_different UNIQUE)"
+	const cr string = "CREATE TABLE IF NOT EXISTS url( uuid serial primary key, original_url TEXT CONSTRAINT must_be_different UNIQUE, cookie TEXT)"
 	_, err := db.ExecContext(ctx, cr)
 	if err != nil {
 		return err
@@ -100,12 +128,12 @@ func ListRepoURLs(db *sql.DB, addresBase string) ([]general.ArrRepoURL, error) {
 
 		var repoURL general.ArrRepoURL
 		err = rows.Scan(&repoURL.ShortURL, &repoURL.OriginalURL)
-		repoURL.ShortURL = addresBase + "/" + repoURL.ShortURL
 		//fmt.Println(repoURL)
 		if err != nil {
 			//fmt.Println(err)
 			return nil, err
 		}
+		repoURL.ShortURL = addresBase + "/" + repoURL.ShortURL
 		arrRepoURL = append(arrRepoURL, repoURL)
 	}
 	// проверяем на ошибки

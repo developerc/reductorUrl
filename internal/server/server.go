@@ -45,6 +45,7 @@ func NewServer(service svc) (*Server, error) {
 }
 
 func (s *Server) addLink(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("from addLink")
 	var shortURL string
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -73,6 +74,7 @@ func (s *Server) addLink(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) addLinkJSON(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("from addLinkJSON")
 	var buf bytes.Buffer
 	var shortURL string
 	var jsonBytes []byte
@@ -118,6 +120,7 @@ func (s *Server) addLinkJSON(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) addBatchJSON(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("from addBatchJSON")
 	var buf bytes.Buffer
 	var jsonBytes []byte
 	_, err := buf.ReadFrom(r.Body)
