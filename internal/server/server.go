@@ -2,6 +2,7 @@ package server
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -153,6 +154,48 @@ func (s *Server) CheckPing(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (s *Server) UserURLs(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("exampleCookie")
+	if err != nil {
+		fmt.Println("no cookies!")
+		c := http.Cookie{
+			Name:  "exampleCookie",
+			Value: "cripto _text",
+		}
+		http.SetCookie(w, &c)
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	fmt.Println("cookie.Value: " + cookie.Value)
+	/*fmt.Println("from UserURLs")
+	cookie, err := r.Cookie("exampleCookie")
+	if err != nil {
+		switch {
+		case errors.Is(err, http.ErrNoCookie):
+			http.Error(w, "cookie not found", http.StatusBadRequest)
+			cookie := http.Cookie{
+				Name:     "exampleCookie",
+				Value:    "Hello world!",
+				Path:     "/",
+				MaxAge:   3600,
+				HttpOnly: true,
+				Secure:   true,
+				SameSite: http.SameSiteLaxMode,
+			}
+			http.SetCookie(w, &cookie)
+			w.Write([]byte(cookie.Value))
+			return
+		default:
+			log.Println(err)
+			http.Error(w, "server error", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	// Echo out the cookie value in the response body.
+	w.Write([]byte(cookie.Value))*/
+}
+
 func (s *Server) SetupRoutes() http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.Middleware)
@@ -163,5 +206,6 @@ func (s *Server) SetupRoutes() http.Handler {
 	r.Get("/{id}", s.GetLongLink)
 	r.Get("/ping", s.CheckPing)
 	r.Post("/api/shorten/batch", s.addBatchJSON)
+	r.Get("/api/user/urls", s.UserURLs)
 	return r
 }
