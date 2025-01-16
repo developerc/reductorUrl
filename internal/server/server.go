@@ -24,6 +24,7 @@ type svc interface {
 	HandleBatchJSON(buf bytes.Buffer) ([]byte, error)
 	AsURLExists(err error) bool
 	GetCripto() (string, error)
+	FetchURLs() ([]byte, error)
 }
 
 type Server struct {
@@ -156,9 +157,25 @@ func (s *Server) CheckPing(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) UserURLs(w http.ResponseWriter, r *http.Request) {
-	/*w.WriteHeader(http.StatusOK)
-	w.Write([]byte("hello"))*/
-	cookie, err := r.Cookie("exampleCookie")
+	jsonBytes, err := s.service.FetchURLs()
+	fmt.Println("len(jsonBytes): ", len(jsonBytes))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if len(jsonBytes) < 3 {
+		w.WriteHeader(http.StatusNoContent)
+
+		return
+	} else {
+		w.WriteHeader(http.StatusOK)
+	}
+
+	if _, err := w.Write(jsonBytes); err != nil {
+		return
+	}
+	/*cookie, err := r.Cookie("exampleCookie")
 	if err != nil {
 		fmt.Println("no cookies!")
 		cripto, err := s.service.GetCripto()
@@ -176,7 +193,7 @@ func (s *Server) UserURLs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Println("cookie.Value: " + cookie.Value)
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusOK)*/
 	//return
 	/*fmt.Println("from UserURLs")
 	cookie, err := r.Cookie("exampleCookie")

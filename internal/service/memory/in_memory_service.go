@@ -24,6 +24,7 @@ type repository interface {
 	AsURLExists(err error) bool
 	GetShu() *ShortURLAttr
 	GetCripto() (string, error)
+	FetchURLs() ([]byte, error)
 }
 
 type Service struct {
@@ -201,4 +202,8 @@ func (shu *ShortURLAttr) GetShu() *ShortURLAttr {
 
 func (shu *ShortURLAttr) GetCripto() (string, error) {
 	return "", nil
+}
+
+func (shu *ShortURLAttr) FetchURLs() ([]byte, error) {
+	return nil, nil
 }

@@ -83,3 +83,36 @@ func InsertRecord(db *sql.DB, originalURL string) (string, error) {
 	}
 	return shURL, nil
 }
+
+func ListRepoURLs(db *sql.DB, addresBase string) ([]general.ArrRepoURL, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	rows, err := db.QueryContext(ctx, "SELECT uuid, original_url FROM url ")
+	if err != nil {
+		//fmt.Println(err)
+		return nil, err
+	}
+	defer rows.Close()
+	arrRepoURL := make([]general.ArrRepoURL, 0)
+	// пробегаем по всем записям
+	for rows.Next() {
+		//repoURL := general.ArrRepoURL{}
+
+		var repoURL general.ArrRepoURL
+		err = rows.Scan(&repoURL.ShortURL, &repoURL.OriginalURL)
+		repoURL.ShortURL = addresBase + "/" + repoURL.ShortURL
+		//fmt.Println(repoURL)
+		if err != nil {
+			//fmt.Println(err)
+			return nil, err
+		}
+		arrRepoURL = append(arrRepoURL, repoURL)
+	}
+	// проверяем на ошибки
+	err = rows.Err()
+	if err != nil {
+		//fmt.Println(err)
+		return nil, err
+	}
+	return arrRepoURL, nil
+}

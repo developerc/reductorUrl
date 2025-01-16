@@ -27,6 +27,21 @@ type ArrShortURL struct {
 	ShortURL      string `json:"short_url"`
 }
 
+func (s *Service) FetchURLs() ([]byte, error) {
+	//fmt.Println("from FetchURLs")
+	arrRepoURL, err := dbstorage.ListRepoURLs(s.GetShortURLAttr().DB, s.GetAdresBase())
+	if err != nil {
+
+		return nil, err
+	}
+	//fmt.Println(arrRepoURL)
+	jsonBytes, err := json.Marshal(arrRepoURL)
+	if err != nil {
+		return nil, err
+	}
+	return jsonBytes, nil
+}
+
 func listLongURL(buf bytes.Buffer) ([]general.ArrLongURL, error) {
 	arrLongURL := make([]general.ArrLongURL, 0)
 	if err := json.Unmarshal(buf.Bytes(), &arrLongURL); err != nil {
