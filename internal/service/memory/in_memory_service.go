@@ -25,7 +25,7 @@ type repository interface {
 	AsURLExists(err error) bool
 	GetShu() *ShortURLAttr
 	//GetCripto() (string, error)
-	FetchURLs() ([]byte, error)
+	FetchURLs(r *http.Request) ([]byte, error)
 	IsRegisteredUser(user string) bool
 	SetCookie(usr string) (*http.Cookie, error)
 	GetCounter() int
@@ -227,7 +227,7 @@ func (shu *ShortURLAttr) GetCripto() (string, error) {
 	return "", nil
 }
 
-func (shu *ShortURLAttr) FetchURLs() ([]byte, error) {
+func (shu *ShortURLAttr) FetchURLs(r *http.Request) ([]byte, error) {
 	return nil, nil
 }
 

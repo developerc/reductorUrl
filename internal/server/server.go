@@ -2,6 +2,7 @@ package server
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -24,7 +25,7 @@ type svc interface {
 	HandleBatchJSON(buf bytes.Buffer, usr string) ([]byte, error)
 	AsURLExists(err error) bool
 	//GetCripto() (string, error)
-	FetchURLs() ([]byte, error)
+	FetchURLs(r *http.Request) ([]byte, error)
 	IsRegisteredUser(user string) bool
 	SetCookie(usr string) (*http.Cookie, error)
 	GetCounter() int
@@ -52,7 +53,7 @@ func (s *Server) addLink(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("from addLink")
 	//existCookie := true
 	var shortURL string
-	var usr string
+	//var usr string
 	//var cripto string
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -129,13 +130,20 @@ func (s *Server) addLinkJSON(w http.ResponseWriter, r *http.Request) {
 	var buf bytes.Buffer
 	var shortURL string
 	var jsonBytes []byte
-	var usr string
+	//var usr string
 
 	_, err := buf.ReadFrom(r.Body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
+	//здесь проверяем пришла ли кука
+	gc, usr, err := s.service.HandleCookie(r)
+	if err == nil && gc != nil {
+		http.SetCookie(w, gc)
+	}
+
 	longURL, err := api.HandleAPIShorten(buf, s.logger)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -175,12 +183,19 @@ func (s *Server) addBatchJSON(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("from addBatchJSON")
 	var buf bytes.Buffer
 	var jsonBytes []byte
-	var usr string
+	//var usr string
 	_, err := buf.ReadFrom(r.Body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
+	//здесь проверяем пришла ли кука
+	gc, usr, err := s.service.HandleCookie(r)
+	if err == nil && gc != nil {
+		http.SetCookie(w, gc)
+	}
+
 	if jsonBytes, err = s.service.HandleBatchJSON(buf, usr); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -213,11 +228,18 @@ func (s *Server) CheckPing(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) UserURLs(w http.ResponseWriter, r *http.Request) {
-	jsonBytes, err := s.service.FetchURLs()
+	jsonBytes, err := s.service.FetchURLs(r)
 	fmt.Println("len(jsonBytes): ", len(jsonBytes))
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		switch {
+		case errors.Is(err, http.ErrNoCookie):
+			http.Error(w, err.Error(), http.StatusUnauthorized)
+			return
+		default:
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
 	}
 	w.Header().Set("Content-Type", "application/json")
 	if len(jsonBytes) < 3 {

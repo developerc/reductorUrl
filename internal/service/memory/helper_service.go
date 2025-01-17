@@ -36,7 +36,7 @@ func (s *Service) HandleCookie(r *http.Request) (*http.Cookie, string, error) {
 	var gc *http.Cookie
 	var err error
 	if s.GetShortURLAttr().Settings.TypeStorage == config.DBStorage {
-		gc, err = r.Cookie("user")
+		_, err = r.Cookie("user")
 		if err != nil { // если нет куки
 			usr = "user" + strconv.Itoa(s.GetCounter())
 			gc, err = s.SetCookie(usr)
@@ -80,9 +80,22 @@ func CreateMapUser(shu *ShortURLAttr) (map[string]bool, error) {
 	return mapUser, nil
 }
 
-func (s *Service) FetchURLs() ([]byte, error) {
+func (s *Service) FetchURLs(r *http.Request) ([]byte, error) {
 	//fmt.Println("from FetchURLs")
-	arrRepoURL, err := dbstorage.ListRepoURLs(s.GetShortURLAttr().DB, s.GetAdresBase())
+	_, err := r.Cookie("user")
+	if err != nil { // если нет куки
+		return nil, err
+	}
+	// если кука есть проверим есть ли такой юзер.
+	usr, err := s.ReadCookie(r)
+	if err != nil {
+		return nil, http.ErrNoCookie
+	}
+	if _, ok := s.GetShortURLAttr().MapUser[usr]; !ok {
+		return nil, http.ErrNoCookie
+	}
+
+	arrRepoURL, err := dbstorage.ListRepoURLs(s.GetShortURLAttr().DB, s.GetAdresBase(), usr)
 	if err != nil {
 
 		return nil, err
@@ -122,7 +135,7 @@ func (s *Service) handleArrLongURL(arrLongURL []general.ArrLongURL, usr string) 
 		return jsonBytes, nil
 	}
 
-	if err := dbstorage.InsertBatch(arrLongURL, shu.Settings.DBStorage); err != nil {
+	if err := dbstorage.InsertBatch(arrLongURL, shu.Settings.DBStorage, usr); err != nil {
 		return nil, err
 	}
 

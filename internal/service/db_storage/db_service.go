@@ -40,7 +40,7 @@ func CreateMapUser(db *sql.DB) (map[string]bool, error) {
 	return mapUser, nil
 }
 
-func InsertBatch(arrLongURL []general.ArrLongURL, dbStorage string) error {
+func InsertBatch(arrLongURL []general.ArrLongURL, dbStorage string, usr string) error {
 	ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second*2)
 	defer cancelFunc()
 	conn, err := pgx.Connect(ctx, dbStorage)
@@ -50,7 +50,7 @@ func InsertBatch(arrLongURL []general.ArrLongURL, dbStorage string) error {
 	defer conn.Close(ctx)
 	batch := &pgx.Batch{}
 	for _, longURL := range arrLongURL {
-		batch.Queue("insert into url( original_url) values ($1)", longURL.OriginalURL)
+		batch.Queue("insert into url( original_url, usr) values ($1, $2)", longURL.OriginalURL, usr)
 	}
 	br := conn.SendBatch(ctx, batch)
 	_, err = br.Exec()
@@ -114,10 +114,10 @@ func InsertRecord(db *sql.DB, originalURL string, usr string) (string, error) {
 	return shURL, nil
 }
 
-func ListRepoURLs(db *sql.DB, addresBase string) ([]general.ArrRepoURL, error) {
+func ListRepoURLs(db *sql.DB, addresBase string, usr string) ([]general.ArrRepoURL, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
-	rows, err := db.QueryContext(ctx, "SELECT uuid, original_url FROM url ")
+	rows, err := db.QueryContext(ctx, "SELECT uuid, original_url FROM url WHERE usr = $1", usr)
 	if err != nil {
 		//fmt.Println(err)
 		return nil, err
