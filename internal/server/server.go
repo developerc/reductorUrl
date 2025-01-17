@@ -18,14 +18,17 @@ import (
 )
 
 type svc interface {
-	AddLink(link string) (string, error)
+	AddLink(link string, usr string) (string, error)
 	Ping() error
 	GetLongLink(id string) (string, error)
-	HandleBatchJSON(buf bytes.Buffer) ([]byte, error)
+	HandleBatchJSON(buf bytes.Buffer, usr string) ([]byte, error)
 	AsURLExists(err error) bool
-	GetCripto() (string, error)
+	//GetCripto() (string, error)
 	FetchURLs() ([]byte, error)
-	IsRegisteredCookie(cookie string) bool
+	IsRegisteredUser(user string) bool
+	SetCookie(usr string) (*http.Cookie, error)
+	GetCounter() int
+	HandleCookie(r *http.Request) (*http.Cookie, string, error)
 }
 
 type Server struct {
@@ -47,21 +50,36 @@ func NewServer(service svc) (*Server, error) {
 
 func (s *Server) addLink(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("from addLink")
-	existCookie := true
+	//existCookie := true
 	var shortURL string
-	var cripto string
+	var usr string
+	//var cripto string
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	//здесь проверяем пришла ли кука
-	cookie, err := r.Cookie("idUser")
+	gc, usr, err := s.service.HandleCookie(r)
+	if err == nil && gc != nil {
+		http.SetCookie(w, gc)
+	}
+	/*_, err = r.Cookie("user")
+	if err != nil {
+		usr = "user" + strconv.Itoa(s.service.GetCounter())
+		gc, err := s.service.SetCookie(usr)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		http.SetCookie(w, gc)
+	}*/
+	/*cookie, err := r.Cookie("user")
 	if err != nil {
 		fmt.Println(err)
 		existCookie = false
 	} else {
-		if s.service.IsRegisteredCookie(cookie.Value) == false { //проверим есть ли такая кука в списке
+		if s.service.IsRegisteredUser(cookie.Value) == false { //проверим есть ли такая кука в списке
 			existCookie = false
 		}
 	}
@@ -75,9 +93,9 @@ func (s *Server) addLink(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-	}
+	}*/
 
-	if shortURL, err = s.service.AddLink(string(body)); err != nil {
+	if shortURL, err = s.service.AddLink(string(body), usr); err != nil {
 		if s.service.AsURLExists(err) {
 			s.logger.Info("Add link", zap.String("error", err.Error()))
 			w.Header().Set("Content-Type", "text/plain")
@@ -92,13 +110,13 @@ func (s *Server) addLink(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//если кука сгенерирована, добавляем куку
-	if !existCookie {
+	/*if !existCookie {
 		c := http.Cookie{
 			Name:  "idUser",
 			Value: cripto,
 		}
 		http.SetCookie(w, &c)
-	}
+	}*/
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusCreated)
 	if _, err := w.Write([]byte(shortURL)); err != nil {
@@ -111,6 +129,7 @@ func (s *Server) addLinkJSON(w http.ResponseWriter, r *http.Request) {
 	var buf bytes.Buffer
 	var shortURL string
 	var jsonBytes []byte
+	var usr string
 
 	_, err := buf.ReadFrom(r.Body)
 	if err != nil {
@@ -122,7 +141,7 @@ func (s *Server) addLinkJSON(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	if shortURL, err = s.service.AddLink(longURL); err != nil {
+	if shortURL, err = s.service.AddLink(longURL, usr); err != nil {
 		if _, ok := err.(*memory.ErrorURLExists); ok {
 			s.logger.Info("Add link JSON", zap.String("error", err.Error()))
 			jsonBytes, err := api.ShortToJSON(shortURL, s.logger)
@@ -156,12 +175,13 @@ func (s *Server) addBatchJSON(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("from addBatchJSON")
 	var buf bytes.Buffer
 	var jsonBytes []byte
+	var usr string
 	_, err := buf.ReadFrom(r.Body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	if jsonBytes, err = s.service.HandleBatchJSON(buf); err != nil {
+	if jsonBytes, err = s.service.HandleBatchJSON(buf, usr); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}

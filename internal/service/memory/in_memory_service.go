@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"log"
+	"net/http"
 	"strconv"
 
 	"github.com/developerc/reductorUrl/internal/config"
@@ -17,15 +18,18 @@ import (
 )
 
 type repository interface {
-	AddLink(link string) (string, error)
+	AddLink(link string, usr string) (string, error)
 	Ping() error
 	GetLongLink(id string) (string, error)
-	HandleBatchJSON(buf bytes.Buffer) ([]byte, error)
+	HandleBatchJSON(buf bytes.Buffer, usr string) ([]byte, error)
 	AsURLExists(err error) bool
 	GetShu() *ShortURLAttr
-	GetCripto() (string, error)
+	//GetCripto() (string, error)
 	FetchURLs() ([]byte, error)
-	IsRegisteredCookie(cookie string) bool
+	IsRegisteredUser(user string) bool
+	SetCookie(usr string) (*http.Cookie, error)
+	GetCounter() int
+	HandleCookie(r *http.Request) (*http.Cookie, string, error)
 }
 
 type Service struct {
@@ -34,7 +38,7 @@ type Service struct {
 }
 
 // IsRegisteredCookie implements server.svc.
-func (s *Service) IsRegisteredCookie(cookie string) bool {
+func (s *Service) IsRegisteredUser(cookie string) bool {
 	return false
 }
 
@@ -60,7 +64,7 @@ func (e *ErrorURLExists) AsURLExists(err error) bool {
 	return errors.As(err, &e)
 }
 
-func (s *Service) AddLink(link string) (string, error) {
+func (s *Service) AddLink(link string, usr string) (string, error) {
 	var shURL string
 	var err error
 
@@ -76,7 +80,7 @@ func (s *Service) AddLink(link string) (string, error) {
 		s.AddLongURL(s.GetCounter(), link)
 		return s.GetAdresBase() + "/" + strconv.Itoa(s.GetCounter()), nil
 	case config.DBStorage:
-		shURL, err = dbstorage.InsertRecord(s.GetShortURLAttr().DB, link)
+		shURL, err = dbstorage.InsertRecord(s.GetShortURLAttr().DB, link, usr)
 		if err != nil {
 			var pgErr *pgconn.PgError
 			if errors.As(err, &pgErr) && pgerrcode.IsIntegrityConstraintViolation(pgErr.Code) && pgErr.ConstraintName == "must_be_different" {
@@ -88,6 +92,7 @@ func (s *Service) AddLink(link string) (string, error) {
 			}
 			return "", err
 		}
+		s.GetShortURLAttr().MapUser[usr] = true
 	}
 	return s.GetAdresBase() + "/" + shURL, nil
 }
@@ -123,7 +128,7 @@ func (s *Service) GetLongLink(id string) (string, error) {
 	return longURL, nil
 }
 
-func (s *Service) HandleBatchJSON(buf bytes.Buffer) ([]byte, error) {
+func (s *Service) HandleBatchJSON(buf bytes.Buffer, usr string) ([]byte, error) {
 	arrLongURL, err := listLongURL(buf)
 	if err != nil {
 		return nil, err
@@ -132,7 +137,7 @@ func (s *Service) HandleBatchJSON(buf bytes.Buffer) ([]byte, error) {
 		return nil, errors.New("error: length array is zero")
 	}
 
-	jsonBytes, err := s.handleArrLongURL(arrLongURL)
+	jsonBytes, err := s.handleArrLongURL(arrLongURL, usr)
 	if err != nil {
 		return nil, err
 	}
@@ -160,10 +165,11 @@ func NewInMemoryService() (*Service, error) {
 		if err := dbstorage.CreateTable(shu.DB); err != nil {
 			log.Println(err)
 		}
-		shu.MapCookie, err = CreateMapCookie(shu)
+		shu.MapUser, err = CreateMapUser(shu)
 		if err != nil {
 			return nil, err
 		}
+		InitSecure()
 	}
 
 	service := Service{repo: shu}
@@ -171,7 +177,7 @@ func NewInMemoryService() (*Service, error) {
 	return &service, err
 }
 
-func (shu *ShortURLAttr) AddLink(link string) (string, error) {
+func (shu *ShortURLAttr) AddLink(link string, usr string) (string, error) {
 	return "", nil
 }
 
@@ -190,8 +196,8 @@ func (shu *ShortURLAttr) addToFileStorage(cntr int, link string) error {
 	return nil
 }
 
-func (shu *ShortURLAttr) IsRegisteredCookie(cookie string) bool {
-	if _, ok := shu.MapCookie[cookie]; ok {
+func (shu *ShortURLAttr) IsRegisteredUser(cookie string) bool {
+	if _, ok := shu.MapUser[cookie]; ok {
 		return true
 	}
 	return false
@@ -205,7 +211,7 @@ func (shu *ShortURLAttr) GetLongLink(id string) (string, error) {
 	return "", nil
 }
 
-func (shu *ShortURLAttr) HandleBatchJSON(buf bytes.Buffer) ([]byte, error) {
+func (shu *ShortURLAttr) HandleBatchJSON(buf bytes.Buffer, usr string) ([]byte, error) {
 	return nil, nil
 }
 
@@ -223,4 +229,16 @@ func (shu *ShortURLAttr) GetCripto() (string, error) {
 
 func (shu *ShortURLAttr) FetchURLs() ([]byte, error) {
 	return nil, nil
+}
+
+func (shu *ShortURLAttr) SetCookie(usr string) (*http.Cookie, error) {
+	return nil, nil
+}
+
+func (shu *ShortURLAttr) GetCounter() int {
+	return 0
+}
+
+func (shu *ShortURLAttr) HandleCookie(r *http.Request) (*http.Cookie, string, error) {
+	return nil, "", nil
 }

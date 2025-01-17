@@ -5,7 +5,10 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"math"
+	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/developerc/reductorUrl/internal/config"
@@ -16,11 +19,11 @@ import (
 )
 
 type ShortURLAttr struct {
-	Settings  config.ServerSettings
-	Cntr      int
-	MapURL    map[int]string
-	MapCookie map[string]bool
-	DB        *sql.DB
+	Settings config.ServerSettings
+	Cntr     int
+	MapURL   map[int]string
+	MapUser  map[string]bool
+	DB       *sql.DB
 }
 
 type ArrShortURL struct {
@@ -28,12 +31,53 @@ type ArrShortURL struct {
 	ShortURL      string `json:"short_url"`
 }
 
-func CreateMapCookie(shu *ShortURLAttr) (map[string]bool, error) {
-	mapCookie, err := dbstorage.CreateMapCookie(shu.DB)
+func (s *Service) HandleCookie(r *http.Request) (*http.Cookie, string, error) {
+	var usr string
+	var gc *http.Cookie
+	var err error
+	if s.GetShortURLAttr().Settings.TypeStorage == config.DBStorage {
+		gc, err = r.Cookie("user")
+		if err != nil { // если нет куки
+			usr = "user" + strconv.Itoa(s.GetCounter())
+			gc, err = s.SetCookie(usr)
+			if err != nil {
+				return nil, "", err
+			}
+			s.GetShortURLAttr().MapUser[usr] = true
+			return gc, usr, nil
+		}
+		// если кука есть проверим есть ли такой юзер. Если есть, куку не добавляем возвращаем nil, расшифрованный юзер, nil
+		fmt.Println("MapUser: ", s.GetShortURLAttr().MapUser)
+		usr, err = s.ReadCookie(r)
+		if err != nil {
+			return nil, "", err
+		}
+		//if s.IsRegisteredUser(usr) {
+		if _, ok := s.GetShortURLAttr().MapUser[usr]; ok {
+			return nil, usr, nil
+		} else {
+			usr = "user" + strconv.Itoa(s.GetCounter())
+			gc, err = s.SetCookie(usr)
+			if err != nil {
+				return nil, "", err
+			}
+			s.GetShortURLAttr().MapUser[usr] = true
+			return gc, usr, nil
+		}
+
+		//return nil, "", nil
+	} else {
+		return nil, "", nil
+	}
+}
+
+func CreateMapUser(shu *ShortURLAttr) (map[string]bool, error) {
+	mapUser, err := dbstorage.CreateMapUser(shu.DB)
 	if err != nil {
 		return nil, err
 	}
-	return mapCookie, nil
+	shu.Cntr = len(mapUser)
+	return mapUser, nil
 }
 
 func (s *Service) FetchURLs() ([]byte, error) {
@@ -59,12 +103,12 @@ func listLongURL(buf bytes.Buffer) ([]general.ArrLongURL, error) {
 	return arrLongURL, nil
 }
 
-func (s *Service) handleArrLongURL(arrLongURL []general.ArrLongURL) ([]byte, error) {
+func (s *Service) handleArrLongURL(arrLongURL []general.ArrLongURL, usr string) ([]byte, error) {
 	shu := s.GetShortURLAttr()
 	if shu.Settings.TypeStorage != config.DBStorage {
 		arrShortURL := make([]ArrShortURL, 0)
 		for _, longURL := range arrLongURL {
-			URL, err := s.AddLink(longURL.OriginalURL)
+			URL, err := s.AddLink(longURL.OriginalURL, usr)
 			if err != nil {
 				return nil, err
 			}

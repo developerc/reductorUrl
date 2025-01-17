@@ -3,6 +3,7 @@ package dbstorage
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -11,16 +12,16 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
-func CreateMapCookie(db *sql.DB) (map[string]bool, error) {
+func CreateMapUser(db *sql.DB) (map[string]bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
-	rows, err := db.QueryContext(ctx, "SELECT DISTINCT cookie FROM url")
+	rows, err := db.QueryContext(ctx, "SELECT DISTINCT usr FROM url WHERE usr IS NOT NULL")
 	if err != nil {
 		//fmt.Println(err)
 		return nil, err
 	}
 	defer rows.Close()
-	mapCookie := make(map[string]bool)
+	mapUser := make(map[string]bool)
 	for rows.Next() {
 		var cookie string
 		err = rows.Scan(&cookie)
@@ -28,7 +29,7 @@ func CreateMapCookie(db *sql.DB) (map[string]bool, error) {
 			//fmt.Println(err)
 			return nil, err
 		}
-		mapCookie[cookie] = true
+		mapUser[cookie] = true
 	}
 	// проверяем на ошибки
 	err = rows.Err()
@@ -36,7 +37,7 @@ func CreateMapCookie(db *sql.DB) (map[string]bool, error) {
 		//fmt.Println(err)
 		return nil, err
 	}
-	return mapCookie, nil
+	return mapUser, nil
 }
 
 func InsertBatch(arrLongURL []general.ArrLongURL, dbStorage string) error {
@@ -64,9 +65,10 @@ func CreateTable(db *sql.DB) error {
 	const duration uint = 20
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(duration)*time.Second)
 	defer cancel()
-	const cr string = "CREATE TABLE IF NOT EXISTS url( uuid serial primary key, original_url TEXT CONSTRAINT must_be_different UNIQUE, cookie TEXT)"
+	const cr string = "CREATE TABLE IF NOT EXISTS url( uuid serial primary key, original_url TEXT CONSTRAINT must_be_different UNIQUE, usr TEXT)"
 	_, err := db.ExecContext(ctx, cr)
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
 	return nil
@@ -96,10 +98,10 @@ func GetShortByOriginalURL(db *sql.DB, originalURL string) (string, error) {
 	return strconv.Itoa(shURL), err
 }
 
-func InsertRecord(db *sql.DB, originalURL string) (string, error) {
+func InsertRecord(db *sql.DB, originalURL string, usr string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
-	_, err := db.ExecContext(ctx, "insert into url( original_url) values ($1)", originalURL)
+	_, err := db.ExecContext(ctx, "insert into url( original_url, usr) values ($1, $2)", originalURL, usr)
 
 	if err != nil {
 		return "", err

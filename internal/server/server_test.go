@@ -21,7 +21,7 @@ func TestPost(t *testing.T) {
 	defer tsrv.Close()
 
 	t.Run("#1_PostTest", func(t *testing.T) {
-		shortURL, err := svc.AddLink("http://blabla.ru")
+		shortURL, err := svc.AddLink("http://blabla.ru", "user1")
 		require.NoError(t, err)
 		assert.Equal(t, "http://localhost:8080/1", shortURL)
 	})

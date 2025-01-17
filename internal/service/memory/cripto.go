@@ -1,24 +1,58 @@
 package memory
 
 import (
-	"crypto/aes"
-	"crypto/cipher"
-	"crypto/rand"
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
+	"net/http"
+
+	"github.com/gorilla/securecookie"
 )
 
-func (s *Service) GetCripto() (string, error) {
+type User struct {
+	Name string
+}
+
+var secure *securecookie.SecureCookie
+
+func InitSecure() {
+	var hashKey = []byte("very-secret-qwer")
+	var blockKey = []byte("a-lot-secret-qwe")
+	secure = securecookie.New(hashKey, blockKey)
+}
+
+func (s *Service) SetCookie(usr string) (*http.Cookie, error) {
+	var cookie *http.Cookie
+	u := &User{
+		Name: usr,
+	}
+	if encoded, err := secure.Encode("user", u); err == nil {
+		cookie = &http.Cookie{
+			Name:  "user",
+			Value: encoded,
+		}
+		return cookie, nil
+	} else {
+		return nil, err
+	}
+}
+
+func (s *Service) ReadCookie(r *http.Request) (string, error) {
+	fmt.Println("from ReadCookieHandler")
+	var err error
+	if cookie, err := r.Cookie("user"); err == nil {
+		u := &User{}
+		if err = secure.Decode("user", cookie.Value, u); err == nil {
+			return u.Name, nil
+		}
+	}
+	return "", err
+}
+
+/*func (s *Service) GetCripto() (string, error) {
 	src := []byte("Ключ от сердца") // данные, которые хотим зашифровать
 	fmt.Printf("original: %s\n", src)
 
 	// будем использовать AES-256, создав ключ длиной 32 байта
-	/*key, err := generateRandom(2 * aes.BlockSize) // ключ шифрования
-	if err != nil {
-		fmt.Printf("error: %v\n", err)
-		return "", err
-	}*/
+
 	key := sha256.Sum256([]byte("super_secret****"))
 	// NewCipher создает и возвращает новый cipher.Block.
 	// Ключевым аргументом должен быть ключ AES, 16, 24 или 32 байта
@@ -55,4 +89,4 @@ func generateRandom(size int) ([]byte, error) {
 	}
 
 	return b, nil
-}
+}*/
