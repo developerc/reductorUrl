@@ -26,9 +26,9 @@ type svc interface {
 	AsURLExists(err error) bool
 	//GetCripto() (string, error)
 	FetchURLs(r *http.Request) ([]byte, error)
-	IsRegisteredUser(user string) bool
-	SetCookie(usr string) (*http.Cookie, error)
-	GetCounter() int
+	//IsRegisteredUser(user string) bool
+	//SetCookie(usr string) (*http.Cookie, error)
+	//GetCounter() int
 	HandleCookie(r *http.Request) (*http.Cookie, string, error)
 }
 
