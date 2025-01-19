@@ -37,7 +37,7 @@ func TestPost(t *testing.T) {
 	})
 
 	t.Run("#3_GetTest", func(t *testing.T) {
-		resp, err := svc.GetLongLink("1")
+		resp, _, err := svc.GetLongLink("1")
 		require.NoError(t, err)
 		assert.Equal(t, "http://blabla.ru", resp)
 	})
