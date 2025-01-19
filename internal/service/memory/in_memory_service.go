@@ -20,7 +20,7 @@ import (
 type repository interface {
 	AddLink(link string, usr string) (string, error)
 	Ping() error
-	GetLongLink(id string) (string, error)
+	GetLongLink(id string) (string, bool, error)
 	HandleBatchJSON(buf bytes.Buffer, usr string) ([]byte, error)
 	AsURLExists(err error) bool
 	GetShu() *ShortURLAttr
@@ -30,6 +30,7 @@ type repository interface {
 	//SetCookie(usr string) (*http.Cookie, error)
 	//GetCounter() int
 	HandleCookie(r *http.Request) (*http.Cookie, string, error)
+	DelURLs(r *http.Request) (bool, error)
 }
 
 type Service struct {
@@ -102,30 +103,31 @@ func (s *Service) GetShortByOriginalURL(originalURL string) (string, error) {
 	return s.GetAdresBase() + "/" + shortURL, err
 }
 
-func (s *Service) GetLongLink(id string) (string, error) {
+func (s *Service) GetLongLink(id string) (string, bool, error) {
 	var longURL string
+	var isDeleted bool
 	i, err := strconv.Atoi(id)
 	if err != nil {
-		return "", err
+		return "", isDeleted, err
 	}
 	switch s.GetShortURLAttr().Settings.TypeStorage {
 	case config.MemoryStorage:
 		longURL, err = s.GetLongURL(i)
 		if err != nil {
-			return "", err
+			return "", isDeleted, err
 		}
 	case config.FileStorage:
 		longURL, err = s.GetLongURL(i)
 		if err != nil {
-			return "", err
+			return "", isDeleted, err
 		}
 	case config.DBStorage:
-		longURL, err = dbstorage.GetLongByUUID(s.GetShortURLAttr().DB, i)
+		longURL, isDeleted, err = dbstorage.GetLongByUUID(s.GetShortURLAttr().DB, i)
 		if err != nil {
-			return "", err
+			return "", isDeleted, err
 		}
 	}
-	return longURL, nil
+	return longURL, isDeleted, nil
 }
 
 func (s *Service) HandleBatchJSON(buf bytes.Buffer, usr string) ([]byte, error) {
@@ -207,8 +209,8 @@ func (shu *ShortURLAttr) Ping() error {
 	return nil
 }
 
-func (shu *ShortURLAttr) GetLongLink(id string) (string, error) {
-	return "", nil
+func (shu *ShortURLAttr) GetLongLink(id string) (string, bool, error) {
+	return "", false, nil
 }
 
 func (shu *ShortURLAttr) HandleBatchJSON(buf bytes.Buffer, usr string) ([]byte, error) {
@@ -241,4 +243,8 @@ func (shu *ShortURLAttr) GetCounter() int {
 
 func (shu *ShortURLAttr) HandleCookie(r *http.Request) (*http.Cookie, string, error) {
 	return nil, "", nil
+}
+
+func (shu *ShortURLAttr) DelURLs(r *http.Request) (bool, error) {
+	return false, nil
 }

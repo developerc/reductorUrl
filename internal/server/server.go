@@ -21,7 +21,7 @@ import (
 type svc interface {
 	AddLink(link string, usr string) (string, error)
 	Ping() error
-	GetLongLink(id string) (string, error)
+	GetLongLink(id string) (string, bool, error)
 	HandleBatchJSON(buf bytes.Buffer, usr string) ([]byte, error)
 	AsURLExists(err error) bool
 	//GetCripto() (string, error)
@@ -30,6 +30,7 @@ type svc interface {
 	//SetCookie(usr string) (*http.Cookie, error)
 	//GetCounter() int
 	HandleCookie(r *http.Request) (*http.Cookie, string, error)
+	DelURLs(r *http.Request) (bool, error)
 }
 
 type Server struct {
@@ -209,10 +210,17 @@ func (s *Server) addBatchJSON(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) GetLongLink(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
-	longURL, err := s.service.GetLongLink(id)
+	longURL, isDeleted, err := s.service.GetLongLink(id)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	fmt.Println("isDeleted: ", isDeleted)
+
+	if isDeleted {
+
+		w.WriteHeader(http.StatusGone)
 		return
 	}
 	w.Header().Set("Location", longURL)
@@ -302,6 +310,29 @@ func (s *Server) UserURLs(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(cookie.Value))*/
 }
 
+func (s *Server) DelUserURLs(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("from DelUserURLs: ")
+	ok, err := s.service.DelURLs(r)
+	if err != nil {
+		switch {
+		case errors.Is(err, http.ErrNoCookie):
+			http.Error(w, err.Error(), http.StatusUnauthorized)
+			return
+		default:
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+	if ok {
+		w.WriteHeader(http.StatusAccepted)
+		w.Write([]byte("Accepted"))
+	} else {
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte("Not accepted!"))
+	}
+
+}
+
 func (s *Server) SetupRoutes() http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.Middleware)
@@ -313,5 +344,6 @@ func (s *Server) SetupRoutes() http.Handler {
 	r.Get("/ping", s.CheckPing)
 	r.Post("/api/shorten/batch", s.addBatchJSON)
 	r.Get("/api/user/urls", s.UserURLs)
+	r.Delete("/api/user/urls", s.DelUserURLs)
 	return r
 }

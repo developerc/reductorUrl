@@ -80,6 +80,40 @@ func CreateMapUser(shu *ShortURLAttr) (map[string]bool, error) {
 	return mapUser, nil
 }
 
+func (s *Service) DelURLs(r *http.Request) (bool, error) {
+	_, err := r.Cookie("user")
+	if err != nil { // если нет куки
+		return false, err
+	}
+	// если кука есть проверим есть ли такой юзер.
+	usr, err := s.ReadCookie(r)
+	if err != nil {
+		return false, http.ErrNoCookie
+	}
+	if _, ok := s.GetShortURLAttr().MapUser[usr]; !ok {
+		return false, http.ErrNoCookie
+	}
+	// будем менять в поле deletedflag
+	var buf bytes.Buffer
+	_, err = buf.ReadFrom(r.Body)
+	if err != nil {
+		return false, err
+	}
+	fmt.Println(usr, buf.String())
+
+	var arrShortURL []string = make([]string, 0)
+	if err := json.Unmarshal(buf.Bytes(), &arrShortURL); err != nil {
+		return false, err
+	}
+	fmt.Println(arrShortURL)
+
+	if err := dbstorage.SetDelBatch(arrShortURL, s.GetShortURLAttr().Settings.DBStorage, usr); err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
 func (s *Service) FetchURLs(r *http.Request) ([]byte, error) {
 	//fmt.Println("from FetchURLs")
 	_, err := r.Cookie("user")
