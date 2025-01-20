@@ -62,7 +62,6 @@ func (s *Service) HandleCookie(r *http.Request) (*http.Cookie, string, error) {
 			s.GetShortURLAttr().MapUser[usr] = true
 			return gc, usr, nil
 		}
-
 	} else {
 		return nil, "", nil
 	}
@@ -125,7 +124,6 @@ func (s *Service) FetchURLs(r *http.Request) ([]byte, error) {
 
 	arrRepoURL, err := dbstorage.ListRepoURLs(s.GetShortURLAttr().DB, s.GetAdresBase(), usr)
 	if err != nil {
-
 		return nil, err
 	}
 

@@ -51,7 +51,7 @@ func (e *ErrorURLExists) AsURLExists(err error) bool {
 	return errors.As(err, &e)
 }
 
-func (s *Service) AddLink(link string, usr string) (string, error) {
+func (s *Service) AddLink(link, usr string) (string, error) {
 	var shURL string
 	var err error
 
@@ -89,31 +89,29 @@ func (s *Service) GetShortByOriginalURL(originalURL string) (string, error) {
 	return s.GetAdresBase() + "/" + shortURL, err
 }
 
-func (s *Service) GetLongLink(id string) (string, bool, error) {
-	var longURL string
-	var isDeleted bool
+func (s *Service) GetLongLink(id string) (longURL string, isDeleted bool, err error) {
 	i, err := strconv.Atoi(id)
 	if err != nil {
-		return "", isDeleted, err
+		return
 	}
 	switch s.GetShortURLAttr().Settings.TypeStorage {
 	case config.MemoryStorage:
 		longURL, err = s.GetLongURL(i)
 		if err != nil {
-			return "", isDeleted, err
+			return
 		}
 	case config.FileStorage:
 		longURL, err = s.GetLongURL(i)
 		if err != nil {
-			return "", isDeleted, err
+			return
 		}
 	case config.DBStorage:
 		longURL, isDeleted, err = dbstorage.GetLongByUUID(s.GetShortURLAttr().DB, i)
 		if err != nil {
-			return "", isDeleted, err
+			return
 		}
 	}
-	return longURL, isDeleted, nil
+	return
 }
 
 func (s *Service) HandleBatchJSON(buf bytes.Buffer, usr string) ([]byte, error) {
@@ -165,7 +163,7 @@ func NewInMemoryService() (*Service, error) {
 	return &service, err
 }
 
-func (shu *ShortURLAttr) AddLink(link string, usr string) (string, error) {
+func (shu *ShortURLAttr) AddLink(link, usr string) (string, error) {
 	return "", nil
 }
 
@@ -188,7 +186,7 @@ func (shu *ShortURLAttr) Ping() error {
 	return nil
 }
 
-func (shu *ShortURLAttr) GetLongLink(id string) (string, bool, error) {
+func (shu *ShortURLAttr) GetLongLink(id string) (longURL string, isDeleted bool, err error) {
 	return "", false, nil
 }
 

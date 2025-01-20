@@ -164,9 +164,7 @@ func (s *Server) GetLongLink(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
 	if isDeleted {
-
 		w.WriteHeader(http.StatusGone)
 		return
 	}
@@ -193,7 +191,6 @@ func (s *Server) UserURLs(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-
 	}
 	w.Header().Set("Content-Type", "application/json")
 	if len(jsonBytes) < 3 {
@@ -223,12 +220,15 @@ func (s *Server) DelUserURLs(w http.ResponseWriter, r *http.Request) {
 	}
 	if ok {
 		w.WriteHeader(http.StatusAccepted)
-		w.Write([]byte("Accepted"))
+		if _, err := w.Write([]byte("Accepted")); err != nil {
+			return
+		}
 	} else {
 		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte("Not accepted!"))
+		if _, err := w.Write([]byte("Not accepted!")); err != nil {
+			return
+		}
 	}
-
 }
 
 func (s *Server) SetupRoutes() http.Handler {

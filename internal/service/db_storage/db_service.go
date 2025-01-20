@@ -37,7 +37,7 @@ func CreateMapUser(db *sql.DB) (map[string]bool, error) {
 	return mapUser, nil
 }
 
-func InsertBatch(arrLongURL []general.ArrLongURL, dbStorage string, usr string) error {
+func InsertBatch(arrLongURL []general.ArrLongURL, dbStorage, usr string) error {
 	ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second*2)
 	defer cancelFunc()
 	conn, err := pgx.Connect(ctx, dbStorage)
@@ -58,28 +58,7 @@ func InsertBatch(arrLongURL []general.ArrLongURL, dbStorage string, usr string) 
 	return nil
 }
 
-func SetDelBatch2(arrShortURL []string, dbStorage string, usr string) error {
-	ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second*2)
-	defer cancelFunc()
-	conn, err := pgx.Connect(ctx, dbStorage)
-	if err != nil {
-		return err
-	}
-	defer conn.Close(ctx)
-	batch := &pgx.Batch{}
-	for _, shortURL := range arrShortURL {
-		batch.Queue("UPDATE url SET is_deleted = true WHERE uuid = $1 AND usr = $2", shortURL, usr)
-	}
-	br := conn.SendBatch(ctx, batch)
-	_, err = br.Exec()
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func SetDelBatch(arrShortURL []string, dbStorage string, usr string) error {
+func SetDelBatch(arrShortURL []string, dbStorage, usr string) error {
 	ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second*2)
 	defer cancelFunc()
 	conn, err := pgx.Connect(ctx, dbStorage)
@@ -131,7 +110,8 @@ func CreateTable(db *sql.DB) error {
 	const duration uint = 20
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(duration)*time.Second)
 	defer cancel()
-	const cr string = "CREATE TABLE IF NOT EXISTS url( uuid serial primary key, original_url TEXT CONSTRAINT must_be_different UNIQUE, usr TEXT, is_deleted BOOLEAN NOT NULL DEFAULT FALSE)"
+	const cr string = "CREATE TABLE IF NOT EXISTS url( uuid serial primary key, " +
+		"original_url TEXT CONSTRAINT must_be_different UNIQUE, usr TEXT, is_deleted BOOLEAN NOT NULL DEFAULT FALSE)"
 	_, err := db.ExecContext(ctx, cr)
 	if err != nil {
 		return err
@@ -139,17 +119,15 @@ func CreateTable(db *sql.DB) error {
 	return nil
 }
 
-func GetLongByUUID(db *sql.DB, uuid int) (string, bool, error) {
+func GetLongByUUID(db *sql.DB, uuid int) (longURL string, isDeleted bool, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 	row := db.QueryRowContext(ctx, "SELECT original_url, is_deleted FROM url WHERE uuid=$1", uuid)
-	var longURL string
-	var isDeleted bool
-	err := row.Scan(&longURL, &isDeleted)
+	err = row.Scan(&longURL, &isDeleted)
 	if err != nil {
 		return "", false, err
 	}
-	return longURL, isDeleted, nil
+	return
 }
 
 func GetShortByOriginalURL(db *sql.DB, originalURL string) (string, error) {
@@ -164,7 +142,7 @@ func GetShortByOriginalURL(db *sql.DB, originalURL string) (string, error) {
 	return strconv.Itoa(shURL), err
 }
 
-func InsertRecord(db *sql.DB, originalURL string, usr string) (string, error) {
+func InsertRecord(db *sql.DB, originalURL, usr string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 	_, err := db.ExecContext(ctx, "insert into url( original_url, usr) values ($1, $2)", originalURL, usr)
@@ -180,7 +158,7 @@ func InsertRecord(db *sql.DB, originalURL string, usr string) (string, error) {
 	return shURL, nil
 }
 
-func ListRepoURLs(db *sql.DB, addresBase string, usr string) ([]general.ArrRepoURL, error) {
+func ListRepoURLs(db *sql.DB, addresBase, usr string) ([]general.ArrRepoURL, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 	rows, err := db.QueryContext(ctx, "SELECT uuid, original_url FROM url WHERE usr = $1", usr)

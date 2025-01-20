@@ -29,7 +29,7 @@ func ShortToJSON(strShortURL string, logger *zap.Logger) ([]byte, error) {
 	shortURL := ShortURL{Result: strShortURL}
 	jsonBytes, err := json.Marshal(shortURL)
 	if err != nil {
-		logger.Info("HandleApiShorten", zap.String("error", "marshalling"))
+		logger.Info("HandleApiShorten", zap.String("error", "marshaling"))
 		return nil, err
 	}
 	return jsonBytes, nil
