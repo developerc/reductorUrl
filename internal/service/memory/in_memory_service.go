@@ -24,11 +24,7 @@ type repository interface {
 	HandleBatchJSON(buf bytes.Buffer, usr string) ([]byte, error)
 	AsURLExists(err error) bool
 	GetShu() *ShortURLAttr
-	//GetCripto() (string, error)
 	FetchURLs(r *http.Request) ([]byte, error)
-	//IsRegisteredUser(user string) bool
-	//SetCookie(usr string) (*http.Cookie, error)
-	//GetCounter() int
 	HandleCookie(r *http.Request) (*http.Cookie, string, error)
 	DelURLs(r *http.Request) (bool, error)
 }
@@ -37,16 +33,6 @@ type Service struct {
 	repo   repository
 	logger *zap.Logger
 }
-
-// IsRegisteredCookie implements server.svc.
-/*func (s *Service) IsRegisteredUser(cookie string) bool {
-	return false
-}*/
-
-// GetCripto implements server.svc.
-/*func (s *Service) GetCripto() ([]byte, error) {
-	panic("unimplemented")
-}*/
 
 func (s *Service) AsURLExists(err error) bool {
 	var errorURLExists ErrorURLExists
@@ -198,13 +184,6 @@ func (shu *ShortURLAttr) addToFileStorage(cntr int, link string) error {
 	return nil
 }
 
-/*func (shu *ShortURLAttr) IsRegisteredUser(cookie string) bool {
-	if _, ok := shu.MapUser[cookie]; ok {
-		return true
-	}
-	return false
-}*/
-
 func (shu *ShortURLAttr) Ping() error {
 	return nil
 }
@@ -232,10 +211,6 @@ func (shu *ShortURLAttr) GetCripto() (string, error) {
 func (shu *ShortURLAttr) FetchURLs(r *http.Request) ([]byte, error) {
 	return nil, nil
 }
-
-/*func (shu *ShortURLAttr) SetCookie(usr string) (*http.Cookie, error) {
-	return nil, nil
-}*/
 
 func (shu *ShortURLAttr) GetCounter() int {
 	return 0

@@ -3,7 +3,6 @@ package server
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -24,11 +23,7 @@ type svc interface {
 	GetLongLink(id string) (string, bool, error)
 	HandleBatchJSON(buf bytes.Buffer, usr string) ([]byte, error)
 	AsURLExists(err error) bool
-	//GetCripto() (string, error)
 	FetchURLs(r *http.Request) ([]byte, error)
-	//IsRegisteredUser(user string) bool
-	//SetCookie(usr string) (*http.Cookie, error)
-	//GetCounter() int
 	HandleCookie(r *http.Request) (*http.Cookie, string, error)
 	DelURLs(r *http.Request) (bool, error)
 }
@@ -51,51 +46,17 @@ func NewServer(service svc) (*Server, error) {
 }
 
 func (s *Server) addLink(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("from addLink")
-	//existCookie := true
 	var shortURL string
-	//var usr string
-	//var cripto string
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	//здесь проверяем пришла ли кука
+
 	gc, usr, err := s.service.HandleCookie(r)
 	if err == nil && gc != nil {
 		http.SetCookie(w, gc)
 	}
-	/*_, err = r.Cookie("user")
-	if err != nil {
-		usr = "user" + strconv.Itoa(s.service.GetCounter())
-		gc, err := s.service.SetCookie(usr)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-		http.SetCookie(w, gc)
-	}*/
-	/*cookie, err := r.Cookie("user")
-	if err != nil {
-		fmt.Println(err)
-		existCookie = false
-	} else {
-		if s.service.IsRegisteredUser(cookie.Value) == false { //проверим есть ли такая кука в списке
-			existCookie = false
-		}
-	}
-
-	if existCookie { //если пришла, берем эту куку
-		cripto = cookie.Value
-	} else { //если нет, генерируем куку
-		cripto, err = s.service.GetCripto()
-		fmt.Println("from UserURLs cripto: ", cripto)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	}*/
 
 	if shortURL, err = s.service.AddLink(string(body), usr); err != nil {
 		if s.service.AsURLExists(err) {
@@ -111,14 +72,6 @@ func (s *Server) addLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//если кука сгенерирована, добавляем куку
-	/*if !existCookie {
-		c := http.Cookie{
-			Name:  "idUser",
-			Value: cripto,
-		}
-		http.SetCookie(w, &c)
-	}*/
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusCreated)
 	if _, err := w.Write([]byte(shortURL)); err != nil {
@@ -127,11 +80,9 @@ func (s *Server) addLink(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) addLinkJSON(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("from addLinkJSON")
 	var buf bytes.Buffer
 	var shortURL string
 	var jsonBytes []byte
-	//var usr string
 
 	_, err := buf.ReadFrom(r.Body)
 	if err != nil {
@@ -139,7 +90,6 @@ func (s *Server) addLinkJSON(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//здесь проверяем пришла ли кука
 	gc, usr, err := s.service.HandleCookie(r)
 	if err == nil && gc != nil {
 		http.SetCookie(w, gc)
@@ -181,17 +131,15 @@ func (s *Server) addLinkJSON(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) addBatchJSON(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("from addBatchJSON")
 	var buf bytes.Buffer
 	var jsonBytes []byte
-	//var usr string
+
 	_, err := buf.ReadFrom(r.Body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	//здесь проверяем пришла ли кука
 	gc, usr, err := s.service.HandleCookie(r)
 	if err == nil && gc != nil {
 		http.SetCookie(w, gc)
@@ -216,7 +164,6 @@ func (s *Server) GetLongLink(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	fmt.Println("isDeleted: ", isDeleted)
 
 	if isDeleted {
 
@@ -237,7 +184,6 @@ func (s *Server) CheckPing(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) UserURLs(w http.ResponseWriter, r *http.Request) {
 	jsonBytes, err := s.service.FetchURLs(r)
-	fmt.Println("len(jsonBytes): ", len(jsonBytes))
 	if err != nil {
 		switch {
 		case errors.Is(err, http.ErrNoCookie):
@@ -261,57 +207,9 @@ func (s *Server) UserURLs(w http.ResponseWriter, r *http.Request) {
 	if _, err := w.Write(jsonBytes); err != nil {
 		return
 	}
-	/*cookie, err := r.Cookie("exampleCookie")
-	if err != nil {
-		fmt.Println("no cookies!")
-		cripto, err := s.service.GetCripto()
-		fmt.Println("from UserURLs cripto: ", cripto)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		c := http.Cookie{
-			Name:  "exampleCookie",
-			Value: string(cripto),
-		}
-		http.SetCookie(w, &c)
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-	fmt.Println("cookie.Value: " + cookie.Value)
-	w.WriteHeader(http.StatusOK)*/
-	//return
-	/*fmt.Println("from UserURLs")
-	cookie, err := r.Cookie("exampleCookie")
-	if err != nil {
-		switch {
-		case errors.Is(err, http.ErrNoCookie):
-			http.Error(w, "cookie not found", http.StatusBadRequest)
-			cookie := http.Cookie{
-				Name:     "exampleCookie",
-				Value:    "Hello world!",
-				Path:     "/",
-				MaxAge:   3600,
-				HttpOnly: true,
-				Secure:   true,
-				SameSite: http.SameSiteLaxMode,
-			}
-			http.SetCookie(w, &cookie)
-			w.Write([]byte(cookie.Value))
-			return
-		default:
-			log.Println(err)
-			http.Error(w, "server error", http.StatusInternalServerError)
-		}
-		return
-	}
-
-	// Echo out the cookie value in the response body.
-	w.Write([]byte(cookie.Value))*/
 }
 
 func (s *Server) DelUserURLs(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("from DelUserURLs: ")
 	ok, err := s.service.DelURLs(r)
 	if err != nil {
 		switch {

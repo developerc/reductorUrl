@@ -5,7 +5,6 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"math"
 	"net/http"
 	"strconv"
@@ -37,7 +36,7 @@ func (s *Service) HandleCookie(r *http.Request) (*http.Cookie, string, error) {
 	var err error
 	if s.GetShortURLAttr().Settings.TypeStorage == config.DBStorage {
 		_, err = r.Cookie("user")
-		if err != nil { // если нет куки
+		if err != nil {
 			usr = "user" + strconv.Itoa(s.GetCounter())
 			gc, err = s.SetCookie(usr)
 			if err != nil {
@@ -46,13 +45,12 @@ func (s *Service) HandleCookie(r *http.Request) (*http.Cookie, string, error) {
 			s.GetShortURLAttr().MapUser[usr] = true
 			return gc, usr, nil
 		}
-		// если кука есть проверим есть ли такой юзер. Если есть, куку не добавляем возвращаем nil, расшифрованный юзер, nil
-		fmt.Println("MapUser: ", s.GetShortURLAttr().MapUser)
+
 		usr, err = s.ReadCookie(r)
 		if err != nil {
 			return nil, "", err
 		}
-		//if s.IsRegisteredUser(usr) {
+
 		if _, ok := s.GetShortURLAttr().MapUser[usr]; ok {
 			return nil, usr, nil
 		} else {
@@ -65,7 +63,6 @@ func (s *Service) HandleCookie(r *http.Request) (*http.Cookie, string, error) {
 			return gc, usr, nil
 		}
 
-		//return nil, "", nil
 	} else {
 		return nil, "", nil
 	}
@@ -82,10 +79,10 @@ func CreateMapUser(shu *ShortURLAttr) (map[string]bool, error) {
 
 func (s *Service) DelURLs(r *http.Request) (bool, error) {
 	_, err := r.Cookie("user")
-	if err != nil { // если нет куки
+	if err != nil {
 		return false, err
 	}
-	// если кука есть проверим есть ли такой юзер.
+
 	usr, err := s.ReadCookie(r)
 	if err != nil {
 		return false, http.ErrNoCookie
@@ -93,19 +90,17 @@ func (s *Service) DelURLs(r *http.Request) (bool, error) {
 	if _, ok := s.GetShortURLAttr().MapUser[usr]; !ok {
 		return false, http.ErrNoCookie
 	}
-	// будем менять в поле deletedflag
+
 	var buf bytes.Buffer
 	_, err = buf.ReadFrom(r.Body)
 	if err != nil {
 		return false, err
 	}
-	fmt.Println(usr, buf.String())
 
 	arrShortURL := make([]string, 0)
 	if err := json.Unmarshal(buf.Bytes(), &arrShortURL); err != nil {
 		return false, err
 	}
-	fmt.Println(arrShortURL)
 
 	if err := dbstorage.SetDelBatch(arrShortURL, s.GetShortURLAttr().Settings.DBStorage, usr); err != nil {
 		return false, err
@@ -115,12 +110,11 @@ func (s *Service) DelURLs(r *http.Request) (bool, error) {
 }
 
 func (s *Service) FetchURLs(r *http.Request) ([]byte, error) {
-	//fmt.Println("from FetchURLs")
 	_, err := r.Cookie("user")
-	if err != nil { // если нет куки
+	if err != nil {
 		return nil, err
 	}
-	// если кука есть проверим есть ли такой юзер.
+
 	usr, err := s.ReadCookie(r)
 	if err != nil {
 		return nil, http.ErrNoCookie
@@ -134,7 +128,7 @@ func (s *Service) FetchURLs(r *http.Request) ([]byte, error) {
 
 		return nil, err
 	}
-	//fmt.Println(arrRepoURL)
+
 	jsonBytes, err := json.Marshal(arrRepoURL)
 	if err != nil {
 		return nil, err
