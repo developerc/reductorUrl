@@ -101,7 +101,7 @@ func (s *Service) DelURLs(r *http.Request) (bool, error) {
 	}
 	fmt.Println(usr, buf.String())
 
-	var arrShortURL []string = make([]string, 0)
+	arrShortURL := make([]string, 0)
 	if err := json.Unmarshal(buf.Bytes(), &arrShortURL); err != nil {
 		return false, err
 	}
