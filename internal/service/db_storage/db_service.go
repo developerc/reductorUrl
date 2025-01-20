@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/developerc/reductorUrl/internal/general"
@@ -70,6 +71,98 @@ func SetDelBatch(arrShortURL []string, dbStorage string, usr string) error {
 	}
 	defer conn.Close(ctx)
 	batch := &pgx.Batch{}
+	outCh := genBatchShortURL(arrShortURL)
+	fanInBatch(batch, outCh, usr)
+	br := conn.SendBatch(ctx, batch)
+	_, err = br.Exec()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func fanInBatch(batch *pgx.Batch, outCh chan string, usr string) {
+	fmt.Println("from fanInBatch")
+	var wg sync.WaitGroup
+
+	// читаем из входящего канала
+	for shortURL := range outCh {
+		shortURL := shortURL
+
+		wg.Add(1)
+		go func() {
+			// откладываем сообщение о том, что горутина завершилась
+			defer wg.Done()
+			// получаем данные из канала
+			fmt.Println("chClosure: ", shortURL)
+			batch.Queue("UPDATE url SET is_deleted = true WHERE uuid = $1 AND usr = $2", shortURL, usr)
+			/*for data := range chClosure {
+			    select {
+			    // выходим из горутины, если канал закрылся
+			    case <-doneCh:
+			        return
+			    // если не закрылся, отправляем данные в конечный выходной канал
+			    case finalCh <- data:
+			    }
+			}*/
+
+		}()
+
+	}
+	wg.Wait()
+	/*wg.Add(len(arrCh))
+	fmt.Println("len(arrCh): ", len(arrCh))
+	fmt.Println("arrCh", arrCh)
+	for _, ch := range arrCh {
+		chStr := ch
+		fmt.Println("from range arrCh")
+		go func(ch chan string) {
+			fmt.Println("begin batch.Queue", chStr)
+			//batch.Queue("UPDATE url SET is_deleted = true WHERE uuid = $1 AND usr = $2", <-chStr, usr)
+			//close(ch)
+			wg.Done()
+			fmt.Println("wg.Done()")
+		}(ch)
+		fmt.Println("bottom range arrCh")
+	}*/
+
+}
+
+/*func addBatchQueue(batch *pgx.Batch, inCh chan string, usr string) {
+	batch.Queue("UPDATE url SET is_deleted = true WHERE uuid = $1 AND usr = $2", <-inCh, usr)
+}*/
+
+func genBatchShortURL(arrShortURL []string) chan string {
+	fmt.Println("from genBatchShortURL")
+	//var wg sync.WaitGroup
+	//wg.Add(len(arrShortURL))
+	outCh := make(chan string)
+	//var arrCh []chan string = make([]chan string, len(arrShortURL))
+	go func() {
+		defer close(outCh)
+		for _, shortURL := range arrShortURL {
+			//ch := make(chan string)
+			//arrCh[i] = ch
+			//arrCh[i] <- shortURL
+			//wg.Done()
+			outCh <- shortURL
+		}
+		fmt.Println("end generation shortURL")
+	}()
+	//wg.Wait()
+	return outCh
+}
+
+/*func SetDelBatch(arrShortURL []string, dbStorage string, usr string) error {
+	ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second*2)
+	defer cancelFunc()
+	conn, err := pgx.Connect(ctx, dbStorage)
+	if err != nil {
+		return err
+	}
+	defer conn.Close(ctx)
+	batch := &pgx.Batch{}
 	for _, shortURL := range arrShortURL {
 		batch.Queue("UPDATE url SET is_deleted = true WHERE uuid = $1 AND usr = $2", shortURL, usr)
 	}
@@ -80,7 +173,7 @@ func SetDelBatch(arrShortURL []string, dbStorage string, usr string) error {
 	}
 
 	return nil
-}
+}*/
 
 func CreateTable(db *sql.DB) error {
 	const duration uint = 20
