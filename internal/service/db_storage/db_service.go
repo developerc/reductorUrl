@@ -58,7 +58,7 @@ func InsertBatch(arrLongURL []general.ArrLongURL, dbStorage string, usr string) 
 	return nil
 }
 
-func SetDelBatch(arrShortURL []string, dbStorage string, usr string) error {
+func SetDelBatch2(arrShortURL []string, dbStorage string, usr string) error {
 	ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second*2)
 	defer cancelFunc()
 	conn, err := pgx.Connect(ctx, dbStorage)
@@ -79,7 +79,7 @@ func SetDelBatch(arrShortURL []string, dbStorage string, usr string) error {
 	return nil
 }
 
-func SetDelBatch2(arrShortURL []string, dbStorage string, usr string) error {
+func SetDelBatch(arrShortURL []string, dbStorage string, usr string) error {
 	ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second*2)
 	defer cancelFunc()
 	conn, err := pgx.Connect(ctx, dbStorage)
