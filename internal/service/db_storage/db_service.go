@@ -67,6 +67,27 @@ func SetDelBatch(arrShortURL []string, dbStorage string, usr string) error {
 	}
 	defer conn.Close(ctx)
 	batch := &pgx.Batch{}
+	for _, shortURL := range arrShortURL {
+		batch.Queue("UPDATE url SET is_deleted = true WHERE uuid = $1 AND usr = $2", shortURL, usr)
+	}
+	br := conn.SendBatch(ctx, batch)
+	_, err = br.Exec()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func SetDelBatch2(arrShortURL []string, dbStorage string, usr string) error {
+	ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second*2)
+	defer cancelFunc()
+	conn, err := pgx.Connect(ctx, dbStorage)
+	if err != nil {
+		return err
+	}
+	defer conn.Close(ctx)
+	batch := &pgx.Batch{}
 	outCh := genBatchShortURL(arrShortURL)
 	fanInBatch(batch, outCh, usr)
 	br := conn.SendBatch(ctx, batch)
