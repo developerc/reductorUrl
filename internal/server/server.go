@@ -23,7 +23,7 @@ type svc interface {
 	GetLongLink(id string) (string, bool, error)
 	HandleBatchJSON(buf bytes.Buffer, usr string) ([]byte, error)
 	AsURLExists(err error) bool
-	FetchURLs(r *http.Request) ([]byte, error)
+	FetchURLs(usr string) ([]byte, error)
 	HandleCookie(r *http.Request) (*http.Cookie, string, error)
 	DelURLs(r *http.Request) (bool, error)
 }
@@ -181,7 +181,24 @@ func (s *Server) CheckPing(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) UserURLs(w http.ResponseWriter, r *http.Request) {
-	jsonBytes, err := s.service.FetchURLs(r)
+	cookie, err := r.Cookie("user")
+	if err != nil {
+		switch {
+		case errors.Is(err, http.ErrNoCookie):
+			http.Error(w, err.Error(), http.StatusUnauthorized)
+			return
+		default:
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+
+	//if cookie, err := r.Cookie("user"); err == nil {
+	//userStruct := &memory.User{}
+
+	//usr, err := s.ReadCookie(r)
+
+	jsonBytes, err := s.service.FetchURLs(cookie.Value)
 	if err != nil {
 		switch {
 		case errors.Is(err, http.ErrNoCookie):

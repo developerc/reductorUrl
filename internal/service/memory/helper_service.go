@@ -108,21 +108,30 @@ func (s *Service) DelURLs(r *http.Request) (bool, error) {
 	return true, nil
 }
 
-func (s *Service) FetchURLs(r *http.Request) ([]byte, error) {
-	_, err := r.Cookie("user")
+func (s *Service) FetchURLs( /*r *http.Request*/ cookieValue string) ([]byte, error) {
+	/*_, err := r.Cookie("user")
+	if err != nil {
+		return nil, err
+	}*/
+
+	//usr, err := s.ReadCookie(r)
+	/*if err != nil {
+		return nil, http.ErrNoCookie
+	}*/
+	//usr, err := s.ReadCookie2(cookieValue)
+	var err error
+	usr := &User{}
+	if err = secure.Decode("user", cookieValue, usr); err != nil {
+		return nil, err
+	}
 	if err != nil {
 		return nil, err
 	}
-
-	usr, err := s.ReadCookie(r)
-	if err != nil {
-		return nil, http.ErrNoCookie
-	}
-	if _, ok := s.GetShortURLAttr().MapUser[usr]; !ok {
+	if _, ok := s.GetShortURLAttr().MapUser[usr.Name]; !ok {
 		return nil, http.ErrNoCookie
 	}
 
-	arrRepoURL, err := dbstorage.ListRepoURLs(s.GetShortURLAttr().DB, s.GetAdresBase(), usr)
+	arrRepoURL, err := dbstorage.ListRepoURLs(s.GetShortURLAttr().DB, s.GetAdresBase(), usr.Name)
 	if err != nil {
 		return nil, err
 	}

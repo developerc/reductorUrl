@@ -24,7 +24,7 @@ type repository interface {
 	HandleBatchJSON(buf bytes.Buffer, usr string) ([]byte, error)
 	AsURLExists(err error) bool
 	GetShu() *ShortURLAttr
-	FetchURLs(r *http.Request) ([]byte, error)
+	FetchURLs(cookieValue string) ([]byte, error)
 	HandleCookie(r *http.Request) (*http.Cookie, string, error)
 	DelURLs(r *http.Request) (bool, error)
 }
@@ -206,7 +206,7 @@ func (shu *ShortURLAttr) GetCripto() (string, error) {
 	return "", nil
 }
 
-func (shu *ShortURLAttr) FetchURLs(r *http.Request) ([]byte, error) {
+func (shu *ShortURLAttr) FetchURLs(cookieValue string) ([]byte, error) {
 	return nil, nil
 }
 
