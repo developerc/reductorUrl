@@ -26,7 +26,7 @@ type svc interface {
 	AsURLExists(err error) bool
 	FetchURLs(cookieValue string) ([]byte, error)
 	HandleCookie(cookieValue string) (*http.Cookie, string, error)
-	DelURLs(r *http.Request) (bool, error)
+	DelURLs(cookieValue string, buf bytes.Buffer) (bool, error)
 }
 
 type Server struct {
@@ -310,7 +310,26 @@ func (s *Server) UserURLs(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) DelUserURLs(w http.ResponseWriter, r *http.Request) {
-	ok, err := s.service.DelURLs(r)
+	cookie, err := r.Cookie("user")
+	if err != nil {
+		switch {
+		case errors.Is(err, http.ErrNoCookie):
+			http.Error(w, err.Error(), http.StatusUnauthorized)
+			return
+		default:
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+
+	var buf bytes.Buffer
+	_, err = buf.ReadFrom(r.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	ok, err := s.service.DelURLs(cookie.Value, buf)
 	if err != nil {
 		switch {
 		case errors.Is(err, http.ErrNoCookie):

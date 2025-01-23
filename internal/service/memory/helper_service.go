@@ -110,32 +110,38 @@ func CreateMapUser(shu *ShortURLAttr) (map[string]bool, error) {
 	return mapUser, nil
 }
 
-func (s *Service) DelURLs(r *http.Request) (bool, error) {
-	_, err := r.Cookie("user")
+func (s *Service) DelURLs(cookieValue string, buf bytes.Buffer) (bool, error) {
+	/*_, err := r.Cookie("user")
 	if err != nil {
+		return false, err
+	}*/
+
+	/*usr, err := s.ReadCookie(r)
+	if err != nil {
+		return false, http.ErrNoCookie
+	}*/
+	var err error
+	u := &User{}
+	if err = secure.Decode("user", cookieValue, u); err != nil {
 		return false, err
 	}
 
-	usr, err := s.ReadCookie(r)
-	if err != nil {
-		return false, http.ErrNoCookie
-	}
-	if _, ok := s.GetShortURLAttr().MapUser[usr]; !ok {
+	if _, ok := s.GetShortURLAttr().MapUser[u.Name]; !ok {
 		return false, http.ErrNoCookie
 	}
 
-	var buf bytes.Buffer
+	/*var buf bytes.Buffer
 	_, err = buf.ReadFrom(r.Body)
 	if err != nil {
 		return false, err
-	}
+	}*/
 
 	arrShortURL := make([]string, 0)
 	if err := json.Unmarshal(buf.Bytes(), &arrShortURL); err != nil {
 		return false, err
 	}
 
-	if err := dbstorage.SetDelBatch(arrShortURL, s.GetShortURLAttr().Settings.DBStorage, usr); err != nil {
+	if err := dbstorage.SetDelBatch(arrShortURL, s.GetShortURLAttr().Settings.DBStorage, u.Name); err != nil {
 		return false, err
 	}
 

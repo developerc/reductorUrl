@@ -1,7 +1,7 @@
 package memory
 
 import (
-	"net/http"
+	//"net/http"
 
 	"github.com/gorilla/securecookie"
 )
@@ -18,7 +18,7 @@ func InitSecure() {
 	secure = securecookie.New(hashKey, blockKey)
 }
 
-func (s *Service) SetCookie(usr string) (*http.Cookie, error) {
+/*func (s *Service) SetCookie(usr string) (*http.Cookie, error) {
 	var cookie *http.Cookie
 	u := &User{
 		Name: usr,
@@ -32,9 +32,9 @@ func (s *Service) SetCookie(usr string) (*http.Cookie, error) {
 	} else {
 		return nil, err
 	}
-}
+}*/
 
-func (s *Service) ReadCookie(r *http.Request) (string, error) {
+/*func (s *Service) ReadCookie(r *http.Request) (string, error) {
 	var err error
 	if cookie, err := r.Cookie("user"); err == nil {
 		u := &User{}
@@ -43,7 +43,7 @@ func (s *Service) ReadCookie(r *http.Request) (string, error) {
 		}
 	}
 	return "", err
-}
+}*/
 
 /*func (s *Service) ReadCookie2(cookieValue string) (string, error) {
 	var err error

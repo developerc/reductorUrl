@@ -26,7 +26,7 @@ type repository interface {
 	GetShu() *ShortURLAttr
 	FetchURLs(cookieValue string) ([]byte, error)
 	HandleCookie(cookieValue string) (*http.Cookie, string, error)
-	DelURLs(r *http.Request) (bool, error)
+	DelURLs(cookieValue string, buf bytes.Buffer) (bool, error)
 }
 
 type Service struct {
@@ -218,6 +218,6 @@ func (shu *ShortURLAttr) HandleCookie(cookieValue string) (*http.Cookie, string,
 	return nil, "", nil
 }
 
-func (shu *ShortURLAttr) DelURLs(r *http.Request) (bool, error) {
+func (shu *ShortURLAttr) DelURLs(cookieValue string, buf bytes.Buffer) (bool, error) {
 	return false, nil
 }
