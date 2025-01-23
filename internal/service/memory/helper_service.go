@@ -5,6 +5,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"math"
 	"net/http"
 	"strconv"
@@ -30,12 +31,16 @@ type ArrShortURL struct {
 	ShortURL      string `json:"short_url"`
 }
 
-func (s *Service) HandleCookie(r *http.Request) (*http.Cookie, string, error) {
+func (s *Service) HandleCookie(cookieValue string) (*http.Cookie, string, error) {
 	var usr string
-	var gc *http.Cookie
+	var cookie *http.Cookie
 	var err error
+	u := &User{
+		Name: usr,
+	}
+
 	if s.GetShortURLAttr().Settings.TypeStorage == config.DBStorage {
-		_, err = r.Cookie("user")
+		/*_, err = r.Cookie("user")
 		if err != nil {
 			usr = "user" + strconv.Itoa(s.GetCounter())
 			gc, err = s.SetCookie(usr)
@@ -44,23 +49,52 @@ func (s *Service) HandleCookie(r *http.Request) (*http.Cookie, string, error) {
 			}
 			s.GetShortURLAttr().MapUser[usr] = true
 			return gc, usr, nil
+		}*/
+		if len(cookieValue) == 0 {
+			usr = "user" + strconv.Itoa(s.GetCounter())
+			//var cookie *http.Cookie
+			u.Name = usr
+			if encoded, err := secure.Encode("user", u); err == nil {
+				cookie = &http.Cookie{
+					Name:  "user",
+					Value: encoded,
+				}
+				return cookie, usr, nil
+			} else {
+				return nil, "", err
+			}
 		}
-
-		usr, err = s.ReadCookie(r)
-		if err != nil {
+		//если кука пришла, расшифруем
+		if err = secure.Decode("user", cookieValue, u); err != nil {
 			return nil, "", err
 		}
+		fmt.Println("u: ", u)
+		/*usr, err = s.ReadCookie(r)
+		if err != nil {
+			return nil, "", err
+		}*/
 
-		if _, ok := s.GetShortURLAttr().MapUser[usr]; ok {
-			return nil, usr, nil
+		if _, ok := s.GetShortURLAttr().MapUser[u.Name]; ok { //если такой юзер зарегистрирован
+			return nil, u.Name, nil
 		} else {
 			usr = "user" + strconv.Itoa(s.GetCounter())
-			gc, err = s.SetCookie(usr)
-			if err != nil {
+			u.Name = usr
+			if encoded, err := secure.Encode("user", u); err == nil {
+				cookie = &http.Cookie{
+					Name:  "user",
+					Value: encoded,
+				}
+				s.GetShortURLAttr().MapUser[usr] = true
+				return cookie, usr, nil
+			} else {
 				return nil, "", err
 			}
-			s.GetShortURLAttr().MapUser[usr] = true
-			return gc, usr, nil
+			/*gc, err = s.SetCookie(usr)
+			if err != nil {
+				return nil, "", err
+			}*/
+
+			//return gc, usr, nil
 		}
 	} else {
 		return nil, "", nil
@@ -120,16 +154,16 @@ func (s *Service) FetchURLs( /*r *http.Request*/ cookieValue string) ([]byte, er
 	}*/
 	//usr, err := s.ReadCookie2(cookieValue)
 	var err error
-	usr := &User{}
-	if err = secure.Decode("user", cookieValue, usr); err != nil {
+	u := &User{}
+	if err = secure.Decode("user", cookieValue, u); err != nil {
 		return nil, err
 	}
 
-	if _, ok := s.GetShortURLAttr().MapUser[usr.Name]; !ok {
+	if _, ok := s.GetShortURLAttr().MapUser[u.Name]; !ok {
 		return nil, http.ErrNoCookie
 	}
 
-	arrRepoURL, err := dbstorage.ListRepoURLs(s.GetShortURLAttr().DB, s.GetAdresBase(), usr.Name)
+	arrRepoURL, err := dbstorage.ListRepoURLs(s.GetShortURLAttr().DB, s.GetAdresBase(), u.Name)
 	if err != nil {
 		return nil, err
 	}

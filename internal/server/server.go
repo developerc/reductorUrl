@@ -3,6 +3,7 @@ package server
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -23,8 +24,8 @@ type svc interface {
 	GetLongLink(id string) (string, bool, error)
 	HandleBatchJSON(buf bytes.Buffer, usr string) ([]byte, error)
 	AsURLExists(err error) bool
-	FetchURLs(usr string) ([]byte, error)
-	HandleCookie(r *http.Request) (*http.Cookie, string, error)
+	FetchURLs(cookieValue string) ([]byte, error)
+	HandleCookie(cookieValue string) (*http.Cookie, string, error)
 	DelURLs(r *http.Request) (bool, error)
 }
 
@@ -47,17 +48,46 @@ func NewServer(service svc) (*Server, error) {
 
 func (s *Server) addLink(w http.ResponseWriter, r *http.Request) {
 	var shortURL string
+	var usr string
+	var gc *http.Cookie
+	var err error
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	gc, usr, err := s.service.HandleCookie(r)
+	cookie, err := r.Cookie("user")
+	if err != nil {
+		//gc, usr, err = s.service.HandleCookie("")
+		switch {
+		case errors.Is(err, http.ErrNoCookie):
+			gc, usr, err = s.service.HandleCookie("")
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			http.SetCookie(w, gc)
+		default:
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	} else {
+		gc, usr, err = s.service.HandleCookie(cookie.Value)
+		fmt.Println("from server cookie.Value: ", cookie.Value)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if gc != nil {
+			http.SetCookie(w, gc)
+		}
+	}
+	/*gc, usr, err := s.service.HandleCookie(r)
 	if err == nil && gc != nil {
 		http.SetCookie(w, gc)
-	}
-
+	}*/
+	fmt.Println("usr: ", usr)
 	if shortURL, err = s.service.AddLink(string(body), usr); err != nil {
 		if s.service.AsURLExists(err) {
 			s.logger.Info("Add link", zap.String("error", err.Error()))
@@ -83,17 +113,46 @@ func (s *Server) addLinkJSON(w http.ResponseWriter, r *http.Request) {
 	var buf bytes.Buffer
 	var shortURL string
 	var jsonBytes []byte
+	var usr string
+	var gc *http.Cookie
+	var err error
 
-	_, err := buf.ReadFrom(r.Body)
+	_, err = buf.ReadFrom(r.Body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	gc, usr, err := s.service.HandleCookie(r)
-	if err == nil && gc != nil {
-		http.SetCookie(w, gc)
+	cookie, err := r.Cookie("user")
+	if err != nil {
+		switch {
+		case errors.Is(err, http.ErrNoCookie):
+			gc, usr, err = s.service.HandleCookie("")
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			http.SetCookie(w, gc)
+		default:
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	} else {
+		gc, usr, err = s.service.HandleCookie(cookie.Value)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if gc != nil {
+			http.SetCookie(w, gc)
+		}
 	}
+
+	//gc, usr, err := s.service.HandleCookie(r)
+
+	/*if err == nil && gc != nil {
+		http.SetCookie(w, gc)
+	}*/
 
 	longURL, err := api.HandleAPIShorten(buf, s.logger)
 	if err != nil {
@@ -133,17 +192,44 @@ func (s *Server) addLinkJSON(w http.ResponseWriter, r *http.Request) {
 func (s *Server) addBatchJSON(w http.ResponseWriter, r *http.Request) {
 	var buf bytes.Buffer
 	var jsonBytes []byte
+	var usr string
+	var gc *http.Cookie
+	var err error
 
-	_, err := buf.ReadFrom(r.Body)
+	_, err = buf.ReadFrom(r.Body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	gc, usr, err := s.service.HandleCookie(r)
+	cookie, err := r.Cookie("user")
+	if err != nil {
+		switch {
+		case errors.Is(err, http.ErrNoCookie):
+			gc, usr, err = s.service.HandleCookie("")
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			http.SetCookie(w, gc)
+		default:
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	} else {
+		gc, usr, err = s.service.HandleCookie(cookie.Value)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if gc != nil {
+			http.SetCookie(w, gc)
+		}
+	}
+	/*gc, usr, err := s.service.HandleCookie(r)
 	if err == nil && gc != nil {
 		http.SetCookie(w, gc)
-	}
+	}*/
 
 	if jsonBytes, err = s.service.HandleBatchJSON(buf, usr); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)

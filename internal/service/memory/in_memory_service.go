@@ -25,7 +25,7 @@ type repository interface {
 	AsURLExists(err error) bool
 	GetShu() *ShortURLAttr
 	FetchURLs(cookieValue string) ([]byte, error)
-	HandleCookie(r *http.Request) (*http.Cookie, string, error)
+	HandleCookie(cookieValue string) (*http.Cookie, string, error)
 	DelURLs(r *http.Request) (bool, error)
 }
 
@@ -214,7 +214,7 @@ func (shu *ShortURLAttr) GetCounter() int {
 	return 0
 }
 
-func (shu *ShortURLAttr) HandleCookie(r *http.Request) (*http.Cookie, string, error) {
+func (shu *ShortURLAttr) HandleCookie(cookieValue string) (*http.Cookie, string, error) {
 	return nil, "", nil
 }
 

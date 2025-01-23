@@ -45,11 +45,11 @@ func (s *Service) ReadCookie(r *http.Request) (string, error) {
 	return "", err
 }
 
-func (s *Service) ReadCookie2(cookieValue string) (string, error) {
+/*func (s *Service) ReadCookie2(cookieValue string) (string, error) {
 	var err error
 	u := &User{}
 	if err = secure.Decode("user", cookieValue, u); err == nil {
 		return u.Name, nil
 	}
 	return "", err
-}
+}*/
