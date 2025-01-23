@@ -31,6 +31,10 @@ type ArrShortURL struct {
 	ShortURL      string `json:"short_url"`
 }
 
+type User struct {
+	Name string
+}
+
 func (s *Service) HandleCookie(cookieValue string) (*http.Cookie, string, error) {
 	var usr string
 	var cookie *http.Cookie
@@ -54,7 +58,7 @@ func (s *Service) HandleCookie(cookieValue string) (*http.Cookie, string, error)
 			usr = "user" + strconv.Itoa(s.GetCounter())
 			//var cookie *http.Cookie
 			u.Name = usr
-			if encoded, err := secure.Encode("user", u); err == nil {
+			if encoded, err := s.secure.Encode("user", u); err == nil {
 				cookie = &http.Cookie{
 					Name:  "user",
 					Value: encoded,
@@ -65,7 +69,7 @@ func (s *Service) HandleCookie(cookieValue string) (*http.Cookie, string, error)
 			}
 		}
 		//если кука пришла, расшифруем
-		if err = secure.Decode("user", cookieValue, u); err != nil {
+		if err = s.secure.Decode("user", cookieValue, u); err != nil {
 			return nil, "", err
 		}
 		fmt.Println("u: ", u)
@@ -79,7 +83,7 @@ func (s *Service) HandleCookie(cookieValue string) (*http.Cookie, string, error)
 		} else {
 			usr = "user" + strconv.Itoa(s.GetCounter())
 			u.Name = usr
-			if encoded, err := secure.Encode("user", u); err == nil {
+			if encoded, err := s.secure.Encode("user", u); err == nil {
 				cookie = &http.Cookie{
 					Name:  "user",
 					Value: encoded,
@@ -122,7 +126,7 @@ func (s *Service) DelURLs(cookieValue string, buf bytes.Buffer) (bool, error) {
 	}*/
 	var err error
 	u := &User{}
-	if err = secure.Decode("user", cookieValue, u); err != nil {
+	if err = s.secure.Decode("user", cookieValue, u); err != nil {
 		return false, err
 	}
 
@@ -161,7 +165,7 @@ func (s *Service) FetchURLs( /*r *http.Request*/ cookieValue string) ([]byte, er
 	//usr, err := s.ReadCookie2(cookieValue)
 	var err error
 	u := &User{}
-	if err = secure.Decode("user", cookieValue, u); err != nil {
+	if err = s.secure.Decode("user", cookieValue, u); err != nil {
 		return nil, err
 	}
 

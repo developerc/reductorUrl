@@ -1,6 +1,6 @@
 package memory
 
-import (
+/*import (
 	//"net/http"
 
 	"github.com/gorilla/securecookie"
@@ -16,7 +16,7 @@ func InitSecure() {
 	var hashKey = []byte("very-secret-qwer")
 	var blockKey = []byte("a-lot-secret-qwe")
 	secure = securecookie.New(hashKey, blockKey)
-}
+}*/
 
 /*func (s *Service) SetCookie(usr string) (*http.Cookie, error) {
 	var cookie *http.Cookie

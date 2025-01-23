@@ -12,6 +12,7 @@ import (
 	"github.com/developerc/reductorUrl/internal/logger"
 	dbstorage "github.com/developerc/reductorUrl/internal/service/db_storage"
 	filestorage "github.com/developerc/reductorUrl/internal/service/file_storage"
+	"github.com/gorilla/securecookie"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
 	"go.uber.org/zap"
@@ -32,6 +33,7 @@ type repository interface {
 type Service struct {
 	repo   repository
 	logger *zap.Logger
+	secure *securecookie.SecureCookie
 }
 
 func (s *Service) AsURLExists(err error) bool {
@@ -155,12 +157,19 @@ func NewInMemoryService() (*Service, error) {
 		if err != nil {
 			return nil, err
 		}
-		InitSecure()
+		//InitSecure()
 	}
 
 	service := Service{repo: shu}
 	service.logger, err = logger.Initialize(service.GetLogLevel())
+	service.InitSecure()
 	return &service, err
+}
+
+func (s *Service) InitSecure() {
+	var hashKey = []byte("very-secret-qwer")
+	var blockKey = []byte("a-lot-secret-qwe")
+	s.secure = securecookie.New(hashKey, blockKey)
 }
 
 func (shu *ShortURLAttr) AddLink(link, usr string) (string, error) {
