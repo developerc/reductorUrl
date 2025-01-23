@@ -124,9 +124,7 @@ func (s *Service) FetchURLs( /*r *http.Request*/ cookieValue string) ([]byte, er
 	if err = secure.Decode("user", cookieValue, usr); err != nil {
 		return nil, err
 	}
-	if err != nil {
-		return nil, err
-	}
+
 	if _, ok := s.GetShortURLAttr().MapUser[usr.Name]; !ok {
 		return nil, http.ErrNoCookie
 	}
