@@ -3,6 +3,7 @@ package dbstorage
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"strconv"
 	"sync"
 	"time"
@@ -38,6 +39,7 @@ func CreateMapUser(db *sql.DB) (map[string]bool, error) {
 }
 
 func InsertBatch2(arrLongURL []general.ArrLongURL, db *sql.DB, usr string) error {
+	fmt.Println("from InsertBatch2 arrLongURL: ", arrLongURL)
 	ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second*2)
 	defer cancelFunc()
 	tx, err := db.Begin()
@@ -54,7 +56,7 @@ func InsertBatch2(arrLongURL []general.ArrLongURL, db *sql.DB, usr string) error
 	}
 	defer stmt.Close()
 	for _, longURL := range arrLongURL {
-		_, err := stmt.ExecContext(ctx, longURL, usr)
+		_, err := stmt.ExecContext(ctx, longURL.OriginalURL, usr)
 		if err != nil {
 			return err
 		}
@@ -62,7 +64,8 @@ func InsertBatch2(arrLongURL []general.ArrLongURL, db *sql.DB, usr string) error
 	return tx.Commit()
 }
 
-func InsertBatch(arrLongURL []general.ArrLongURL, dbStorage, usr string) error {
+/*func InsertBatch(arrLongURL []general.ArrLongURL, dbStorage, usr string) error {
+	fmt.Println("from InsertBatch arrLongURL: ", arrLongURL)
 	ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second*2)
 	defer cancelFunc()
 	conn, err := pgx.Connect(ctx, dbStorage)
@@ -81,7 +84,7 @@ func InsertBatch(arrLongURL []general.ArrLongURL, dbStorage, usr string) error {
 	}
 
 	return nil
-}
+}*/
 
 func SetDelBatch2(arrShortURL []string, db *sql.DB, usr string) error {
 	ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second*2)
