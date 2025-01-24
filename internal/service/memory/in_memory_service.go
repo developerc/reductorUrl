@@ -58,18 +58,18 @@ func (s *Service) AddLink(link, usr string) (string, error) {
 	var err error
 
 	s.IncrCounter()
-	switch s.GetShortURLAttr().Settings.TypeStorage {
+	switch s.repo.GetShu().Settings.TypeStorage {
 	case config.MemoryStorage:
 		s.AddLongURL(s.GetCounter(), link)
 		return s.GetAdresBase() + "/" + strconv.Itoa(s.GetCounter()), nil
 	case config.FileStorage:
-		if err := s.GetShortURLAttr().addToFileStorage(s.GetCounter(), link); err != nil {
+		if err := s.repo.GetShu().addToFileStorage(s.GetCounter(), link); err != nil {
 			return "", err
 		}
 		s.AddLongURL(s.GetCounter(), link)
 		return s.GetAdresBase() + "/" + strconv.Itoa(s.GetCounter()), nil
 	case config.DBStorage:
-		shURL, err = dbstorage.InsertRecord(s.GetShortURLAttr().DB, link, usr)
+		shURL, err = dbstorage.InsertRecord(s.repo.GetShu().DB, link, usr)
 		if err != nil {
 			var pgErr *pgconn.PgError
 			if errors.As(err, &pgErr) && pgerrcode.IsIntegrityConstraintViolation(pgErr.Code) && pgErr.ConstraintName == "must_be_different" {
@@ -81,13 +81,13 @@ func (s *Service) AddLink(link, usr string) (string, error) {
 			}
 			return "", err
 		}
-		s.GetShortURLAttr().MapUser[usr] = true
+		s.repo.GetShu().MapUser[usr] = true
 	}
 	return s.GetAdresBase() + "/" + shURL, nil
 }
 
 func (s *Service) GetShortByOriginalURL(originalURL string) (string, error) {
-	shortURL, err := dbstorage.GetShortByOriginalURL(s.GetShortURLAttr().DB, originalURL)
+	shortURL, err := dbstorage.GetShortByOriginalURL(s.repo.GetShu().DB, originalURL)
 	return s.GetAdresBase() + "/" + shortURL, err
 }
 
@@ -96,7 +96,8 @@ func (s *Service) GetLongLink(id string) (longURL string, isDeleted bool, err er
 	if err != nil {
 		return
 	}
-	switch s.GetShortURLAttr().Settings.TypeStorage {
+	//switch s.GetShortURLAttr().Settings.TypeStorage {
+	switch s.repo.GetShu().Settings.TypeStorage {
 	case config.MemoryStorage:
 		longURL, err = s.GetLongURL(i)
 		if err != nil {
@@ -108,7 +109,7 @@ func (s *Service) GetLongLink(id string) (longURL string, isDeleted bool, err er
 			return
 		}
 	case config.DBStorage:
-		longURL, isDeleted, err = dbstorage.GetLongByUUID(s.GetShortURLAttr().DB, i)
+		longURL, isDeleted, err = dbstorage.GetLongByUUID(s.repo.GetShu().DB, i)
 		if err != nil {
 			return
 		}

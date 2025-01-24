@@ -58,6 +58,44 @@ func InsertBatch(arrLongURL []general.ArrLongURL, dbStorage, usr string) error {
 	return nil
 }
 
+func SetDelBatch2(arrShortURL []string, db *sql.DB, usr string) error {
+	ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second*2)
+	defer cancelFunc()
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	// можно вызвать Rollback в defer,
+	// если Commit будет раньше, то откат проигнорируется
+	defer tx.Rollback()
+	stmt, err := tx.PrepareContext(ctx,
+		"UPDATE url SET is_deleted = true WHERE uuid = $1 AND usr = $2")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+	outCh := genBatchShortURL(arrShortURL)
+	// --- fanIn
+	var wg sync.WaitGroup
+
+	for shortURL := range outCh {
+		shortURL := shortURL
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			_, err := stmt.ExecContext(ctx, shortURL, usr)
+			if err != nil {
+				return
+			}
+		}()
+	}
+	wg.Wait()
+	// ----
+	return tx.Commit()
+}
+
 func SetDelBatch(arrShortURL []string, dbStorage, usr string) error {
 	ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second*2)
 	defer cancelFunc()
