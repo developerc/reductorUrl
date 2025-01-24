@@ -213,7 +213,8 @@ func (s *Service) handleArrLongURL(arrLongURL []general.ArrLongURL, usr string) 
 		return jsonBytes, nil
 	}
 
-	if err := dbstorage.InsertBatch(arrLongURL, shu.Settings.DBStorage, usr); err != nil {
+	//if err := dbstorage.InsertBatch(arrLongURL, shu.Settings.DBStorage, usr); err != nil {
+	if err := dbstorage.InsertBatch2(arrLongURL, shu.DB, usr); err != nil {
 		return nil, err
 	}
 

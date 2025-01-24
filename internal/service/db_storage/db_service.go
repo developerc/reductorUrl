@@ -37,6 +37,31 @@ func CreateMapUser(db *sql.DB) (map[string]bool, error) {
 	return mapUser, nil
 }
 
+func InsertBatch2(arrLongURL []general.ArrLongURL, db *sql.DB, usr string) error {
+	ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second*2)
+	defer cancelFunc()
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	// можно вызвать Rollback в defer,
+	// если Commit будет раньше, то откат проигнорируется
+	defer tx.Rollback()
+	stmt, err := tx.PrepareContext(ctx,
+		"insert into url( original_url, usr) values ($1, $2)")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+	for _, longURL := range arrLongURL {
+		_, err := stmt.ExecContext(ctx, longURL, usr)
+		if err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
+}
+
 func InsertBatch(arrLongURL []general.ArrLongURL, dbStorage, usr string) error {
 	ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second*2)
 	defer cancelFunc()
