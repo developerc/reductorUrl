@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/developerc/reductorUrl/internal/general"
-	"github.com/jackc/pgx/v5"
+	//"github.com/jackc/pgx/v5"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
@@ -124,7 +124,7 @@ func SetDelBatch2(arrShortURL []string, db *sql.DB, usr string) error {
 	return tx.Commit()
 }
 
-func SetDelBatch(arrShortURL []string, dbStorage, usr string) error {
+/*func SetDelBatch(arrShortURL []string, dbStorage, usr string) error {
 	ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second*2)
 	defer cancelFunc()
 	conn, err := pgx.Connect(ctx, dbStorage)
@@ -142,9 +142,9 @@ func SetDelBatch(arrShortURL []string, dbStorage, usr string) error {
 	}
 
 	return nil
-}
+}*/
 
-func fanInBatch(batch *pgx.Batch, outCh chan string, usr string) {
+/*func fanInBatch(batch *pgx.Batch, outCh chan string, usr string) {
 	var wg sync.WaitGroup
 
 	for shortURL := range outCh {
@@ -158,7 +158,7 @@ func fanInBatch(batch *pgx.Batch, outCh chan string, usr string) {
 		}()
 	}
 	wg.Wait()
-}
+}*/
 
 func genBatchShortURL(arrShortURL []string) chan string {
 	outCh := make(chan string)
