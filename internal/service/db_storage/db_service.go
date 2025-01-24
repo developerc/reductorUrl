@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/developerc/reductorUrl/internal/general"
-	//"github.com/jackc/pgx/v5"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
@@ -46,9 +45,12 @@ func InsertBatch2(arrLongURL []general.ArrLongURL, db *sql.DB, usr string) error
 	if err != nil {
 		return err
 	}
-	// можно вызвать Rollback в defer,
-	// если Commit будет раньше, то откат проигнорируется
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			return
+		}
+	}()
+
 	stmt, err := tx.PrepareContext(ctx,
 		"insert into url( original_url, usr) values ($1, $2)")
 	if err != nil {
@@ -64,28 +66,6 @@ func InsertBatch2(arrLongURL []general.ArrLongURL, db *sql.DB, usr string) error
 	return tx.Commit()
 }
 
-/*func InsertBatch(arrLongURL []general.ArrLongURL, dbStorage, usr string) error {
-	fmt.Println("from InsertBatch arrLongURL: ", arrLongURL)
-	ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second*2)
-	defer cancelFunc()
-	conn, err := pgx.Connect(ctx, dbStorage)
-	if err != nil {
-		return err
-	}
-	defer conn.Close(ctx)
-	batch := &pgx.Batch{}
-	for _, longURL := range arrLongURL {
-		batch.Queue("insert into url( original_url, usr) values ($1, $2)", longURL.OriginalURL, usr)
-	}
-	br := conn.SendBatch(ctx, batch)
-	_, err = br.Exec()
-	if err != nil {
-		return err
-	}
-
-	return nil
-}*/
-
 func SetDelBatch2(arrShortURL []string, db *sql.DB, usr string) error {
 	ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second*2)
 	defer cancelFunc()
@@ -93,9 +73,11 @@ func SetDelBatch2(arrShortURL []string, db *sql.DB, usr string) error {
 	if err != nil {
 		return err
 	}
-	// можно вызвать Rollback в defer,
-	// если Commit будет раньше, то откат проигнорируется
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			return
+		}
+	}()
 	stmt, err := tx.PrepareContext(ctx,
 		"UPDATE url SET is_deleted = true WHERE uuid = $1 AND usr = $2")
 	if err != nil {
@@ -103,7 +85,7 @@ func SetDelBatch2(arrShortURL []string, db *sql.DB, usr string) error {
 	}
 	defer stmt.Close()
 	outCh := genBatchShortURL(arrShortURL)
-	// --- fanIn
+
 	var wg sync.WaitGroup
 
 	for shortURL := range outCh {
@@ -120,45 +102,9 @@ func SetDelBatch2(arrShortURL []string, db *sql.DB, usr string) error {
 		}()
 	}
 	wg.Wait()
-	// ----
+
 	return tx.Commit()
 }
-
-/*func SetDelBatch(arrShortURL []string, dbStorage, usr string) error {
-	ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second*2)
-	defer cancelFunc()
-	conn, err := pgx.Connect(ctx, dbStorage)
-	if err != nil {
-		return err
-	}
-	defer conn.Close(ctx)
-	batch := &pgx.Batch{}
-	outCh := genBatchShortURL(arrShortURL)
-	fanInBatch(batch, outCh, usr)
-	br := conn.SendBatch(ctx, batch)
-	_, err = br.Exec()
-	if err != nil {
-		return err
-	}
-
-	return nil
-}*/
-
-/*func fanInBatch(batch *pgx.Batch, outCh chan string, usr string) {
-	var wg sync.WaitGroup
-
-	for shortURL := range outCh {
-		shortURL := shortURL
-
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-
-			batch.Queue("UPDATE url SET is_deleted = true WHERE uuid = $1 AND usr = $2", shortURL, usr)
-		}()
-	}
-	wg.Wait()
-}*/
 
 func genBatchShortURL(arrShortURL []string) chan string {
 	outCh := make(chan string)

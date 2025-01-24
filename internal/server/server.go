@@ -59,7 +59,6 @@ func (s *Server) addLink(w http.ResponseWriter, r *http.Request) {
 
 	cookie, err := r.Cookie("user")
 	if err != nil {
-		//gc, usr, err = s.service.HandleCookie("")
 		switch {
 		case errors.Is(err, http.ErrNoCookie):
 			gc, usr, err = s.service.HandleCookie("")
@@ -83,10 +82,6 @@ func (s *Server) addLink(w http.ResponseWriter, r *http.Request) {
 			http.SetCookie(w, gc)
 		}
 	}
-	/*gc, usr, err := s.service.HandleCookie(r)
-	if err == nil && gc != nil {
-		http.SetCookie(w, gc)
-	}*/
 	fmt.Println("usr: ", usr)
 	if shortURL, err = s.service.AddLink(string(body), usr); err != nil {
 		if s.service.AsURLExists(err) {
@@ -124,6 +119,7 @@ func (s *Server) addLinkJSON(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cookie, err := r.Cookie("user")
+	//nolint:dupl // nesessary duplication
 	if err != nil {
 		switch {
 		case errors.Is(err, http.ErrNoCookie):
@@ -147,12 +143,6 @@ func (s *Server) addLinkJSON(w http.ResponseWriter, r *http.Request) {
 			http.SetCookie(w, gc)
 		}
 	}
-
-	//gc, usr, err := s.service.HandleCookie(r)
-
-	/*if err == nil && gc != nil {
-		http.SetCookie(w, gc)
-	}*/
 
 	longURL, err := api.HandleAPIShorten(buf, s.logger)
 	if err != nil {
@@ -193,7 +183,7 @@ func (s *Server) addBatchJSON(w http.ResponseWriter, r *http.Request) {
 	var buf bytes.Buffer
 	var jsonBytes []byte
 	var usr string
-	var gc *http.Cookie
+	var gco *http.Cookie
 	var err error
 
 	_, err = buf.ReadFrom(r.Body)
@@ -203,33 +193,30 @@ func (s *Server) addBatchJSON(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cookie, err := r.Cookie("user")
+	//nolint:dupl // nesessary duplication
 	if err != nil {
 		switch {
 		case errors.Is(err, http.ErrNoCookie):
-			gc, usr, err = s.service.HandleCookie("")
+			gco, usr, err = s.service.HandleCookie("")
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			http.SetCookie(w, gc)
+			http.SetCookie(w, gco)
 		default:
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 	} else {
-		gc, usr, err = s.service.HandleCookie(cookie.Value)
+		gco, usr, err = s.service.HandleCookie(cookie.Value)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		if gc != nil {
-			http.SetCookie(w, gc)
+		if gco != nil {
+			http.SetCookie(w, gco)
 		}
 	}
-	/*gc, usr, err := s.service.HandleCookie(r)
-	if err == nil && gc != nil {
-		http.SetCookie(w, gc)
-	}*/
 
 	if jsonBytes, err = s.service.HandleBatchJSON(buf, usr); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -278,11 +265,6 @@ func (s *Server) UserURLs(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-
-	//if cookie, err := r.Cookie("user"); err == nil {
-	//userStruct := &memory.User{}
-
-	//usr, err := s.ReadCookie(r)
 
 	jsonBytes, err := s.service.FetchURLs(cookie.Value)
 	if err != nil {

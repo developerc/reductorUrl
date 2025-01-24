@@ -38,25 +38,13 @@ type User struct {
 func (s *Service) HandleCookie(cookieValue string) (*http.Cookie, string, error) {
 	var usr string
 	var cookie *http.Cookie
-	var err error
 	u := &User{
 		Name: usr,
 	}
 
 	if s.repo.GetShu().Settings.TypeStorage == config.DBStorage {
-		/*_, err = r.Cookie("user")
-		if err != nil {
+		if cookieValue == "" {
 			usr = "user" + strconv.Itoa(s.GetCounter())
-			gc, err = s.SetCookie(usr)
-			if err != nil {
-				return nil, "", err
-			}
-			s.GetShortURLAttr().MapUser[usr] = true
-			return gc, usr, nil
-		}*/
-		if len(cookieValue) == 0 {
-			usr = "user" + strconv.Itoa(s.GetCounter())
-			//var cookie *http.Cookie
 			u.Name = usr
 			if encoded, err := s.secure.Encode("user", u); err == nil {
 				cookie = &http.Cookie{
@@ -68,17 +56,11 @@ func (s *Service) HandleCookie(cookieValue string) (*http.Cookie, string, error)
 				return nil, "", err
 			}
 		}
-		//если кука пришла, расшифруем
-		if err = s.secure.Decode("user", cookieValue, u); err != nil {
+		if err := s.secure.Decode("user", cookieValue, u); err != nil {
 			return nil, "", err
 		}
 		fmt.Println("u: ", u)
-		/*usr, err = s.ReadCookie(r)
-		if err != nil {
-			return nil, "", err
-		}*/
-
-		if _, ok := s.repo.GetShu().MapUser[u.Name]; ok { //если такой юзер зарегистрирован
+		if _, ok := s.repo.GetShu().MapUser[u.Name]; ok {
 			return nil, u.Name, nil
 		} else {
 			usr = "user" + strconv.Itoa(s.GetCounter())
@@ -93,12 +75,6 @@ func (s *Service) HandleCookie(cookieValue string) (*http.Cookie, string, error)
 			} else {
 				return nil, "", err
 			}
-			/*gc, err = s.SetCookie(usr)
-			if err != nil {
-				return nil, "", err
-			}*/
-
-			//return gc, usr, nil
 		}
 	} else {
 		return nil, "", nil
@@ -115,18 +91,8 @@ func CreateMapUser(shu *ShortURLAttr) (map[string]bool, error) {
 }
 
 func (s *Service) DelURLs(cookieValue string, buf bytes.Buffer) (bool, error) {
-	/*_, err := r.Cookie("user")
-	if err != nil {
-		return false, err
-	}*/
-
-	/*usr, err := s.ReadCookie(r)
-	if err != nil {
-		return false, http.ErrNoCookie
-	}*/
-	var err error
 	u := &User{}
-	if err = s.secure.Decode("user", cookieValue, u); err != nil {
+	if err := s.secure.Decode("user", cookieValue, u); err != nil {
 		return false, err
 	}
 
@@ -134,18 +100,11 @@ func (s *Service) DelURLs(cookieValue string, buf bytes.Buffer) (bool, error) {
 		return false, http.ErrNoCookie
 	}
 
-	/*var buf bytes.Buffer
-	_, err = buf.ReadFrom(r.Body)
-	if err != nil {
-		return false, err
-	}*/
-
 	arrShortURL := make([]string, 0)
 	if err := json.Unmarshal(buf.Bytes(), &arrShortURL); err != nil {
 		return false, err
 	}
 
-	//if err := dbstorage.SetDelBatch(arrShortURL, s.repo.GetShu().Settings.DBStorage, u.Name); err != nil {
 	if err := dbstorage.SetDelBatch2(arrShortURL, s.repo.GetShu().DB, u.Name); err != nil {
 		return false, err
 	}
@@ -153,20 +112,9 @@ func (s *Service) DelURLs(cookieValue string, buf bytes.Buffer) (bool, error) {
 	return true, nil
 }
 
-func (s *Service) FetchURLs( /*r *http.Request*/ cookieValue string) ([]byte, error) {
-	/*_, err := r.Cookie("user")
-	if err != nil {
-		return nil, err
-	}*/
-
-	//usr, err := s.ReadCookie(r)
-	/*if err != nil {
-		return nil, http.ErrNoCookie
-	}*/
-	//usr, err := s.ReadCookie2(cookieValue)
-	var err error
+func (s *Service) FetchURLs(cookieValue string) ([]byte, error) {
 	u := &User{}
-	if err = s.secure.Decode("user", cookieValue, u); err != nil {
+	if err := s.secure.Decode("user", cookieValue, u); err != nil {
 		return nil, err
 	}
 
@@ -213,7 +161,6 @@ func (s *Service) handleArrLongURL(arrLongURL []general.ArrLongURL, usr string) 
 		return jsonBytes, nil
 	}
 
-	//if err := dbstorage.InsertBatch(arrLongURL, shu.Settings.DBStorage, usr); err != nil {
 	if err := dbstorage.InsertBatch2(arrLongURL, shu.DB, usr); err != nil {
 		return nil, err
 	}

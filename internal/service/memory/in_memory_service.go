@@ -96,7 +96,7 @@ func (s *Service) GetLongLink(id string) (longURL string, isDeleted bool, err er
 	if err != nil {
 		return
 	}
-	//switch s.GetShortURLAttr().Settings.TypeStorage {
+
 	switch s.repo.GetShu().Settings.TypeStorage {
 	case config.MemoryStorage:
 		longURL, err = s.GetLongURL(i)
@@ -158,7 +158,6 @@ func NewInMemoryService() (*Service, error) {
 		if err != nil {
 			return nil, err
 		}
-		//InitSecure()
 	}
 
 	service := Service{repo: shu}
