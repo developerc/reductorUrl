@@ -13,23 +13,18 @@ import (
 )
 
 func TestPost(t *testing.T) {
-	svc := memory.NewInMemoryService()
-	srv := NewServer(svc)
+	svc, err := memory.NewInMemoryService()
+	require.NoError(t, err)
+	srv, err := NewServer(svc)
+	require.NoError(t, err)
 	tsrv := httptest.NewServer(srv.SetupRoutes())
 	defer tsrv.Close()
 
 	t.Run("#1_PostTest", func(t *testing.T) {
-		shortURL, err := svc.AddLink("http://blabla.ru")
+		shortURL, err := svc.AddLink("http://blabla.ru", "user1")
 		require.NoError(t, err)
 		assert.Equal(t, "http://localhost:8080/1", shortURL)
 	})
-}
-
-func TestPostJSON(t *testing.T) {
-	svc := memory.NewInMemoryService()
-	srv := NewServer(svc)
-	tsrv := httptest.NewServer(srv.SetupRoutes())
-	defer tsrv.Close()
 
 	t.Run("#2_PostJSONTest", func(t *testing.T) {
 		longURL := strings.NewReader("{\"url\": \"http://blabla.ru\"}")
@@ -40,16 +35,9 @@ func TestPostJSON(t *testing.T) {
 		res.Body.Close()
 		assert.Equal(t, 201, res.StatusCode)
 	})
-}
-
-func TestGet(t *testing.T) {
-	svc := memory.NewInMemoryService()
-	srv := NewServer(svc)
-	tsrv := httptest.NewServer(srv.SetupRoutes())
-	defer tsrv.Close()
 
 	t.Run("#3_GetTest", func(t *testing.T) {
-		resp, err := svc.GetLongLink("1")
+		resp, _, err := svc.GetLongLink("1")
 		require.NoError(t, err)
 		assert.Equal(t, "http://blabla.ru", resp)
 	})

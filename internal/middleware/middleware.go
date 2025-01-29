@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/developerc/reductorUrl/internal/logger"
-	"github.com/developerc/reductorUrl/internal/service/memory"
 )
 
 type (
@@ -48,12 +47,12 @@ func Middleware(h http.Handler) http.Handler {
 
 		h.ServeHTTP(&lw, r)
 
-		zapLogger, err := logger.Initialize(memory.NewInMemoryService().GetLogLevel())
+		zapLogger, err := logger.Initialize("Info")
 		if err != nil {
 			log.Println(err)
 			return
 		}
-		//logger.GetLog().Sugar().Infoln(
+
 		zapLogger.Sugar().Infoln(
 			"uri", r.RequestURI,
 			"method", r.Method,
