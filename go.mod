@@ -2,10 +2,6 @@ module github.com/developerc/reductorUrl
 
 go 1.22.12
 
-replace (
-	golang.org/x/tools => golang.org/x/tools v0.31.0
-)
-
 require go.uber.org/zap v1.27.0
 
 require (
