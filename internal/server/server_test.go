@@ -1,6 +1,5 @@
 package server
 
-/*
 import (
 	"strings"
 	"testing"
@@ -31,7 +30,7 @@ func TestPost(t *testing.T) {
 		longURL := strings.NewReader("{\"url\": \"http://blabla2.ru\"}")
 		request := httptest.NewRequest(http.MethodPost, "/api/shorten", longURL)
 		w := httptest.NewRecorder()
-		srv.addLinkJSON(w, request)
+		srv.AddLinkJSON(w, request)
 		res := w.Result()
 		res.Body.Close()
 		assert.Equal(t, 201, res.StatusCode)
@@ -43,4 +42,3 @@ func TestPost(t *testing.T) {
 		assert.Equal(t, "http://blabla.ru", resp)
 	})
 }
-*/

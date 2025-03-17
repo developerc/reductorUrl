@@ -104,7 +104,7 @@ func (s *Server) addLink(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *Server) addLinkJSON(w http.ResponseWriter, r *http.Request) {
+func (s *Server) AddLinkJSON(w http.ResponseWriter, r *http.Request) {
 	var buf bytes.Buffer
 	var shortURL string
 	var jsonBytes []byte
@@ -341,7 +341,7 @@ func (s *Server) SetupRoutes() http.Handler {
 	r.Use(middleware.GzipHandle)
 	r.Use(m.Timeout(3 * time.Second))
 	r.Post("/", s.addLink)
-	r.Post("/api/shorten", s.addLinkJSON)
+	r.Post("/api/shorten", s.AddLinkJSON)
 	r.Get("/{id}", s.GetLongLink)
 	r.Get("/ping", s.CheckPing)
 	r.Post("/api/shorten/batch", s.addBatchJSON)
