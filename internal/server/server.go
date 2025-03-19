@@ -12,10 +12,11 @@ import (
 	"github.com/developerc/reductorUrl/internal/logger"
 	"github.com/developerc/reductorUrl/internal/middleware"
 
-	"github.com/developerc/reductorUrl/internal/service/memory"
 	"github.com/go-chi/chi/v5"
 	m "github.com/go-chi/chi/v5/middleware"
 	"go.uber.org/zap"
+
+	"github.com/developerc/reductorUrl/internal/service/memory"
 )
 
 type svc interface {

@@ -3,8 +3,9 @@ package server
 import (
 	"net/http"
 
-	"github.com/developerc/reductorUrl/internal/service/memory"
 	"go.uber.org/zap"
+
+	"github.com/developerc/reductorUrl/internal/service/memory"
 )
 
 func Run() error {

@@ -7,9 +7,10 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	"github.com/developerc/reductorUrl/internal/service/memory"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/developerc/reductorUrl/internal/service/memory"
 )
 
 func TestPost(t *testing.T) {

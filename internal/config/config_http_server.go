@@ -5,8 +5,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/developerc/reductorUrl/internal/logger"
 	"go.uber.org/zap"
+
+	"github.com/developerc/reductorUrl/internal/logger"
 )
 
 type TypeStorage int

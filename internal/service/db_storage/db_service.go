@@ -8,8 +8,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/developerc/reductorUrl/internal/general"
 	_ "github.com/jackc/pgx/v5/stdlib"
+
+	"github.com/developerc/reductorUrl/internal/general"
 )
 
 func CreateMapUser(db *sql.DB) (map[string]bool, error) {
