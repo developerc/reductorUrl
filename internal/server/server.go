@@ -260,7 +260,14 @@ func (s *Server) UserURLs(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, http.ErrNoCookie):
 			//http.Error(w, err.Error(), http.StatusUnauthorized)
-			http.Error(w, err.Error(), http.StatusNoContent)
+			gc, _, err := s.service.HandleCookie("")
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			http.SetCookie(w, gc)
+			//http.Error(w, err.Error(), http.StatusNoContent)
+			w.WriteHeader(http.StatusNoContent)
 			return
 		default:
 			http.Error(w, err.Error(), http.StatusInternalServerError)
