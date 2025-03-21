@@ -266,10 +266,14 @@ func (s *Server) UserURLs(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+	fmt.Println("from UserURLs cookie.Value:", cookie.Value)
 
 	jsonBytes, err := s.service.FetchURLs(cookie.Value)
 	if err != nil {
 		switch {
+		case errors.Is(err, http.ErrContentLength):
+			http.Error(w, err.Error(), http.StatusNoContent)
+			return
 		case errors.Is(err, http.ErrNoCookie):
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
