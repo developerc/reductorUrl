@@ -8,6 +8,7 @@ import (
 	"github.com/developerc/reductorUrl/internal/service/memory"
 )
 
+// Run метод запускает работу сервера.
 func Run() error {
 	service, err := memory.NewInMemoryService()
 	if err != nil {

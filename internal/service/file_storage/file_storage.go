@@ -1,3 +1,4 @@
+// filestorage пакет для размещения методов хранения данных в файловой системе.
 package filestorage
 
 import (

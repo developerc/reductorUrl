@@ -56,6 +56,7 @@ func NewServer(service svc) (*Server, error) {
 	return srv, nil
 }
 
+// addLink обрабатывает запросы на добавление одного URL в текстовом формате
 func (s *Server) addLink(w http.ResponseWriter, r *http.Request) {
 	var shortURL string
 	var usr string
@@ -114,6 +115,7 @@ func (s *Server) addLink(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// AddLinkJSON обрабатывает запросы на добавление одного URL в формате JSON
 func (s *Server) AddLinkJSON(w http.ResponseWriter, r *http.Request) {
 	var buf bytes.Buffer
 	var shortURL string
@@ -189,6 +191,7 @@ func (s *Server) AddLinkJSON(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// // addBatchJSON обрабатывает запросы на добавление нескольких URL в формате JSON
 func (s *Server) addBatchJSON(w http.ResponseWriter, r *http.Request) {
 	var buf bytes.Buffer
 	var jsonBytes []byte
@@ -239,6 +242,7 @@ func (s *Server) addBatchJSON(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// GetLongLink обрабатывает запрос на получение "длинного" URL по ID
 func (s *Server) GetLongLink(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	longURL, isDeleted, err := s.service.GetLongLink(id)
@@ -255,6 +259,7 @@ func (s *Server) GetLongLink(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusTemporaryRedirect)
 }
 
+// CheckPing проверяет живучесть сервера
 func (s *Server) CheckPing(w http.ResponseWriter, r *http.Request) {
 	if s.service.Ping() != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -263,6 +268,7 @@ func (s *Server) CheckPing(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// UserURLs получает список URL присланных пользователем
 func (s *Server) UserURLs(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("user")
 	if err != nil {
@@ -308,6 +314,7 @@ func (s *Server) UserURLs(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// DelUserURLs удаляет из БД несколько URL по ID
 func (s *Server) DelUserURLs(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("user")
 	if err != nil {

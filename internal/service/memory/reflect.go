@@ -1,5 +1,6 @@
 package memory
 
+// GetCounter возвращает значение счетчика для формирования идентификатора сокращенного URL
 func (s *Service) GetCounter() int {
 	return s.repo.GetShu().Cntr
 }

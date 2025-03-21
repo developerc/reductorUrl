@@ -13,6 +13,7 @@ import (
 	"github.com/developerc/reductorUrl/internal/service/memory"
 )
 
+// TestPost тестирует работу функций сервера.
 func TestPost(t *testing.T) {
 	svc, err := memory.NewInMemoryService()
 	require.NoError(t, err)

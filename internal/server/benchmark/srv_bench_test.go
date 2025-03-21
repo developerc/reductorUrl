@@ -11,6 +11,7 @@ import (
 	"github.com/developerc/reductorUrl/internal/service/memory"
 )
 
+// BenchmarkSrv служит для проверки скорости выполнения функций сервера.
 func BenchmarkSrv(b *testing.B) {
 	svc, err := memory.NewInMemoryService()
 	if err != nil {

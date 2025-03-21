@@ -1,3 +1,4 @@
+// api пакет обработки API запросов
 package api
 
 import (

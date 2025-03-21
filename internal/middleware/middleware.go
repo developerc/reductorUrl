@@ -1,3 +1,4 @@
+// middleware пакет служит для размещения обработчиков middleware
 package middleware
 
 import (

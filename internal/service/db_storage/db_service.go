@@ -1,3 +1,4 @@
+// dbstorage пакет для размещения методов обработки запросов к базе данных.
 package dbstorage
 
 import (

@@ -36,6 +36,7 @@ type User struct {
 	Name string
 }
 
+// HandleCookie метод для работы с куками
 func (s *Service) HandleCookie(cookieValue string) (*http.Cookie, string, error) {
 	var usr string
 	var cookie *http.Cookie
