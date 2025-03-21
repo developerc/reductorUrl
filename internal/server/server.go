@@ -259,7 +259,8 @@ func (s *Server) UserURLs(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, http.ErrNoCookie):
-			http.Error(w, err.Error(), http.StatusUnauthorized)
+			//http.Error(w, err.Error(), http.StatusUnauthorized)
+			http.Error(w, err.Error(), http.StatusNoContent)
 			return
 		default:
 			http.Error(w, err.Error(), http.StatusInternalServerError)
