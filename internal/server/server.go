@@ -259,14 +259,12 @@ func (s *Server) UserURLs(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, http.ErrNoCookie):
-			//http.Error(w, err.Error(), http.StatusUnauthorized)
 			gc, _, err := s.service.HandleCookie("")
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
 			http.SetCookie(w, gc)
-			//http.Error(w, err.Error(), http.StatusNoContent)
 			w.WriteHeader(http.StatusNoContent)
 			return
 		default:
@@ -279,9 +277,9 @@ func (s *Server) UserURLs(w http.ResponseWriter, r *http.Request) {
 	jsonBytes, err := s.service.FetchURLs(cookie.Value)
 	if err != nil {
 		switch {
-		case errors.Is(err, http.ErrContentLength):
-			http.Error(w, err.Error(), http.StatusNoContent)
-			return
+		/*case errors.Is(err, http.ErrContentLength):
+		http.Error(w, err.Error(), http.StatusNoContent)
+		return*/
 		case errors.Is(err, http.ErrNoCookie):
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
