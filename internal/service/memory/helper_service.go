@@ -121,7 +121,6 @@ func (s *Service) FetchURLs(cookieValue string) ([]byte, error) {
 
 	if _, ok := s.repo.GetShu().MapUser[u.Name]; !ok {
 		return nil, http.ErrNoCookie
-		//return nil, http.ErrContentLength
 	}
 
 	arrRepoURL, err := dbstorage.ListRepoURLs(s.repo.GetShu().DB, s.GetAdresBase(), u.Name)
