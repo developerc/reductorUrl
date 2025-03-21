@@ -1,3 +1,12 @@
+// server - пакет для обработки хэндлеров WEB приложения.
+//
+// Примеры запуска запросов к API приложения.
+//
+// Отсылает для сокращения один URL в текстовом формате: 'http://blabla1.ru'
+// curl -X POST -i http://localhost:8080/ --data 'http://blabla1.ru'
+//
+// Отсылает для сокращения один URL в JSON формате: '{"url": "http://blabla2.ru"}'
+// curl -X POST -i http://localhost:8080/api/shorten --data '{"url": "http://blabla2.ru"}'
 package server
 
 import (
