@@ -20,14 +20,17 @@ func newCompressWriter(w http.ResponseWriter) *compressWriter {
 	}
 }
 
+// Header метод возвращает Header ResponseWriter-a
 func (c *compressWriter) Header() http.Header {
 	return c.w.Header()
 }
 
+// Write метод записывает сжатые данные
 func (c *compressWriter) Write(p []byte) (int, error) {
 	return c.zw.Write(p)
 }
 
+// WriteHeader записывает Header ResponseWriter-a
 func (c *compressWriter) WriteHeader(statusCode int) {
 	if statusCode < http.StatusMultipleChoices {
 		c.w.Header().Set("Content-Encoding", "gzip")
@@ -35,6 +38,7 @@ func (c *compressWriter) WriteHeader(statusCode int) {
 	c.w.WriteHeader(statusCode)
 }
 
+// Close закрывает соединение с compressWriter-ом
 func (c *compressWriter) Close() error {
 	return c.zw.Close()
 }
@@ -56,10 +60,12 @@ func newCompressReader(r io.ReadCloser) (*compressReader, error) {
 	}, nil
 }
 
+// Read читает слайс байтов
 func (c compressReader) Read(p []byte) (n int, err error) {
 	return c.zr.Read(p)
 }
 
+// Close закрывает соединение с compressWriter-ом
 func (c *compressReader) Close() error {
 	if err := c.r.Close(); err != nil {
 		return err
@@ -67,6 +73,7 @@ func (c *compressReader) Close() error {
 	return c.zr.Close()
 }
 
+// GzipHandle обрабатывает данные для упаковки и распаковки
 func GzipHandle(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ow := w

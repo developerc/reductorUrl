@@ -39,11 +39,13 @@ type svc interface {
 	DelURLs(cookieValue string, buf bytes.Buffer) (bool, error)
 }
 
+// Server структура сервера приложения
 type Server struct {
 	service svc
 	logger  *zap.Logger
 }
 
+// NewServer конструктор сервера
 func NewServer(service svc) (*Server, error) {
 	var err error
 	srv := new(Server)
@@ -359,6 +361,7 @@ func (s *Server) DelUserURLs(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// SetupRoutes устанавливает маршруты для обработчиков запросов
 func (s *Server) SetupRoutes() http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.Middleware)

@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// Initialize конструктор логгера
 func Initialize(level string) (*zap.Logger, error) {
 	var err error
 	var zapLevel zap.AtomicLevel

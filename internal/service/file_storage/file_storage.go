@@ -8,26 +8,31 @@ import (
 	"os"
 )
 
+// Event структура для хранения объекта
 type Event struct {
 	UUID        uint   `json:"uuid"`
 	ShortURL    string `json:"short_url"`
 	OriginalURL string `json:"original_url"`
 }
 
+// EventWriter интерфейс записи объекта в файл
 type EventWriter interface {
 	WriteEvent(event *Event) error
 }
 
+// EventReader интерфейс чтения списка объектов из файла
 type EventReader interface {
 	ListEvents() ([]Event, error)
 }
 
+// Producer структура для записи объекта в файл
 type Producer struct {
 	evwr   EventWriter
 	file   *os.File
 	writer *bufio.Writer
 }
 
+// Consumer структура для чтения из файла
 type Consumer struct {
 	evre    EventReader
 	file    *os.File
@@ -37,6 +42,7 @@ type Consumer struct {
 var producer Producer
 var consumer Consumer
 
+// NewProducer конструктор продюсера
 func NewProducer(filename string) (*Producer, error) {
 	if producer.evwr != nil {
 		return &producer, nil
@@ -54,6 +60,7 @@ func NewProducer(filename string) (*Producer, error) {
 	return &producer, err
 }
 
+// WriteEvent метод записывает в файл
 func (p *Producer) WriteEvent(event *Event) error {
 	data, err := json.Marshal(&event)
 	if err != nil {
@@ -71,6 +78,7 @@ func (p *Producer) WriteEvent(event *Event) error {
 	return p.writer.Flush()
 }
 
+// NewConsumer конструктор консумера
 func NewConsumer(filename string) (*Consumer, error) {
 	if consumer.evre != nil {
 		return &consumer, nil
@@ -88,6 +96,7 @@ func NewConsumer(filename string) (*Consumer, error) {
 	return &consumer, nil
 }
 
+// ListEvents метод читает список объектов из файла
 func (c *Consumer) ListEvents() ([]Event, error) {
 	events := make([]Event, 0)
 	c.scanner.Split(bufio.ScanLines)
