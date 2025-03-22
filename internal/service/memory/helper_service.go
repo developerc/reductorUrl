@@ -19,6 +19,7 @@ import (
 	filestorage "github.com/developerc/reductorUrl/internal/service/file_storage"
 )
 
+// ShortURLAttr структура аттрибутов коротких URL
 type ShortURLAttr struct {
 	Settings config.ServerSettings
 	Cntr     int
@@ -27,11 +28,13 @@ type ShortURLAttr struct {
 	DB       *sql.DB
 }
 
+// ArrShortURL структура массива коротких URL
 type ArrShortURL struct {
 	CorellationID string `json:"correlation_id"`
 	ShortURL      string `json:"short_url"`
 }
 
+// User структура пользователя
 type User struct {
 	Name string
 }
@@ -83,6 +86,7 @@ func (s *Service) HandleCookie(cookieValue string) (*http.Cookie, string, error)
 	}
 }
 
+// CreateMapUser создает Map пользователей
 func CreateMapUser(shu *ShortURLAttr) (map[string]bool, error) {
 	mapUser, err := dbstorage.CreateMapUser(shu.DB)
 	if err != nil {
@@ -92,6 +96,7 @@ func CreateMapUser(shu *ShortURLAttr) (map[string]bool, error) {
 	return mapUser, nil
 }
 
+// DelURLs делает отметку об удалении коротких URL-ы определенного пользователя
 func (s *Service) DelURLs(cookieValue string, buf bytes.Buffer) (bool, error) {
 	u := &User{}
 	if err := s.secure.Decode("user", cookieValue, u); err != nil {
@@ -114,6 +119,7 @@ func (s *Service) DelURLs(cookieValue string, buf bytes.Buffer) (bool, error) {
 	return true, nil
 }
 
+// FetchURLs получает URL-ы определенного пользователя
 func (s *Service) FetchURLs(cookieValue string) ([]byte, error) {
 	u := &User{}
 	if err := s.secure.Decode("user", cookieValue, u); err != nil {
@@ -209,6 +215,7 @@ func getFileSettings(shu *ShortURLAttr) error {
 	return nil
 }
 
+// Ping делает проверку живучести БД
 func (s *Service) Ping() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()

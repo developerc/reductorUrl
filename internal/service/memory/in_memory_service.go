@@ -32,30 +32,35 @@ type repository interface {
 	DelURLs(cookieValue string, buf bytes.Buffer) (bool, error)
 }
 
+// Service структура сервиса приложения
 type Service struct {
 	repo   repository
 	logger *zap.Logger
 	secure *securecookie.SecureCookie
 }
 
+// AsURLExists делает проверку существования длинного URL
 func (s *Service) AsURLExists(err error) bool {
 	var errorURLExists ErrorURLExists
 	return errorURLExists.AsURLExists(err)
 }
 
+// ErrorURLExists структура типизированной ошибки существования длинного URL
 type ErrorURLExists struct {
 	s string
 }
 
+// Error возвращает строку со значением ошибки существования длинного URL
 func (e *ErrorURLExists) Error() string {
 	return e.s
 }
 
+// AsURLExists проверяет существование длинного URL
 func (e *ErrorURLExists) AsURLExists(err error) bool {
 	return errors.As(err, &e)
 }
 
-// comment 57
+// AddLink добавляет в хранилище длинный URL, возвращает короткий
 func (s *Service) AddLink(link, usr string) (string, error) {
 	var shURL string
 	var err error
@@ -89,11 +94,13 @@ func (s *Service) AddLink(link, usr string) (string, error) {
 	return s.GetAdresBase() + "/" + shURL, nil
 }
 
+// GetShortByOriginalURL получает короткий URL по значению длинного
 func (s *Service) GetShortByOriginalURL(originalURL string) (string, error) {
 	shortURL, err := dbstorage.GetShortByOriginalURL(s.repo.GetShu().DB, originalURL)
 	return s.GetAdresBase() + "/" + shortURL, err
 }
 
+// GetLongLink получает длинный URL по ID
 func (s *Service) GetLongLink(id string) (longURL string, isDeleted bool, err error) {
 	i, err := strconv.Atoi(id)
 	if err != nil {
@@ -120,6 +127,7 @@ func (s *Service) GetLongLink(id string) (longURL string, isDeleted bool, err er
 	return
 }
 
+// HandleBatchJSON добавляет в хранилище несколько длинных URL
 func (s *Service) HandleBatchJSON(buf bytes.Buffer, usr string) ([]byte, error) {
 	arrLongURL, err := listLongURL(buf)
 	if err != nil {
@@ -136,6 +144,7 @@ func (s *Service) HandleBatchJSON(buf bytes.Buffer, usr string) ([]byte, error) 
 	return jsonBytes, nil
 }
 
+// NewInMemoryService конструктор сервиса
 func NewInMemoryService() (*Service, error) {
 	var err error
 
@@ -169,16 +178,19 @@ func NewInMemoryService() (*Service, error) {
 	return &service, err
 }
 
+// InitSecure создает обработчик куки
 func (s *Service) InitSecure() {
 	var hashKey = []byte("very-secret-qwer")
 	var blockKey = []byte("a-lot-secret-qwe")
 	s.secure = securecookie.New(hashKey, blockKey)
 }
 
+// AddLink заглушка для ShortURLAttr
 func (shu *ShortURLAttr) AddLink(link, usr string) (string, error) {
 	return "", nil
 }
 
+// addToFileStorage добавляет длинный URL в файловое хранилище
 func (shu *ShortURLAttr) addToFileStorage(cntr int, link string) error {
 	if cntr < 0 {
 		return errors.New("not valid counter")
@@ -194,42 +206,52 @@ func (shu *ShortURLAttr) addToFileStorage(cntr int, link string) error {
 	return nil
 }
 
+// Ping заглушка для ShortURLAttr
 func (shu *ShortURLAttr) Ping() error {
 	return nil
 }
 
+// GetLongLink заглушка для ShortURLAttr
 func (shu *ShortURLAttr) GetLongLink(id string) (longURL string, isDeleted bool, err error) {
 	return "", false, nil
 }
 
+// HandleBatchJSON заглушка для ShortURLAttr
 func (shu *ShortURLAttr) HandleBatchJSON(buf bytes.Buffer, usr string) ([]byte, error) {
 	return nil, nil
 }
 
+// AsURLExists заглушка для ShortURLAttr
 func (shu *ShortURLAttr) AsURLExists(err error) bool {
 	return true
 }
 
+// GetShu заглушка для ShortURLAttr
 func (shu *ShortURLAttr) GetShu() *ShortURLAttr {
 	return shu
 }
 
+// GetCripto заглушка для ShortURLAttr
 func (shu *ShortURLAttr) GetCripto() (string, error) {
 	return "", nil
 }
 
+// FetchURLs заглушка для ShortURLAttr
 func (shu *ShortURLAttr) FetchURLs(cookieValue string) ([]byte, error) {
 	return nil, nil
 }
 
+// GetCounter заглушка для ShortURLAttr
 func (shu *ShortURLAttr) GetCounter() int {
 	return 0
 }
 
+// HandleCookie заглушка для ShortURLAttr
 func (shu *ShortURLAttr) HandleCookie(cookieValue string) (*http.Cookie, string, error) {
 	return nil, "", nil
 }
 
+// DelURLs заглушка для ShortURLAttr
 func (shu *ShortURLAttr) DelURLs(cookieValue string, buf bytes.Buffer) (bool, error) {
 	return false, nil
 }

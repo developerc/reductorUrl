@@ -113,6 +113,7 @@ func (c *Consumer) ListEvents() ([]Event, error) {
 	return events, nil
 }
 
+// Close закрывает файл
 func (c *Consumer) Close() error {
 	return c.file.Close()
 }
