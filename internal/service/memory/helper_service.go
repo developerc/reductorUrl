@@ -11,13 +11,15 @@ import (
 	"strconv"
 	"time"
 
+	_ "github.com/jackc/pgx/v5/stdlib"
+
 	"github.com/developerc/reductorUrl/internal/config"
 	"github.com/developerc/reductorUrl/internal/general"
 	dbstorage "github.com/developerc/reductorUrl/internal/service/db_storage"
 	filestorage "github.com/developerc/reductorUrl/internal/service/file_storage"
-	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
+// ShortURLAttr структура аттрибутов коротких URL
 type ShortURLAttr struct {
 	Settings config.ServerSettings
 	Cntr     int
@@ -26,15 +28,18 @@ type ShortURLAttr struct {
 	DB       *sql.DB
 }
 
+// ArrShortURL структура массива коротких URL
 type ArrShortURL struct {
 	CorellationID string `json:"correlation_id"`
 	ShortURL      string `json:"short_url"`
 }
 
+// User структура пользователя
 type User struct {
 	Name string
 }
 
+// HandleCookie метод для работы с куками
 func (s *Service) HandleCookie(cookieValue string) (*http.Cookie, string, error) {
 	var usr string
 	var cookie *http.Cookie
@@ -81,6 +86,7 @@ func (s *Service) HandleCookie(cookieValue string) (*http.Cookie, string, error)
 	}
 }
 
+// CreateMapUser создает Map пользователей
 func CreateMapUser(shu *ShortURLAttr) (map[string]bool, error) {
 	mapUser, err := dbstorage.CreateMapUser(shu.DB)
 	if err != nil {
@@ -90,6 +96,7 @@ func CreateMapUser(shu *ShortURLAttr) (map[string]bool, error) {
 	return mapUser, nil
 }
 
+// DelURLs делает отметку об удалении коротких URL-ы определенного пользователя
 func (s *Service) DelURLs(cookieValue string, buf bytes.Buffer) (bool, error) {
 	u := &User{}
 	if err := s.secure.Decode("user", cookieValue, u); err != nil {
@@ -112,6 +119,7 @@ func (s *Service) DelURLs(cookieValue string, buf bytes.Buffer) (bool, error) {
 	return true, nil
 }
 
+// FetchURLs получает URL-ы определенного пользователя
 func (s *Service) FetchURLs(cookieValue string) ([]byte, error) {
 	u := &User{}
 	if err := s.secure.Decode("user", cookieValue, u); err != nil {
@@ -207,6 +215,7 @@ func getFileSettings(shu *ShortURLAttr) error {
 	return nil
 }
 
+// Ping делает проверку живучести БД
 func (s *Service) Ping() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()

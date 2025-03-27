@@ -1,3 +1,12 @@
+// server - пакет для обработки хэндлеров WEB приложения.
+//
+// Примеры запуска запросов к API приложения.
+//
+// Отсылает для сокращения один URL в текстовом формате: 'http://blabla1.ru'
+// curl -X POST -i http://localhost:8080/ --data 'http://blabla1.ru'
+//
+// Отсылает для сокращения один URL в JSON формате: '{"url": "http://blabla2.ru"}'
+// curl -X POST -i http://localhost:8080/api/shorten --data '{"url": "http://blabla2.ru"}'
 package server
 
 import (
@@ -12,10 +21,11 @@ import (
 	"github.com/developerc/reductorUrl/internal/logger"
 	"github.com/developerc/reductorUrl/internal/middleware"
 
-	"github.com/developerc/reductorUrl/internal/service/memory"
 	"github.com/go-chi/chi/v5"
 	m "github.com/go-chi/chi/v5/middleware"
 	"go.uber.org/zap"
+
+	"github.com/developerc/reductorUrl/internal/service/memory"
 )
 
 type svc interface {
@@ -29,11 +39,13 @@ type svc interface {
 	DelURLs(cookieValue string, buf bytes.Buffer) (bool, error)
 }
 
+// Server структура сервера приложения
 type Server struct {
 	service svc
 	logger  *zap.Logger
 }
 
+// NewServer конструктор сервера
 func NewServer(service svc) (*Server, error) {
 	var err error
 	srv := new(Server)
@@ -46,6 +58,7 @@ func NewServer(service svc) (*Server, error) {
 	return srv, nil
 }
 
+// addLink обрабатывает запросы на добавление одного URL в текстовом формате
 func (s *Server) addLink(w http.ResponseWriter, r *http.Request) {
 	var shortURL string
 	var usr string
@@ -104,7 +117,8 @@ func (s *Server) addLink(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *Server) addLinkJSON(w http.ResponseWriter, r *http.Request) {
+// AddLinkJSON обрабатывает запросы на добавление одного URL в формате JSON
+func (s *Server) AddLinkJSON(w http.ResponseWriter, r *http.Request) {
 	var buf bytes.Buffer
 	var shortURL string
 	var jsonBytes []byte
@@ -179,6 +193,7 @@ func (s *Server) addLinkJSON(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// // addBatchJSON обрабатывает запросы на добавление нескольких URL в формате JSON
 func (s *Server) addBatchJSON(w http.ResponseWriter, r *http.Request) {
 	var buf bytes.Buffer
 	var jsonBytes []byte
@@ -229,6 +244,7 @@ func (s *Server) addBatchJSON(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// GetLongLink обрабатывает запрос на получение "длинного" URL по ID
 func (s *Server) GetLongLink(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	longURL, isDeleted, err := s.service.GetLongLink(id)
@@ -245,6 +261,7 @@ func (s *Server) GetLongLink(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusTemporaryRedirect)
 }
 
+// CheckPing проверяет живучесть сервера
 func (s *Server) CheckPing(w http.ResponseWriter, r *http.Request) {
 	if s.service.Ping() != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -253,18 +270,26 @@ func (s *Server) CheckPing(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// UserURLs получает список URL присланных пользователем
 func (s *Server) UserURLs(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("user")
 	if err != nil {
 		switch {
 		case errors.Is(err, http.ErrNoCookie):
-			http.Error(w, err.Error(), http.StatusUnauthorized)
+			gc, _, err := s.service.HandleCookie("")
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			http.SetCookie(w, gc)
+			w.WriteHeader(http.StatusNoContent)
 			return
 		default:
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 	}
+	fmt.Println("from UserURLs cookie.Value:", cookie.Value)
 
 	jsonBytes, err := s.service.FetchURLs(cookie.Value)
 	if err != nil {
@@ -291,6 +316,7 @@ func (s *Server) UserURLs(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// DelUserURLs удаляет из БД несколько URL по ID
 func (s *Server) DelUserURLs(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("user")
 	if err != nil {
@@ -335,13 +361,14 @@ func (s *Server) DelUserURLs(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// SetupRoutes устанавливает маршруты для обработчиков запросов
 func (s *Server) SetupRoutes() http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.Middleware)
 	r.Use(middleware.GzipHandle)
 	r.Use(m.Timeout(3 * time.Second))
 	r.Post("/", s.addLink)
-	r.Post("/api/shorten", s.addLinkJSON)
+	r.Post("/api/shorten", s.AddLinkJSON)
 	r.Get("/{id}", s.GetLongLink)
 	r.Get("/ping", s.CheckPing)
 	r.Post("/api/shorten/batch", s.addBatchJSON)

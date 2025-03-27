@@ -7,11 +7,13 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	"github.com/developerc/reductorUrl/internal/service/memory"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/developerc/reductorUrl/internal/service/memory"
 )
 
+// TestPost тестирует работу функций сервера.
 func TestPost(t *testing.T) {
 	svc, err := memory.NewInMemoryService()
 	require.NoError(t, err)
@@ -27,10 +29,10 @@ func TestPost(t *testing.T) {
 	})
 
 	t.Run("#2_PostJSONTest", func(t *testing.T) {
-		longURL := strings.NewReader("{\"url\": \"http://blabla.ru\"}")
+		longURL := strings.NewReader("{\"url\": \"http://blabla2.ru\"}")
 		request := httptest.NewRequest(http.MethodPost, "/api/shorten", longURL)
 		w := httptest.NewRecorder()
-		srv.addLinkJSON(w, request)
+		srv.AddLinkJSON(w, request)
 		res := w.Result()
 		res.Body.Close()
 		assert.Equal(t, 201, res.StatusCode)

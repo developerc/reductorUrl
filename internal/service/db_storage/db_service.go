@@ -1,3 +1,4 @@
+// dbstorage пакет для размещения методов обработки запросов к базе данных.
 package dbstorage
 
 import (
@@ -8,10 +9,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/developerc/reductorUrl/internal/general"
 	_ "github.com/jackc/pgx/v5/stdlib"
+
+	"github.com/developerc/reductorUrl/internal/general"
 )
 
+// CreateMapUser создает Map пользователей читая таблицу при запуске приложения
 func CreateMapUser(db *sql.DB) (map[string]bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
@@ -37,6 +40,7 @@ func CreateMapUser(db *sql.DB) (map[string]bool, error) {
 	return mapUser, nil
 }
 
+// InsertBatch2 вставляет несколько длинных URL в таблицу
 func InsertBatch2(arrLongURL []general.ArrLongURL, db *sql.DB, usr string) error {
 	fmt.Println("from InsertBatch2 arrLongURL: ", arrLongURL)
 	ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second*2)
@@ -66,6 +70,7 @@ func InsertBatch2(arrLongURL []general.ArrLongURL, db *sql.DB, usr string) error
 	return tx.Commit()
 }
 
+// SetDelBatch2 в таблице делает отметку об удалении для нескольких коротких URL
 func SetDelBatch2(arrShortURL []string, db *sql.DB, usr string) error {
 	ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second*2)
 	defer cancelFunc()
@@ -118,6 +123,7 @@ func genBatchShortURL(arrShortURL []string) chan string {
 	return outCh
 }
 
+// CreateTable создает таблицу url если она не существовала
 func CreateTable(db *sql.DB) error {
 	const duration uint = 20
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(duration)*time.Second)
@@ -131,6 +137,7 @@ func CreateTable(db *sql.DB) error {
 	return nil
 }
 
+// GetLongByUUID из таблицы получает длинный URL по UUID
 func GetLongByUUID(db *sql.DB, uuid int) (longURL string, isDeleted bool, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
@@ -142,6 +149,7 @@ func GetLongByUUID(db *sql.DB, uuid int) (longURL string, isDeleted bool, err er
 	return
 }
 
+// GetShortByOriginalURL из таблицы получает короткий URL по длинному
 func GetShortByOriginalURL(db *sql.DB, originalURL string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
@@ -154,6 +162,7 @@ func GetShortByOriginalURL(db *sql.DB, originalURL string) (string, error) {
 	return strconv.Itoa(shURL), err
 }
 
+// InsertRecord вставляет длинный URL в таблицу
 func InsertRecord(db *sql.DB, originalURL, usr string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
@@ -170,6 +179,7 @@ func InsertRecord(db *sql.DB, originalURL, usr string) (string, error) {
 	return shURL, nil
 }
 
+// ListRepoURLs из таблицы получает список длинных URL для определенного пользователя
 func ListRepoURLs(db *sql.DB, addresBase, usr string) ([]general.ArrRepoURL, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()

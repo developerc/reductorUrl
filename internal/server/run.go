@@ -3,10 +3,12 @@ package server
 import (
 	"net/http"
 
-	"github.com/developerc/reductorUrl/internal/service/memory"
 	"go.uber.org/zap"
+
+	"github.com/developerc/reductorUrl/internal/service/memory"
 )
 
+// Run метод запускает работу сервера.
 func Run() error {
 	service, err := memory.NewInMemoryService()
 	if err != nil {

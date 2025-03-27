@@ -1,3 +1,4 @@
+// main Главный пакет. Точка входа
 package main
 
 import (

@@ -1,3 +1,4 @@
+// config пакет функций для получения параметров конфигурации запуска приложения
 package config
 
 import (
@@ -5,18 +6,22 @@ import (
 	"log"
 	"os"
 
-	"github.com/developerc/reductorUrl/internal/logger"
 	"go.uber.org/zap"
+
+	"github.com/developerc/reductorUrl/internal/logger"
 )
 
+// TypeStorage enum переменная для определения типа хранилища данных
 type TypeStorage int
 
+// TypeStorage определение переменной
 const (
 	MemoryStorage TypeStorage = iota
 	FileStorage
 	DBStorage
 )
 
+// ServerSettings структура для хранения настроечных данных сервера
 type ServerSettings struct {
 	TypeStorage TypeStorage
 	AdresRun    string
@@ -27,10 +32,13 @@ type ServerSettings struct {
 	Logger      *zap.Logger
 }
 
+// String метод возвращает тип хранилища данных
 func (ts TypeStorage) String() string {
 	return [...]string{"MemoryStorage", "FileStorage", "DBStorage"}[ts]
 }
 
+// NewServerSettings конструктор объекта хранения настроечных данных сервера
+//
 //gocyclo:ignore
 func NewServerSettings() *ServerSettings {
 	var err error
