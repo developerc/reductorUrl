@@ -1,4 +1,12 @@
 // main пакет для статической проверки кода
+// Для создания исполняемого файла переходим в каталог с *.go файлами multichecker-а
+// cd cmd/staticlint
+// компилируем multichecker
+// go build
+// создастся исполняемый файл mycheck по имени модуля
+// Копируем файл mycheck и config.json в корневую папку проекта, запустим multichecker
+// ./mycheck ./...
+// Начнется проверка всех директорий проекта, по окончании распечаются найденные ошибки.
 package main
 
 import (
@@ -68,6 +76,7 @@ type ConfigData struct {
 }
 
 func main() {
+	// Из файла config.json читаем номера анализаторов пакета staticcheck.io
 	appfile, err := os.Executable()
 	if err != nil {
 		panic(err)
@@ -80,6 +89,8 @@ func main() {
 	if err = json.Unmarshal(data, &cfg); err != nil {
 		panic(err)
 	}
+	// Добавляем в слайс анализатор ErrCheckAnalyzer для кастомного обнаружения кода os.Exit в пакете main в функции main
+	// и анализаторы пакета analysis
 	mychecks := []*analysis.Analyzer{
 		ErrCheckAnalyzer,
 		appends.Analyzer,
@@ -141,6 +152,7 @@ func main() {
 			mychecks = append(mychecks, v.Analyzer)
 		}
 	}
+	// Запускаем multichecker
 	multichecker.Main(
 		mychecks...,
 	)

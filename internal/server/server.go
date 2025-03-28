@@ -85,7 +85,7 @@ func (s *Server) addLink(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		gc, usr, err = s.service.HandleCookie(cookie.Value)
-		//fmt.Println("from server cookie.Value: ", cookie.Value)
+
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -94,7 +94,7 @@ func (s *Server) addLink(w http.ResponseWriter, r *http.Request) {
 			http.SetCookie(w, gc)
 		}
 	}
-	//fmt.Println("usr: ", usr)
+
 	if shortURL, err = s.service.AddLink(string(body), usr); err != nil {
 		if s.service.AsURLExists(err) {
 			s.logger.Info("Add link", zap.String("error", err.Error()))
@@ -288,7 +288,6 @@ func (s *Server) UserURLs(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	//fmt.Println("from UserURLs cookie.Value:", cookie.Value)
 
 	jsonBytes, err := s.service.FetchURLs(cookie.Value)
 	if err != nil {
