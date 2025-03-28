@@ -1,3 +1,4 @@
+// main пакет для статической проверки кода
 package main
 
 import (

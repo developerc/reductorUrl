@@ -1,3 +1,4 @@
+// main пакет для статической проверки кода
 package main
 
 import (
@@ -7,6 +8,7 @@ import (
 	"golang.org/x/tools/go/analysis"
 )
 
+// ErrCheckAnalyzer структура для кастомного обнаружения кода os.Exit в пакете main в функции main
 var ErrCheckAnalyzer = &analysis.Analyzer{
 	Name: "errcheck",
 	Doc:  "check for os.Exit in package main and function main",
