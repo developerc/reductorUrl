@@ -3,7 +3,6 @@ package main
 
 import (
 	_ "embed"
-	"fmt"
 	"log"
 	"strings"
 
@@ -20,25 +19,26 @@ var (
 )
 
 func main() {
+	log.SetFlags(0)
 	BuildVersion := strings.TrimSpace(buildVersion)
 	if len(BuildVersion) > 0 {
-		fmt.Printf("Build version: %q\n", BuildVersion)
+		log.Printf("Build version: %q\n", BuildVersion)
 	} else {
-		fmt.Printf("Build version: N/A\n")
+		log.Printf("Build version: N/A\n")
 	}
 
 	BuildDate := strings.TrimSpace(buildDate)
 	if len(BuildDate) > 0 {
-		fmt.Printf("Build date: %q\n", BuildDate)
+		log.Printf("Build date: %q\n", BuildDate)
 	} else {
-		fmt.Printf("Build date: N/A\n")
+		log.Printf("Build date: N/A\n")
 	}
 
 	BuildCommit := strings.TrimSpace(buildCommit)
 	if len(BuildCommit) > 0 {
-		fmt.Printf("Build commit: %q\n", BuildCommit)
+		log.Printf("Build commit: %q\n", BuildCommit)
 	} else {
-		fmt.Printf("Build commit: N/A\n")
+		log.Printf("Build commit: N/A\n")
 	}
 
 	if err := server.Run(); err != nil {
