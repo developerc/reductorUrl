@@ -165,14 +165,14 @@ func (s *Server) AddLinkJSON(w http.ResponseWriter, r *http.Request) {
 	if shortURL, err = s.service.AddLink(longURL, usr); err != nil {
 		if _, ok := err.(*memory.ErrorURLExists); ok {
 			s.logger.Info("Add link JSON", zap.String("error", err.Error()))
-			jsonBytes, err := api.ShortToJSON(shortURL, s.logger)
+			jsonBytes, err = api.ShortToJSON(shortURL, s.logger)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusConflict)
-			if _, err := w.Write(jsonBytes); err != nil {
+			if _, err = w.Write(jsonBytes); err != nil {
 				return
 			}
 		} else {
