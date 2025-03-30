@@ -21,11 +21,11 @@ import (
 
 // ShortURLAttr структура аттрибутов коротких URL
 type ShortURLAttr struct {
-	Settings config.ServerSettings
-	Cntr     int
 	MapURL   map[int]string
 	MapUser  map[string]bool
 	DB       *sql.DB
+	Settings config.ServerSettings
+	Cntr     int
 }
 
 // ArrShortURL структура массива коротких URL
