@@ -19,8 +19,8 @@ func Initialize(level string) (*zap.Logger, error) {
 	zapConfig := zap.NewDevelopmentConfig()
 	zapConfig.Level = zapLevel
 	zapConfig.OutputPaths = []string{"stderr"}
-	zapLogger, _ := zapConfig.Build()
-	if err = zapLogger.Sync(); err != nil {
+	zapLogger, err := zapConfig.Build()
+	if err := zapLogger.Sync(); err != nil {
 		log.Println(err)
 	}
 
