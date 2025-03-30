@@ -100,7 +100,7 @@ func (s *Server) addLink(w http.ResponseWriter, r *http.Request) {
 			s.logger.Info("Add link", zap.String("error", err.Error()))
 			w.Header().Set("Content-Type", "text/plain")
 			w.WriteHeader(http.StatusConflict)
-			if _, err := w.Write([]byte(shortURL)); err != nil {
+			if _, err = w.Write([]byte(shortURL)); err != nil {
 				return
 			}
 		} else {
