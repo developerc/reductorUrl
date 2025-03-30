@@ -275,8 +275,8 @@ func (s *Server) UserURLs(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, http.ErrNoCookie):
-			gc, _, err := s.service.HandleCookie("")
-			if err != nil {
+			gc, _, err2 := s.service.HandleCookie("")
+			if err2 != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
