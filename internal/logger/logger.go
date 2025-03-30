@@ -2,8 +2,6 @@
 package logger
 
 import (
-	"log"
-
 	"go.uber.org/zap"
 )
 
@@ -20,9 +18,8 @@ func Initialize(level string) (*zap.Logger, error) {
 	zapConfig.Level = zapLevel
 	zapConfig.OutputPaths = []string{"stderr"}
 	zapLogger, err := zapConfig.Build()
-	if err := zapLogger.Sync(); err != nil {
-		log.Println(err)
-	}
+
+	defer zapLogger.Sync()
 
 	return zapLogger, err
 }
