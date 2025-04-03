@@ -50,7 +50,7 @@ func InsertBatch2(arrLongURL []general.ArrLongURL, db *sql.DB, usr string) error
 		return err
 	}
 	defer func() {
-		if err := tx.Rollback(); err != nil {
+		if err = tx.Rollback(); err != nil {
 			return
 		}
 	}()
@@ -79,7 +79,7 @@ func SetDelBatch2(arrShortURL []string, db *sql.DB, usr string) error {
 		return err
 	}
 	defer func() {
-		if err := tx.Rollback(); err != nil {
+		if err = tx.Rollback(); err != nil {
 			return
 		}
 	}()

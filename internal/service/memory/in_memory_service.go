@@ -71,7 +71,7 @@ func (s *Service) AddLink(link, usr string) (string, error) {
 		s.AddLongURL(s.GetCounter(), link)
 		return s.GetAdresBase() + "/" + strconv.Itoa(s.GetCounter()), nil
 	case config.FileStorage:
-		if err := s.repo.GetShu().addToFileStorage(s.GetCounter(), link); err != nil {
+		if err = s.repo.GetShu().addToFileStorage(s.GetCounter(), link); err != nil {
 			return "", err
 		}
 		s.AddLongURL(s.GetCounter(), link)
@@ -81,8 +81,8 @@ func (s *Service) AddLink(link, usr string) (string, error) {
 		if err != nil {
 			var pgErr *pgconn.PgError
 			if errors.As(err, &pgErr) && pgerrcode.IsIntegrityConstraintViolation(pgErr.Code) && pgErr.ConstraintName == "must_be_different" {
-				shortURL, err := s.GetShortByOriginalURL(link)
-				if err != nil {
+				shortURL, err2 := s.GetShortByOriginalURL(link)
+				if err2 != nil {
 					return "", err
 				}
 				return shortURL, &ErrorURLExists{"this original URL exists"}
@@ -154,7 +154,7 @@ func NewInMemoryService() (*Service, error) {
 
 	switch shu.Settings.TypeStorage {
 	case config.FileStorage:
-		if err := getFileSettings(shu); err != nil {
+		if err = getFileSettings(shu); err != nil {
 			log.Println(err)
 		}
 	case config.DBStorage:
@@ -163,7 +163,7 @@ func NewInMemoryService() (*Service, error) {
 		if err != nil {
 			return nil, err
 		}
-		if err := dbstorage.CreateTable(shu.DB); err != nil {
+		if err = dbstorage.CreateTable(shu.DB); err != nil {
 			log.Println(err)
 		}
 		shu.MapUser, err = CreateMapUser(shu)

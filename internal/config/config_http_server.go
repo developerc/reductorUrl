@@ -23,13 +23,13 @@ const (
 
 // ServerSettings структура для хранения настроечных данных сервера
 type ServerSettings struct {
-	TypeStorage TypeStorage
+	Logger      *zap.Logger
 	AdresRun    string
 	AdresBase   string
 	LogLevel    string
 	FileStorage string
 	DBStorage   string
-	Logger      *zap.Logger
+	TypeStorage TypeStorage
 }
 
 // String метод возвращает тип хранилища данных

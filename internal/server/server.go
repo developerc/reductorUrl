@@ -12,7 +12,6 @@ package server
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -86,7 +85,7 @@ func (s *Server) addLink(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		gc, usr, err = s.service.HandleCookie(cookie.Value)
-		fmt.Println("from server cookie.Value: ", cookie.Value)
+
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -95,13 +94,13 @@ func (s *Server) addLink(w http.ResponseWriter, r *http.Request) {
 			http.SetCookie(w, gc)
 		}
 	}
-	fmt.Println("usr: ", usr)
+
 	if shortURL, err = s.service.AddLink(string(body), usr); err != nil {
 		if s.service.AsURLExists(err) {
 			s.logger.Info("Add link", zap.String("error", err.Error()))
 			w.Header().Set("Content-Type", "text/plain")
 			w.WriteHeader(http.StatusConflict)
-			if _, err := w.Write([]byte(shortURL)); err != nil {
+			if _, err = w.Write([]byte(shortURL)); err != nil {
 				return
 			}
 		} else {
@@ -166,14 +165,14 @@ func (s *Server) AddLinkJSON(w http.ResponseWriter, r *http.Request) {
 	if shortURL, err = s.service.AddLink(longURL, usr); err != nil {
 		if _, ok := err.(*memory.ErrorURLExists); ok {
 			s.logger.Info("Add link JSON", zap.String("error", err.Error()))
-			jsonBytes, err := api.ShortToJSON(shortURL, s.logger)
+			jsonBytes, err = api.ShortToJSON(shortURL, s.logger)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusConflict)
-			if _, err := w.Write(jsonBytes); err != nil {
+			if _, err = w.Write(jsonBytes); err != nil {
 				return
 			}
 		} else {
@@ -276,8 +275,8 @@ func (s *Server) UserURLs(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, http.ErrNoCookie):
-			gc, _, err := s.service.HandleCookie("")
-			if err != nil {
+			gc, _, err2 := s.service.HandleCookie("")
+			if err2 != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
@@ -289,7 +288,6 @@ func (s *Server) UserURLs(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	fmt.Println("from UserURLs cookie.Value:", cookie.Value)
 
 	jsonBytes, err := s.service.FetchURLs(cookie.Value)
 	if err != nil {
