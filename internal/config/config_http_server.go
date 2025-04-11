@@ -30,6 +30,8 @@ type ServerSettings struct {
 	FileStorage string
 	DBStorage   string
 	EnableHTTPS string
+	CertFile    string
+	KeyFile     string
 	TypeStorage TypeStorage
 }
 
@@ -56,6 +58,8 @@ func NewServerSettings() *ServerSettings {
 	fileStorage := flag.String("f", "file_storage.txt", "file for storage data")
 	dbStorage := flag.String("d", "", "address connect to DB")
 	enableHTTPS := flag.String("s", "", "enable HTTPS")
+	certFile := flag.String("cf", "certs/localhost.pem", "certificat file")
+	keyFile := flag.String("kf", "certs/localhost-key.pem", "key file")
 	flag.Parse()
 
 	val, ok := os.LookupEnv("SERVER_ADDRESS")
@@ -123,6 +127,24 @@ func NewServerSettings() *ServerSettings {
 	} else {
 		serverSettings.EnableHTTPS = val
 		serverSettings.Logger.Info("EnableHTTPS from env:", zap.String("enableHTTPS", serverSettings.EnableHTTPS))
+	}
+
+	val, ok = os.LookupEnv("CERT_FILE")
+	if !ok || val == "" {
+		serverSettings.CertFile = *certFile
+		serverSettings.Logger.Info("certFile from flag:", zap.String("certFile", serverSettings.CertFile))
+	} else {
+		serverSettings.CertFile = val
+		serverSettings.Logger.Info("certFile from env:", zap.String("certFile", serverSettings.CertFile))
+	}
+
+	val, ok = os.LookupEnv("KEY_FILE")
+	if !ok || val == "" {
+		serverSettings.KeyFile = *keyFile
+		serverSettings.Logger.Info("keyFile from flag:", zap.String("keyFile", serverSettings.KeyFile))
+	} else {
+		serverSettings.KeyFile = val
+		serverSettings.Logger.Info("keyFile from env:", zap.String("keyFile", serverSettings.KeyFile))
 	}
 	return &serverSettings
 }

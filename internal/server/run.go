@@ -23,7 +23,8 @@ func Run() error {
 
 	routes := server.SetupRoutes()
 	if service.GetShortURLAttr().Settings.EnableHTTPS == "true" {
-		err = http.ListenAndServeTLS(service.GetAdresRun(), "certs/localhost.pem", "certs/localhost-key.pem", routes)
+		//err = http.ListenAndServeTLS(service.GetAdresRun(), "certs/localhost.pem", "certs/localhost-key.pem", routes)
+		err = http.ListenAndServeTLS(service.GetAdresRun(), service.GetShortURLAttr().Settings.CertFile, service.GetShortURLAttr().Settings.KeyFile, routes)
 	} else {
 		err = http.ListenAndServe(service.GetAdresRun(), routes) //nolint:gosec // unnessesary error checking
 	}
