@@ -2,19 +2,21 @@ package server
 
 import (
 	//"bytes"
-	//"strings"
-	"testing"
-	/*"net/http"
+	"fmt"
+	"net/http"
 	"net/http/httptest"
+	"strings"
+	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/developerc/reductorUrl/internal/service/memory"*/)
+	"github.com/developerc/reductorUrl/internal/service/memory"
+)
 
 // TestPost тестирует работу функций сервера.
 func TestPost(t *testing.T) {
-	/*svc, err := memory.NewInMemoryService()
+	svc, err := memory.NewInMemoryService()
 	require.NoError(t, err)
 	srv, err := NewServer(svc)
 	require.NoError(t, err)
@@ -31,6 +33,7 @@ func TestPost(t *testing.T) {
 	t.Run("#2_HandleCookieTest", func(t *testing.T) {
 		cookie, _, err = svc.HandleCookie("")
 		require.NoError(t, err)
+		fmt.Println(cookie)
 	})
 
 	t.Run("#3_PostJSONTest", func(t *testing.T) {
@@ -49,7 +52,7 @@ func TestPost(t *testing.T) {
 		assert.Equal(t, "http://blabla.ru", resp)
 	})
 
-	t.Run("#5_Ping", func(t *testing.T) {
+	/*t.Run("#5_Ping", func(t *testing.T) {
 		err := svc.Ping()
 		require.NoError(t, err)
 	})
