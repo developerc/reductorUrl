@@ -29,6 +29,7 @@ type ServerSettings struct {
 	LogLevel    string
 	FileStorage string
 	DBStorage   string
+	EnableHTTPS string
 	TypeStorage TypeStorage
 }
 
@@ -54,6 +55,7 @@ func NewServerSettings() *ServerSettings {
 	logLevel := flag.String("l", "info", "log level")
 	fileStorage := flag.String("f", "file_storage.txt", "file for storage data")
 	dbStorage := flag.String("d", "", "address connect to DB")
+	enableHTTPS := flag.String("s", "", "enable HTTPS")
 	flag.Parse()
 
 	val, ok := os.LookupEnv("SERVER_ADDRESS")
@@ -113,6 +115,15 @@ func NewServerSettings() *ServerSettings {
 	}
 
 	serverSettings.Logger.Info("serverSettings.TypeStorage:", zap.String("storage", serverSettings.TypeStorage.String()))
+
+	val, ok = os.LookupEnv("ENABLE_HTTPS")
+	if !ok || val == "" {
+		serverSettings.EnableHTTPS = *enableHTTPS
+		serverSettings.Logger.Info("EnableHTTPS from flag:", zap.String("enableHTTPS", serverSettings.EnableHTTPS))
+	} else {
+		serverSettings.EnableHTTPS = val
+		serverSettings.Logger.Info("EnableHTTPS from env:", zap.String("enableHTTPS", serverSettings.EnableHTTPS))
+	}
 	return &serverSettings
 }
 
