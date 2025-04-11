@@ -22,7 +22,7 @@ func Run() error {
 	server.logger.Info("Running server", zap.String("address", service.GetAdresRun()))
 
 	routes := server.SetupRoutes()
-	if service.GetShortURLAttr().Settings.EnableHTTPS == "true" {
+	if service.GetShortURLAttr().Settings.EnableHTTPS {
 		//err = http.ListenAndServeTLS(service.GetAdresRun(), "certs/localhost.pem", "certs/localhost-key.pem", routes)
 		err = http.ListenAndServeTLS(service.GetAdresRun(), service.GetShortURLAttr().Settings.CertFile, service.GetShortURLAttr().Settings.KeyFile, routes)
 	} else {

@@ -2,9 +2,12 @@
 package config
 
 import (
+	"encoding/json"
 	"flag"
+	"fmt"
 	"log"
 	"os"
+	"strconv"
 
 	"go.uber.org/zap"
 
@@ -29,10 +32,19 @@ type ServerSettings struct {
 	LogLevel    string
 	FileStorage string
 	DBStorage   string
-	EnableHTTPS string
+	EnableHTTPS bool
 	CertFile    string
 	KeyFile     string
 	TypeStorage TypeStorage
+}
+
+// ConfigJSON структура для получения настроечных данных из JSON файла.
+type ConfigJSON struct {
+	ServerAddress   string `json:"server_address"`
+	BaseURL         string `json:"base_url"`
+	FileStoragePath string `json:"file_storage_path"`
+	DataBaseDsn     string `json:"database_dsn"`
+	EnableHTTPS     bool   `json:"enable_https"`
 }
 
 // String метод возвращает тип хранилища данных
@@ -44,6 +56,11 @@ func (ts TypeStorage) String() string {
 //
 //gocyclo:ignore
 func NewServerSettings() *ServerSettings {
+	const (
+		defaultConfig = "internal/config/configJSON.txt"
+		usage         = "configuration by JSON file"
+	)
+	var fileJSON string
 	var err error
 	serverSettings := ServerSettings{}
 	serverSettings.Logger, err = logger.Initialize("Info")
@@ -52,20 +69,32 @@ func NewServerSettings() *ServerSettings {
 	}
 	serverSettings.TypeStorage = MemoryStorage
 
-	ar := flag.String("a", "localhost:8080", "address running server")
-	ab := flag.String("b", "http://localhost:8080", "base address shortener URL")
+	ar := flag.String("a", "", "address running server")
+	ab := flag.String("b", "", "base address shortener URL")
 	logLevel := flag.String("l", "info", "log level")
 	fileStorage := flag.String("f", "file_storage.txt", "file for storage data")
 	dbStorage := flag.String("d", "", "address connect to DB")
-	enableHTTPS := flag.String("s", "", "enable HTTPS")
+	enableHTTPS := flag.Bool("s", false, "enable HTTPS")
 	certFile := flag.String("cf", "certs/localhost.pem", "certificat file")
 	keyFile := flag.String("kf", "certs/localhost-key.pem", "key file")
+	flag.StringVar(&fileJSON, "c", defaultConfig, usage)
+	flag.StringVar(&fileJSON, "config", defaultConfig, usage)
 	flag.Parse()
+
+	//fmt.Println("configJSON", fileJSON)
+	configJSON := getConfigJSON(fileJSON)
+	fmt.Println(configJSON)
 
 	val, ok := os.LookupEnv("SERVER_ADDRESS")
 	if !ok || val == "" {
-		serverSettings.AdresRun = *ar
-		serverSettings.Logger.Info("AdresRun from flag:", zap.String("address", serverSettings.AdresRun))
+		if !isFlagPassed("a") {
+			//fmt.Println(configJSON.ServerAddress)
+			serverSettings.AdresRun = configJSON.ServerAddress
+			serverSettings.Logger.Info("AdresRun from fileJSON:", zap.String("address", serverSettings.AdresRun))
+		} else {
+			serverSettings.AdresRun = *ar
+			serverSettings.Logger.Info("AdresRun from flag:", zap.String("address", serverSettings.AdresRun))
+		}
 	} else {
 		serverSettings.AdresRun = val
 		serverSettings.Logger.Info("AdresRun from env:", zap.String("address", serverSettings.AdresRun))
@@ -73,8 +102,13 @@ func NewServerSettings() *ServerSettings {
 
 	val, ok = os.LookupEnv("BASE_URL")
 	if !ok || val == "" {
-		serverSettings.AdresBase = *ab
-		serverSettings.Logger.Info("AdresBase from flag:", zap.String("address", serverSettings.AdresBase))
+		if !isFlagPassed("b") {
+			serverSettings.AdresBase = configJSON.BaseURL
+			serverSettings.Logger.Info("AdresBase from fileJSON:", zap.String("address", serverSettings.AdresBase))
+		} else {
+			serverSettings.AdresBase = *ab
+			serverSettings.Logger.Info("AdresBase from flag:", zap.String("address", serverSettings.AdresBase))
+		}
 	} else {
 		serverSettings.AdresBase = val
 		serverSettings.Logger.Info("AdresBase from env:", zap.String("address", serverSettings.AdresBase))
@@ -91,14 +125,20 @@ func NewServerSettings() *ServerSettings {
 
 	val, ok = os.LookupEnv("FILE_STORAGE_PATH")
 	if !ok || val == "" {
-		serverSettings.FileStorage = *fileStorage
-		if isFlagPassed("f") && (serverSettings.FileStorage != "") {
-			serverSettings.TypeStorage = FileStorage
+		if !isFlagPassed("f") {
+			serverSettings.FileStorage = configJSON.FileStoragePath
+			serverSettings.Logger.Info("FileStorage from fileJSON:", zap.String("storage", serverSettings.FileStorage))
+		} else {
+			serverSettings.FileStorage = *fileStorage
+			if isFlagPassed("f") && (serverSettings.FileStorage != "") {
+				serverSettings.TypeStorage = FileStorage
+			}
+			if serverSettings.FileStorage == "" {
+				serverSettings.FileStorage = "file_storage.txt"
+			}
+			serverSettings.Logger.Info("FileStorage from flag:", zap.String("storage", serverSettings.FileStorage))
 		}
-		if serverSettings.FileStorage == "" {
-			serverSettings.FileStorage = "file_storage.txt"
-		}
-		serverSettings.Logger.Info("FileStorage from flag:", zap.String("storage", serverSettings.FileStorage))
+
 	} else {
 		serverSettings.TypeStorage = FileStorage
 		serverSettings.FileStorage = val
@@ -107,11 +147,17 @@ func NewServerSettings() *ServerSettings {
 
 	val, ok = os.LookupEnv("DATABASE_DSN")
 	if !ok || val == "" {
-		serverSettings.DBStorage = *dbStorage
-		if isFlagPassed("d") && (serverSettings.DBStorage != "") {
-			serverSettings.TypeStorage = DBStorage
+		if !isFlagPassed("d") {
+			serverSettings.DBStorage = configJSON.DataBaseDsn
+			serverSettings.Logger.Info("DbStorage from fileJSON:", zap.String("storage", serverSettings.DBStorage))
+		} else {
+			serverSettings.DBStorage = *dbStorage
+			if isFlagPassed("d") && (serverSettings.DBStorage != "") {
+				serverSettings.TypeStorage = DBStorage
+			}
+			serverSettings.Logger.Info("DbStorage from flag:", zap.String("storage", serverSettings.DBStorage))
 		}
-		serverSettings.Logger.Info("DbStorage from flag:", zap.String("storage", serverSettings.DBStorage))
+
 	} else {
 		serverSettings.TypeStorage = DBStorage
 		serverSettings.DBStorage = val
@@ -122,11 +168,20 @@ func NewServerSettings() *ServerSettings {
 
 	val, ok = os.LookupEnv("ENABLE_HTTPS")
 	if !ok || val == "" {
-		serverSettings.EnableHTTPS = *enableHTTPS
-		serverSettings.Logger.Info("EnableHTTPS from flag:", zap.String("enableHTTPS", serverSettings.EnableHTTPS))
+		if !isFlagPassed("s") {
+			serverSettings.EnableHTTPS = configJSON.EnableHTTPS
+			serverSettings.Logger.Info("EnableHTTPS from fileJSON:", zap.String("enableHTTPS", strconv.FormatBool(serverSettings.EnableHTTPS)))
+		} else {
+			serverSettings.EnableHTTPS = *enableHTTPS
+			serverSettings.Logger.Info("EnableHTTPS from flag:", zap.String("enableHTTPS", strconv.FormatBool(serverSettings.EnableHTTPS)))
+		}
+
 	} else {
-		serverSettings.EnableHTTPS = val
-		serverSettings.Logger.Info("EnableHTTPS from env:", zap.String("enableHTTPS", serverSettings.EnableHTTPS))
+		serverSettings.EnableHTTPS, err = strconv.ParseBool(val)
+		if err != nil {
+			serverSettings.EnableHTTPS = false
+		}
+		serverSettings.Logger.Info("EnableHTTPS from env:", zap.String("enableHTTPS", strconv.FormatBool(serverSettings.EnableHTTPS)))
 	}
 
 	val, ok = os.LookupEnv("CERT_FILE")
@@ -157,4 +212,22 @@ func isFlagPassed(name string) bool {
 		}
 	})
 	return found
+}
+
+func getConfigJSON(fileJSON string) *ConfigJSON {
+	var configJSON ConfigJSON
+	//var buf bytes.Buffer
+	b, err := os.ReadFile(fileJSON) // just pass the file name
+	if err != nil {
+		return nil
+	}
+	//buf.Write(b)
+	if err = json.Unmarshal(b, &configJSON); err != nil {
+		return nil
+	}
+	//fmt.Println(configJSON)
+	/*str := string(b) // convert content to a 'string'
+	fmt.Println(str)*/
+
+	return &configJSON
 }
