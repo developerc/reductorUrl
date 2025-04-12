@@ -81,14 +81,12 @@ func NewServerSettings() *ServerSettings {
 	flag.StringVar(&fileJSON, "config", defaultConfig, usage)
 	flag.Parse()
 
-	//fmt.Println("configJSON", fileJSON)
 	configJSON := getConfigJSON(fileJSON)
 	fmt.Println(configJSON)
 
 	val, ok := os.LookupEnv("SERVER_ADDRESS")
 	if !ok || val == "" {
 		if !isFlagPassed("a") {
-			//fmt.Println(configJSON.ServerAddress)
 			serverSettings.AdresRun = configJSON.ServerAddress
 			serverSettings.Logger.Info("AdresRun from fileJSON:", zap.String("address", serverSettings.AdresRun))
 		} else {
@@ -216,18 +214,12 @@ func isFlagPassed(name string) bool {
 
 func getConfigJSON(fileJSON string) *ConfigJSON {
 	var configJSON ConfigJSON
-	//var buf bytes.Buffer
-	b, err := os.ReadFile(fileJSON) // just pass the file name
+	b, err := os.ReadFile(fileJSON)
 	if err != nil {
 		return nil
 	}
-	//buf.Write(b)
 	if err = json.Unmarshal(b, &configJSON); err != nil {
 		return nil
 	}
-	//fmt.Println(configJSON)
-	/*str := string(b) // convert content to a 'string'
-	fmt.Println(str)*/
-
 	return &configJSON
 }
