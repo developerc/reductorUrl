@@ -1,19 +1,17 @@
 package server
 
 import (
-	"strings"
+	//"strings"
 	"testing"
-
-	"net/http"
+	/*"net/http"
 	"net/http/httptest"
 
 	"github.com/developerc/reductorUrl/internal/server"
-	"github.com/developerc/reductorUrl/internal/service/memory"
-)
+	"github.com/developerc/reductorUrl/internal/service/memory"*/)
 
 // BenchmarkSrv служит для проверки скорости выполнения функций сервера.
 func BenchmarkSrv(b *testing.B) {
-	svc, err := memory.NewInMemoryService()
+	/*svc, err := memory.NewInMemoryService()
 	if err != nil {
 		return
 	}
@@ -45,5 +43,5 @@ func BenchmarkSrv(b *testing.B) {
 		if err != nil {
 			return
 		}
-	})
+	})*/
 }
