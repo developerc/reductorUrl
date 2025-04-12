@@ -33,13 +33,13 @@ func Run() error {
 	go func() {
 		<-sigint
 		fmt.Println("Получен сигнал о прерывании работы")
-
+		os.Exit(0)
 		if err := server.httpSrv.Shutdown(context.Background()); err != nil {
 			// ошибки закрытия Listener
 			server.logger.Info("Shutdown server", zap.String("error", err.Error()))
 			//log.Printf("HTTP server Shutdown: %v", err)
 		}
-		os.Exit(0)
+
 	}()
 
 	//---
