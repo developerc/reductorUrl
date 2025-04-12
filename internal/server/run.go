@@ -1,7 +1,12 @@
 package server
 
 import (
-	"net/http"
+	//"net/http"
+
+	"context"
+	"fmt"
+	"os"
+	"os/signal"
 
 	"go.uber.org/zap"
 
@@ -22,12 +27,49 @@ func Run() error {
 	server.logger.Info("Running server", zap.String("address", service.GetAdresRun()))
 
 	routes := server.SetupRoutes()
+	//---
+	sigint := make(chan os.Signal, 1)
+	signal.Notify(sigint, os.Interrupt)
+	go func() {
+		<-sigint
+		fmt.Println("Получен сигнал о прерывании работы")
+		if err := server.httpSrv.Shutdown(context.Background()); err != nil {
+			// ошибки закрытия Listener
+			server.logger.Info("Shutdown server", zap.String("error", err.Error()))
+			//log.Printf("HTTP server Shutdown: %v", err)
+		}
+	}()
+
+	//---
+	server.httpSrv.Addr = service.GetAdresRun()
+	server.httpSrv.Handler = routes
 	if service.GetShortURLAttr().Settings.EnableHTTPS {
-		//err = http.ListenAndServeTLS(service.GetAdresRun(), "certs/localhost.pem", "certs/localhost-key.pem", routes)
+		err = server.httpSrv.ListenAndServeTLS(service.GetShortURLAttr().Settings.CertFile, service.GetShortURLAttr().Settings.KeyFile)
+	} else {
+		err = server.httpSrv.ListenAndServe()
+	}
+
+	//---
+	//---
+	//idleConnsClosed := make(chan struct{})
+	/*sigint := make(chan os.Signal, 1)
+	signal.Notify(sigint, os.Interrupt)
+	go func() {
+		<-sigint
+		fmt.Println("Получен сигнал о прерывании работы")
+
+		//close(idleConnsClosed)
+	}()*/
+	//---
+
+	/*if service.GetShortURLAttr().Settings.EnableHTTPS {
 		err = http.ListenAndServeTLS(service.GetAdresRun(), service.GetShortURLAttr().Settings.CertFile, service.GetShortURLAttr().Settings.KeyFile, routes)
 	} else {
 		err = http.ListenAndServe(service.GetAdresRun(), routes) //nolint:gosec // unnessesary error checking
-	}
+	}*/
+	//---
+	//<-idleConnsClosed
+	//fmt.Println("Server Shutdown gracefully")
 
 	return err
 }

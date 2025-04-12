@@ -42,6 +42,7 @@ type svc interface {
 type Server struct {
 	service svc
 	logger  *zap.Logger
+	httpSrv *http.Server
 }
 
 // NewServer конструктор сервера
@@ -50,10 +51,10 @@ func NewServer(service svc) (*Server, error) {
 	srv := new(Server)
 	srv.service = service
 	srv.logger, err = logger.Initialize("Info")
-
 	if err != nil {
 		return srv, err
 	}
+	srv.httpSrv = &http.Server{}
 	return srv, nil
 }
 
