@@ -30,6 +30,7 @@ type repository interface {
 	FetchURLs(cookieValue string) ([]byte, error)
 	HandleCookie(cookieValue string) (*http.Cookie, string, error)
 	DelURLs(cookieValue string, buf bytes.Buffer) (bool, error)
+	CloseDb() error
 }
 
 // Service структура сервиса приложения
@@ -37,6 +38,7 @@ type Service struct {
 	repo   repository
 	logger *zap.Logger
 	secure *securecookie.SecureCookie
+	//chDbClose chan struct{}
 }
 
 // AsURLExists делает проверку существования длинного URL
@@ -144,6 +146,17 @@ func (s *Service) HandleBatchJSON(buf bytes.Buffer, usr string) ([]byte, error) 
 	return jsonBytes, nil
 }
 
+func (s *Service) CloseDb() error {
+	//fmt.Println("CloseChan")
+	//close(s.chDbClose)
+	//s.repo.GetShu().DB.
+	if err := s.repo.GetShu().DB.Close(); err != nil {
+		//s.logger.Info("Close DB", zap.String("error", err.Error()))
+		return err
+	}
+	return nil
+}
+
 // NewInMemoryService конструктор сервиса
 func NewInMemoryService() (*Service, error) {
 	var err error
@@ -170,11 +183,18 @@ func NewInMemoryService() (*Service, error) {
 		if err != nil {
 			return nil, err
 		}
+
 	}
 
 	service := Service{repo: shu}
 	service.logger, err = logger.Initialize(service.GetLogLevel())
 	service.InitSecure()
+	/*go func() {
+		service.chDbClose = make(chan struct{})
+		<-service.chDbClose
+		fmt.Println("service.chDbClose closed")
+		//shu.DB.Close()
+	}()*/
 	return &service, err
 }
 
@@ -254,4 +274,9 @@ func (shu *ShortURLAttr) HandleCookie(cookieValue string) (*http.Cookie, string,
 // DelURLs заглушка для ShortURLAttr
 func (shu *ShortURLAttr) DelURLs(cookieValue string, buf bytes.Buffer) (bool, error) {
 	return false, nil
+}
+
+// CloseDb заглушка для ShortURLAttr
+func (shu *ShortURLAttr) CloseDb() error {
+	return nil
 }

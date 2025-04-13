@@ -35,6 +35,10 @@ func Run() error {
 	go func() {
 		<-sigint
 		fmt.Println("Получен сигнал о прерывании работы")
+		err = service.CloseDb()
+		if err != nil {
+			server.logger.Info("Close Db", zap.String("error", err.Error()))
+		}
 		os.Exit(0)
 		if err := server.httpSrv.Shutdown(context.Background()); err != nil {
 			// ошибки закрытия Listener
