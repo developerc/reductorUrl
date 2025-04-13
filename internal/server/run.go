@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"syscall"
 
 	"go.uber.org/zap"
 
@@ -29,7 +30,8 @@ func Run() error {
 	routes := server.SetupRoutes()
 	//---
 	sigint := make(chan os.Signal, 1)
-	signal.Notify(sigint, os.Interrupt)
+	//signal.Notify(sigint, os.Interrupt)
+	signal.Notify(sigint, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
 	go func() {
 		<-sigint
 		fmt.Println("Получен сигнал о прерывании работы")
