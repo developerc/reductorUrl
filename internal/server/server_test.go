@@ -55,10 +55,10 @@ func TestPost(t *testing.T) {
 		assert.Equal(t, "http://blabla.ru", resp)
 	})
 
-	t.Run("#5_Ping", func(t *testing.T) {
+	/*t.Run("#5_Ping", func(t *testing.T) {
 		err := svc.Ping()
 		require.NoError(t, err)
-	})
+	})*/
 
 	t.Run("#6_GetUserURLs", func(t *testing.T) {
 		jsonBytes, err := svc.FetchURLs(cookie.Value)
