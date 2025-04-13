@@ -4,7 +4,6 @@ package config
 import (
 	"encoding/json"
 	"flag"
-	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -82,8 +81,6 @@ func NewServerSettings() *ServerSettings {
 	flag.Parse()
 
 	configJSON := getConfigJSON(fileJSON)
-	fmt.Println("fileJSON: ", fileJSON)
-	fmt.Println("configJSON: ", configJSON)
 	if configJSON == nil {
 		fileJSON = "../config/configJSON.txt"
 		configJSON = getConfigJSON(fileJSON)
@@ -92,8 +89,6 @@ func NewServerSettings() *ServerSettings {
 			configJSON = getConfigJSON(fileJSON)
 		}
 	}
-	fmt.Println("fileJSON: ", fileJSON)
-	fmt.Println("configJSON: ", configJSON)
 
 	val, ok := os.LookupEnv("SERVER_ADDRESS")
 	if !ok || val == "" {

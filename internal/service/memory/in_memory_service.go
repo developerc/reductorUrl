@@ -38,7 +38,6 @@ type Service struct {
 	repo   repository
 	logger *zap.Logger
 	secure *securecookie.SecureCookie
-	//chDbClose chan struct{}
 }
 
 // AsURLExists делает проверку существования длинного URL
@@ -148,11 +147,7 @@ func (s *Service) HandleBatchJSON(buf bytes.Buffer, usr string) ([]byte, error) 
 
 // CloseDB закрывает соединение с БД
 func (s *Service) CloseDB() error {
-	//fmt.Println("CloseChan")
-	//close(s.chDbClose)
-	//s.repo.GetShu().DB.
 	if err := s.repo.GetShu().DB.Close(); err != nil {
-		//s.logger.Info("Close DB", zap.String("error", err.Error()))
 		return err
 	}
 	return nil
@@ -190,12 +185,6 @@ func NewInMemoryService() (*Service, error) {
 	service := Service{repo: shu}
 	service.logger, err = logger.Initialize(service.GetLogLevel())
 	service.InitSecure()
-	/*go func() {
-		service.chDbClose = make(chan struct{})
-		<-service.chDbClose
-		fmt.Println("service.chDbClose closed")
-		//shu.DB.Close()
-	}()*/
 	return &service, err
 }
 

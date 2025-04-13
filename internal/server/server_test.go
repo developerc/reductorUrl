@@ -16,9 +16,6 @@ import (
 // TestPost тестирует работу функций сервера.
 func TestPost(t *testing.T) {
 	svc, err := memory.NewInMemoryService()
-	/*if err := svc.Ping(); err != nil {
-		return
-	}*/
 	require.NoError(t, err)
 	srv, err := NewServer(svc)
 	require.NoError(t, err)
