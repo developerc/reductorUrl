@@ -82,7 +82,14 @@ func NewServerSettings() *ServerSettings {
 	flag.Parse()
 
 	configJSON := getConfigJSON(fileJSON)
-	fmt.Println(configJSON)
+	fmt.Println("fileJSON: ", fileJSON)
+	fmt.Println("configJSON: ", configJSON)
+	if configJSON == nil {
+		fileJSON = "../config/configJSON.txt"
+		configJSON = getConfigJSON(fileJSON)
+	}
+	fmt.Println("fileJSON: ", fileJSON)
+	fmt.Println("configJSON: ", configJSON)
 
 	val, ok := os.LookupEnv("SERVER_ADDRESS")
 	if !ok || val == "" {
