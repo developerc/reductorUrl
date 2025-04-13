@@ -87,6 +87,10 @@ func NewServerSettings() *ServerSettings {
 	if configJSON == nil {
 		fileJSON = "../config/configJSON.txt"
 		configJSON = getConfigJSON(fileJSON)
+		if configJSON == nil {
+			fileJSON = "../../config/configJSON.txt"
+			configJSON = getConfigJSON(fileJSON)
+		}
 	}
 	fmt.Println("fileJSON: ", fileJSON)
 	fmt.Println("configJSON: ", configJSON)
