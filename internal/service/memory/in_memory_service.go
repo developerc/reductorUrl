@@ -30,7 +30,7 @@ type repository interface {
 	FetchURLs(cookieValue string) ([]byte, error)
 	HandleCookie(cookieValue string) (*http.Cookie, string, error)
 	DelURLs(cookieValue string, buf bytes.Buffer) (bool, error)
-	CloseDb() error
+	CloseDB() error
 }
 
 // Service структура сервиса приложения
@@ -146,7 +146,8 @@ func (s *Service) HandleBatchJSON(buf bytes.Buffer, usr string) ([]byte, error) 
 	return jsonBytes, nil
 }
 
-func (s *Service) CloseDb() error {
+// CloseDB закрывает соединение с БД
+func (s *Service) CloseDB() error {
 	//fmt.Println("CloseChan")
 	//close(s.chDbClose)
 	//s.repo.GetShu().DB.
@@ -276,7 +277,7 @@ func (shu *ShortURLAttr) DelURLs(cookieValue string, buf bytes.Buffer) (bool, er
 	return false, nil
 }
 
-// CloseDb заглушка для ShortURLAttr
-func (shu *ShortURLAttr) CloseDb() error {
+// CloseDB заглушка для ShortURLAttr
+func (shu *ShortURLAttr) CloseDB() error {
 	return nil
 }
