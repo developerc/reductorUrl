@@ -3,9 +3,9 @@ package server
 import (
 	"context"
 	"fmt"
+	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"go.uber.org/zap"
 
@@ -15,14 +15,14 @@ import (
 // Run метод запускает работу сервера.
 func Run() error {
 	idleConnsClosed := make(chan struct{})
-	idleConnsClosed2 := make(chan struct{})
+	//idleConnsClosed2 := make(chan struct{})
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
 	defer stop()
 
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	service, err := memory.NewInMemoryService()
+	service, err := memory.NewInMemoryService(ctx)
 	if err != nil {
 		return err
 	}
@@ -37,6 +37,7 @@ func Run() error {
 	go func() {
 		<-ctx.Done()
 		fmt.Println("Получен сигнал о прерывании работы")
+		os.Exit(0)
 		server.httpSrv.Shutdown(ctx)
 		close(idleConnsClosed)
 		fmt.Println("сервер остановлен")
@@ -51,16 +52,16 @@ func Run() error {
 			server.logger.Info("Close DB", zap.String("error", err.Error()))
 		}
 		fmt.Println("БД остановлена")
-		close(idleConnsClosed2)
+		//close(idleConnsClosed2)
 		//os.Exit(0)
 	}()
 
-	go func() {
+	/*go func() {
 		<-idleConnsClosed2
 		fmt.Println("закрываем приложение")
 		time.Sleep(time.Second)
 		//os.Exit(0)
-	}()
+	}()*/
 
 	/*sigint := make(chan os.Signal, 1)
 	signal.Notify(sigint, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)

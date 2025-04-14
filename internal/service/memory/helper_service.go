@@ -87,8 +87,8 @@ func (s *Service) HandleCookie(cookieValue string) (*http.Cookie, string, error)
 }
 
 // CreateMapUser создает Map пользователей
-func CreateMapUser(shu *ShortURLAttr) (map[string]bool, error) {
-	mapUser, err := dbstorage.CreateMapUser(shu.DB)
+func CreateMapUser(ctx context.Context, shu *ShortURLAttr) (map[string]bool, error) {
+	mapUser, err := dbstorage.CreateMapUser(ctx, shu.DB)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +97,7 @@ func CreateMapUser(shu *ShortURLAttr) (map[string]bool, error) {
 }
 
 // DelURLs делает отметку об удалении коротких URL-ы определенного пользователя
-func (s *Service) DelURLs(cookieValue string, buf bytes.Buffer) (bool, error) {
+func (s *Service) DelURLs(ctx context.Context, cookieValue string, buf bytes.Buffer) (bool, error) {
 	u := &User{}
 	if err := s.secure.Decode("user", cookieValue, u); err != nil {
 		return false, err
@@ -112,7 +112,7 @@ func (s *Service) DelURLs(cookieValue string, buf bytes.Buffer) (bool, error) {
 		return false, err
 	}
 
-	if err := dbstorage.SetDelBatch2(arrShortURL, s.repo.GetShu().DB, u.Name); err != nil {
+	if err := dbstorage.SetDelBatch2(ctx, arrShortURL, s.repo.GetShu().DB, u.Name); err != nil {
 		return false, err
 	}
 
@@ -120,7 +120,7 @@ func (s *Service) DelURLs(cookieValue string, buf bytes.Buffer) (bool, error) {
 }
 
 // FetchURLs получает URL-ы определенного пользователя
-func (s *Service) FetchURLs(cookieValue string) ([]byte, error) {
+func (s *Service) FetchURLs(ctx context.Context, cookieValue string) ([]byte, error) {
 	u := &User{}
 	if err := s.secure.Decode("user", cookieValue, u); err != nil {
 		return nil, err
@@ -130,7 +130,7 @@ func (s *Service) FetchURLs(cookieValue string) ([]byte, error) {
 		return nil, http.ErrNoCookie
 	}
 
-	arrRepoURL, err := dbstorage.ListRepoURLs(s.repo.GetShu().DB, s.GetAdresBase(), u.Name)
+	arrRepoURL, err := dbstorage.ListRepoURLs(ctx, s.repo.GetShu().DB, s.GetAdresBase(), u.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -150,12 +150,12 @@ func listLongURL(buf bytes.Buffer) ([]general.ArrLongURL, error) {
 	return arrLongURL, nil
 }
 
-func (s *Service) handleArrLongURL(arrLongURL []general.ArrLongURL, usr string) ([]byte, error) {
+func (s *Service) handleArrLongURL(ctx context.Context, arrLongURL []general.ArrLongURL, usr string) ([]byte, error) {
 	shu := s.repo.GetShu()
 	if shu.Settings.TypeStorage != config.DBStorage {
 		arrShortURL := make([]ArrShortURL, 0)
 		for _, longURL := range arrLongURL {
-			URL, err := s.AddLink(longURL.OriginalURL, usr)
+			URL, err := s.AddLink(ctx, longURL.OriginalURL, usr)
 			if err != nil {
 				return nil, err
 			}
@@ -169,13 +169,13 @@ func (s *Service) handleArrLongURL(arrLongURL []general.ArrLongURL, usr string) 
 		return jsonBytes, nil
 	}
 
-	if err := dbstorage.InsertBatch2(arrLongURL, shu.DB, usr); err != nil {
+	if err := dbstorage.InsertBatch2(ctx, arrLongURL, shu.DB, usr); err != nil {
 		return nil, err
 	}
 
 	arrShortURL := make([]ArrShortURL, 0)
 	for _, longURL := range arrLongURL {
-		short, err := dbstorage.GetShortByOriginalURL(shu.DB, longURL.OriginalURL)
+		short, err := dbstorage.GetShortByOriginalURL(ctx, shu.DB, longURL.OriginalURL)
 		if err != nil {
 			return nil, err
 		}

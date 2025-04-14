@@ -1,9 +1,12 @@
 package server
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
+	"os/signal"
 	"strings"
+	"syscall"
 	"testing"
 
 	"github.com/developerc/reductorUrl/internal/server"
@@ -12,7 +15,11 @@ import (
 
 // BenchmarkSrv служит для проверки скорости выполнения функций сервера.
 func BenchmarkSrv(b *testing.B) {
-	svc, err := memory.NewInMemoryService()
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
+	defer stop()
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	svc, err := memory.NewInMemoryService(ctx)
 	if err != nil {
 		return
 	}
@@ -24,7 +31,7 @@ func BenchmarkSrv(b *testing.B) {
 	defer tsrv.Close()
 
 	b.Run("#1_PostTest_bench", func(b *testing.B) {
-		_, err := svc.AddLink("http://blabla1.ru", "user1")
+		_, err := svc.AddLink(ctx, "http://blabla1.ru", "user1")
 		if err != nil {
 			return
 		}
@@ -40,7 +47,7 @@ func BenchmarkSrv(b *testing.B) {
 	})
 
 	b.Run("#3_GetTest_bench", func(b *testing.B) {
-		_, _, err := svc.GetLongLink("1")
+		_, _, err := svc.GetLongLink(ctx, "1")
 		if err != nil {
 			return
 		}

@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"strconv"
 	"sync"
-	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 
@@ -15,9 +14,9 @@ import (
 )
 
 // CreateMapUser создает Map пользователей читая таблицу при запуске приложения
-func CreateMapUser(db *sql.DB) (map[string]bool, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	defer cancel()
+func CreateMapUser(ctx context.Context, db *sql.DB) (map[string]bool, error) {
+	//ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	//defer cancel()
 	rows, err := db.QueryContext(ctx, "SELECT DISTINCT usr FROM url WHERE usr IS NOT NULL")
 	if err != nil {
 		return nil, err
@@ -41,10 +40,10 @@ func CreateMapUser(db *sql.DB) (map[string]bool, error) {
 }
 
 // InsertBatch2 вставляет несколько длинных URL в таблицу
-func InsertBatch2(arrLongURL []general.ArrLongURL, db *sql.DB, usr string) error {
+func InsertBatch2(ctx context.Context, arrLongURL []general.ArrLongURL, db *sql.DB, usr string) error {
 	fmt.Println("from InsertBatch2 arrLongURL: ", arrLongURL)
-	ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second*2)
-	defer cancelFunc()
+	//ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second*2)
+	//defer cancelFunc()
 	tx, err := db.Begin()
 	if err != nil {
 		return err
@@ -71,9 +70,9 @@ func InsertBatch2(arrLongURL []general.ArrLongURL, db *sql.DB, usr string) error
 }
 
 // SetDelBatch2 в таблице делает отметку об удалении для нескольких коротких URL
-func SetDelBatch2(arrShortURL []string, db *sql.DB, usr string) error {
-	ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second*2)
-	defer cancelFunc()
+func SetDelBatch2(ctx context.Context, arrShortURL []string, db *sql.DB, usr string) error {
+	//ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second*2)
+	//defer cancelFunc()
 	tx, err := db.Begin()
 	if err != nil {
 		return err
@@ -124,10 +123,10 @@ func genBatchShortURL(arrShortURL []string) chan string {
 }
 
 // CreateTable создает таблицу url если она не существовала
-func CreateTable(db *sql.DB) error {
+func CreateTable(ctx context.Context, db *sql.DB) error {
 	const duration uint = 20
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(duration)*time.Second)
-	defer cancel()
+	//ctx, cancel := context.WithTimeout(context.Background(), time.Duration(duration)*time.Second)
+	//defer cancel()
 	const cr string = "CREATE TABLE IF NOT EXISTS url( uuid serial primary key, " +
 		"original_url TEXT CONSTRAINT must_be_different UNIQUE, usr TEXT, is_deleted BOOLEAN NOT NULL DEFAULT FALSE)"
 	_, err := db.ExecContext(ctx, cr)
@@ -138,9 +137,9 @@ func CreateTable(db *sql.DB) error {
 }
 
 // GetLongByUUID из таблицы получает длинный URL по UUID
-func GetLongByUUID(db *sql.DB, uuid int) (longURL string, isDeleted bool, err error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	defer cancel()
+func GetLongByUUID(ctx context.Context, db *sql.DB, uuid int) (longURL string, isDeleted bool, err error) {
+	//ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	//defer cancel()
 	row := db.QueryRowContext(ctx, "SELECT original_url, is_deleted FROM url WHERE uuid=$1", uuid)
 	err = row.Scan(&longURL, &isDeleted)
 	if err != nil {
@@ -150,9 +149,9 @@ func GetLongByUUID(db *sql.DB, uuid int) (longURL string, isDeleted bool, err er
 }
 
 // GetShortByOriginalURL из таблицы получает короткий URL по длинному
-func GetShortByOriginalURL(db *sql.DB, originalURL string) (string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	defer cancel()
+func GetShortByOriginalURL(ctx context.Context, db *sql.DB, originalURL string) (string, error) {
+	//ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	//defer cancel()
 	row := db.QueryRowContext(ctx, "SELECT uuid FROM url WHERE original_url=$1", originalURL)
 	var shURL int
 	err := row.Scan(&shURL)
@@ -163,16 +162,16 @@ func GetShortByOriginalURL(db *sql.DB, originalURL string) (string, error) {
 }
 
 // InsertRecord вставляет длинный URL в таблицу
-func InsertRecord(db *sql.DB, originalURL, usr string) (string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	defer cancel()
+func InsertRecord(ctx context.Context, db *sql.DB, originalURL, usr string) (string, error) {
+	//ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	//defer cancel()
 	_, err := db.ExecContext(ctx, "insert into url( original_url, usr) values ($1, $2)", originalURL, usr)
 
 	if err != nil {
 		return "", err
 	}
 
-	shURL, err := GetShortByOriginalURL(db, originalURL)
+	shURL, err := GetShortByOriginalURL(ctx, db, originalURL)
 	if err != nil {
 		return "", err
 	}
@@ -180,9 +179,9 @@ func InsertRecord(db *sql.DB, originalURL, usr string) (string, error) {
 }
 
 // ListRepoURLs из таблицы получает список длинных URL для определенного пользователя
-func ListRepoURLs(db *sql.DB, addresBase, usr string) ([]general.ArrRepoURL, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	defer cancel()
+func ListRepoURLs(ctx context.Context, db *sql.DB, addresBase, usr string) ([]general.ArrRepoURL, error) {
+	//ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	//defer cancel()
 	rows, err := db.QueryContext(ctx, "SELECT uuid, original_url FROM url WHERE usr = $1", usr)
 	if err != nil {
 		return nil, err

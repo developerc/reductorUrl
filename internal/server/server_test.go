@@ -1,10 +1,13 @@
 package server
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os/signal"
 	"strings"
+	"syscall"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -15,16 +18,21 @@ import (
 
 // TestPost тестирует работу функций сервера.
 func TestPost(t *testing.T) {
-	svc, err := memory.NewInMemoryService()
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
+	defer stop()
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	svc, err := memory.NewInMemoryService(ctx)
 	require.NoError(t, err)
 	srv, err := NewServer(svc)
 	require.NoError(t, err)
 	tsrv := httptest.NewServer(srv.SetupRoutes())
 	var cookie *http.Cookie
+
 	defer tsrv.Close()
 
 	t.Run("#1_PostTest", func(t *testing.T) {
-		shortURL, err := svc.AddLink("http://blabla.ru", "user1")
+		shortURL, err := svc.AddLink(ctx, "http://blabla.ru", "user1")
 		require.NoError(t, err)
 		assert.Equal(t, "http://localhost:8080/1", shortURL)
 	})
@@ -46,7 +54,7 @@ func TestPost(t *testing.T) {
 	})
 
 	t.Run("#4_GetTest", func(t *testing.T) {
-		resp, _, err := svc.GetLongLink("1")
+		resp, _, err := svc.GetLongLink(ctx, "1")
 		require.NoError(t, err)
 		assert.Equal(t, "http://blabla.ru", resp)
 	})

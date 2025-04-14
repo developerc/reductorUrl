@@ -11,6 +11,7 @@ package server
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"net/http"
@@ -28,14 +29,14 @@ import (
 )
 
 type svc interface {
-	AddLink(link string, usr string) (string, error)
+	AddLink(ctx context.Context, link string, usr string) (string, error)
 	Ping() error
-	GetLongLink(id string) (string, bool, error)
-	HandleBatchJSON(buf bytes.Buffer, usr string) ([]byte, error)
+	GetLongLink(ctx context.Context, id string) (string, bool, error)
+	HandleBatchJSON(ctx context.Context, buf bytes.Buffer, usr string) ([]byte, error)
 	AsURLExists(err error) bool
-	FetchURLs(cookieValue string) ([]byte, error)
+	FetchURLs(ctx context.Context, cookieValue string) ([]byte, error)
 	HandleCookie(cookieValue string) (*http.Cookie, string, error)
-	DelURLs(cookieValue string, buf bytes.Buffer) (bool, error)
+	DelURLs(ctx context.Context, cookieValue string, buf bytes.Buffer) (bool, error)
 }
 
 // Server структура сервера приложения
@@ -96,7 +97,7 @@ func (s *Server) addLink(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if shortURL, err = s.service.AddLink(string(body), usr); err != nil {
+	if shortURL, err = s.service.AddLink(r.Context(), string(body), usr); err != nil {
 		if s.service.AsURLExists(err) {
 			s.logger.Info("Add link", zap.String("error", err.Error()))
 			w.Header().Set("Content-Type", "text/plain")
@@ -163,7 +164,7 @@ func (s *Server) AddLinkJSON(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	if shortURL, err = s.service.AddLink(longURL, usr); err != nil {
+	if shortURL, err = s.service.AddLink(r.Context(), longURL, usr); err != nil {
 		if _, ok := err.(*memory.ErrorURLExists); ok {
 			s.logger.Info("Add link JSON", zap.String("error", err.Error()))
 			jsonBytes, err = api.ShortToJSON(shortURL, s.logger)
@@ -233,7 +234,7 @@ func (s *Server) addBatchJSON(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if jsonBytes, err = s.service.HandleBatchJSON(buf, usr); err != nil {
+	if jsonBytes, err = s.service.HandleBatchJSON(r.Context(), buf, usr); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -247,7 +248,7 @@ func (s *Server) addBatchJSON(w http.ResponseWriter, r *http.Request) {
 // GetLongLink обрабатывает запрос на получение "длинного" URL по ID
 func (s *Server) GetLongLink(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
-	longURL, isDeleted, err := s.service.GetLongLink(id)
+	longURL, isDeleted, err := s.service.GetLongLink(r.Context(), id)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -290,7 +291,7 @@ func (s *Server) UserURLs(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	jsonBytes, err := s.service.FetchURLs(cookie.Value)
+	jsonBytes, err := s.service.FetchURLs(r.Context(), cookie.Value)
 	if err != nil {
 		switch {
 		case errors.Is(err, http.ErrNoCookie):
@@ -336,7 +337,7 @@ func (s *Server) DelUserURLs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ok, err := s.service.DelURLs(cookie.Value, buf)
+	ok, err := s.service.DelURLs(r.Context(), cookie.Value, buf)
 	if err != nil {
 		switch {
 		case errors.Is(err, http.ErrNoCookie):
