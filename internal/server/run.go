@@ -10,10 +10,9 @@ import (
 	"github.com/developerc/reductorUrl/internal/service/memory"
 )
 
-// Run метод запускает работу сервера.
+// Run метод запускает работу сервера и мягко останавливает.
 func Run() error {
 	idleConnsClosed := make(chan struct{})
-	//idleConnsClosed2 := make(chan struct{})
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
 	defer stop()
 
@@ -35,11 +34,9 @@ func Run() error {
 	go func() {
 		<-ctx.Done()
 		server.logger.Info("Server", zap.String("shutdown", "begin"))
-		//os.Exit(0)
 		server.httpSrv.Shutdown(ctx)
 		close(idleConnsClosed)
 		server.logger.Info("Server", zap.String("shutdown", "end"))
-		//os.Exit(0)
 	}()
 
 	go func() {
@@ -51,39 +48,7 @@ func Run() error {
 		} else {
 			server.logger.Info("Close DB", zap.String("success", "closed"))
 		}
-
-		//close(idleConnsClosed2)
-		//os.Exit(0)
 	}()
-
-	/*go func() {
-		<-idleConnsClosed2
-		fmt.Println("закрываем приложение")
-		time.Sleep(time.Second)
-		//os.Exit(0)
-	}()*/
-
-	/*sigint := make(chan os.Signal, 1)
-	signal.Notify(sigint, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
-	go func() {
-		<-sigint
-		fmt.Println("Получен сигнал о прерывании работы")
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		server.httpSrv.Shutdown(ctx)
-		fmt.Println("server shutted down")*/
-	//close(idleConnsClosed)
-
-	/*err = service.CloseDB()
-	if err != nil {
-		server.logger.Info("Close DB", zap.String("error", err.Error()))
-	}*/
-	//os.Exit(0)
-	/*if err := server.httpSrv.Shutdown(context.Background()); err != nil {
-		server.logger.Info("Shutdown server", zap.String("error", err.Error()))
-	}*/
-
-	//}()
 
 	server.httpSrv.Addr = service.GetAdresRun()
 	server.httpSrv.Handler = routes
@@ -99,8 +64,6 @@ func Run() error {
 			return err
 		}
 	}
-
-	//<-idleConnsClosed
 
 	return nil
 }
