@@ -2,8 +2,6 @@ package server
 
 import (
 	"context"
-	"fmt"
-	"os"
 	"os/signal"
 	"syscall"
 
@@ -36,22 +34,24 @@ func Run() error {
 
 	go func() {
 		<-ctx.Done()
-		fmt.Println("Получен сигнал о прерывании работы")
-		os.Exit(0)
+		server.logger.Info("Server", zap.String("shutdown", "begin"))
+		//os.Exit(0)
 		server.httpSrv.Shutdown(ctx)
 		close(idleConnsClosed)
-		fmt.Println("сервер остановлен")
+		server.logger.Info("Server", zap.String("shutdown", "end"))
 		//os.Exit(0)
 	}()
 
 	go func() {
 		<-idleConnsClosed
-		fmt.Println("останавливаем БД")
+		server.logger.Info("Close DB", zap.String("begin", "closing"))
 		err = service.CloseDB()
 		if err != nil {
 			server.logger.Info("Close DB", zap.String("error", err.Error()))
+		} else {
+			server.logger.Info("Close DB", zap.String("success", "closed"))
 		}
-		fmt.Println("БД остановлена")
+
 		//close(idleConnsClosed2)
 		//os.Exit(0)
 	}()
@@ -92,8 +92,15 @@ func Run() error {
 	} else {
 		err = server.httpSrv.ListenAndServe()
 	}
+	if err != nil {
+		if err.Error() == "http: Server closed" {
+			server.logger.Info("Close server", zap.String("success:", err.Error()))
+		} else {
+			return err
+		}
+	}
 
 	//<-idleConnsClosed
 
-	return err
+	return nil
 }
