@@ -19,8 +19,6 @@ var (
 )
 
 func main() {
-	//idleConnsClosed := make(chan struct{})
-	//var idleConnsClosed chan struct{}
 	log.SetFlags(0)
 	BuildVersion := strings.TrimSpace(buildVersion)
 	if len(BuildVersion) > 0 {
@@ -46,5 +44,4 @@ func main() {
 	if err := server.Run(); err != nil {
 		log.Fatal(err)
 	}
-	//<-idleConnsClosed
 }
