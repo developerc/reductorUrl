@@ -2,6 +2,8 @@ package server
 
 import (
 	"context"
+	"errors"
+	"net/http"
 	"os/signal"
 	"syscall"
 
@@ -58,7 +60,8 @@ func Run() error {
 		err = server.httpSrv.ListenAndServe()
 	}
 	if err != nil {
-		if err.Error() == "http: Server closed" {
+		//if err.Error() == "http: Server closed" {
+		if errors.Is(err, http.ErrServerClosed) {
 			server.logger.Info("Close server", zap.String("success:", err.Error()))
 		} else {
 			return err
