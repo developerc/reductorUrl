@@ -43,6 +43,7 @@ func (ca *CntrAtom) GetCntr() int64 {
 	return ca.counter.Load()
 }
 
+// GetChan получаем канал
 func (ca *CntrAtom) GetChan() chan bool {
 	return ca.chCntrAtom
 }
