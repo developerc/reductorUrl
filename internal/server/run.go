@@ -9,11 +9,13 @@ import (
 
 	"go.uber.org/zap"
 
+	"github.com/developerc/reductorUrl/internal/general"
 	"github.com/developerc/reductorUrl/internal/service/memory"
 )
 
 // Run метод запускает работу сервера и мягко останавливает.
 func Run() error {
+	var needStop bool = false
 	idleConnsClosed := make(chan struct{})
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
 	defer stop()
@@ -39,17 +41,40 @@ func Run() error {
 		server.httpSrv.Shutdown(ctx)
 		close(idleConnsClosed)
 		server.logger.Info("Server", zap.String("shutdown", "end"))
+		needStop = true
 	}()
 
 	go func() {
-		<-idleConnsClosed
-		server.logger.Info("Close DB", zap.String("begin", "closing"))
-		err = service.CloseDB()
-		if err != nil {
-			server.logger.Info("Close DB", zap.String("error", err.Error()))
-		} else {
-			server.logger.Info("Close DB", zap.String("success", "closed"))
+		select {
+		case <-idleConnsClosed:
+			server.logger.Info("Close DB", zap.String("begin", "closing"))
+			if needStop && general.CntrAtomVar.GetCntr() == 0 {
+				err = service.CloseDB()
+				if err != nil {
+					server.logger.Info("Close DB", zap.String("error", err.Error()))
+				} else {
+					server.logger.Info("Close DB", zap.String("success", "closed"))
+				}
+			}
+		case <-general.CntrAtomVar.GetChan():
+			if needStop && general.CntrAtomVar.GetCntr() == 0 {
+				err = service.CloseDB()
+				if err != nil {
+					server.logger.Info("Close DB", zap.String("error", err.Error()))
+				} else {
+					server.logger.Info("Close DB", zap.String("success", "closed"))
+				}
+			}
 		}
+		/*
+			<-idleConnsClosed
+			server.logger.Info("Close DB", zap.String("begin", "closing"))
+			err = service.CloseDB()
+			if err != nil {
+				server.logger.Info("Close DB", zap.String("error", err.Error()))
+			} else {
+				server.logger.Info("Close DB", zap.String("success", "closed"))
+			}*/
 	}()
 
 	server.httpSrv.Addr = service.GetAdresRun()

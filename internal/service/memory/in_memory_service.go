@@ -16,6 +16,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/developerc/reductorUrl/internal/config"
+	"github.com/developerc/reductorUrl/internal/general"
 	"github.com/developerc/reductorUrl/internal/logger"
 	dbstorage "github.com/developerc/reductorUrl/internal/service/db_storage"
 	filestorage "github.com/developerc/reductorUrl/internal/service/file_storage"
@@ -157,6 +158,7 @@ func (s *Service) CloseDB() error {
 // NewInMemoryService конструктор сервиса
 func NewInMemoryService(ctx context.Context) (*Service, error) {
 	var err error
+	general.NewCntrAtom()
 
 	shu := new(ShortURLAttr)
 	shu.Settings = *config.NewServerSettings()
