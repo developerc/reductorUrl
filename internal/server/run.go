@@ -17,8 +17,7 @@ import (
 // Run метод запускает работу сервера и мягко останавливает.
 func Run() error {
 	var needStop bool = false
-	//idleConnsClosed := make(chan struct{})
-	idleConnsClosed := make(chan bool)
+	idleConnsClosed := make(chan struct{})
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
 	defer stop()
 
@@ -41,11 +40,9 @@ func Run() error {
 		<-ctx.Done()
 		server.logger.Info("Server", zap.String("shutdown", "begin"))
 		server.httpSrv.Shutdown(ctx)
-		//close(idleConnsClosed)
 		server.logger.Info("Server", zap.String("shutdown", "end"))
 		needStop = true
-		idleConnsClosed <- true
-		//server.logger.Info("first gorutine", zap.String("end", "closing"))
+		close(idleConnsClosed)
 	}()
 
 	go func() {
@@ -53,8 +50,6 @@ func Run() error {
 		for {
 			select {
 			case <-idleConnsClosed:
-				//fmt.Println("from idleConnsClosed:", needStop, general.CntrAtomVar.GetCntr(), x)
-				server.logger.Info("catch idleConnsClosed", zap.String("begin", "succ"))
 				if needStop && general.CntrAtomVar.GetCntr() == 0 {
 					err = service.CloseDB()
 					if err != nil {
@@ -65,7 +60,6 @@ func Run() error {
 					break L
 				}
 			case <-general.CntrAtomVar.GetChan():
-				//fmt.Println("from GetChan:", needStop, general.CntrAtomVar.GetCntr())
 				if needStop && general.CntrAtomVar.GetCntr() == 0 {
 					err = service.CloseDB()
 					if err != nil {
@@ -77,15 +71,6 @@ func Run() error {
 				}
 			}
 		}
-		/*
-			<-idleConnsClosed
-			server.logger.Info("Close DB", zap.String("begin", "closing"))
-			err = service.CloseDB()
-			if err != nil {
-				server.logger.Info("Close DB", zap.String("error", err.Error()))
-			} else {
-				server.logger.Info("Close DB", zap.String("success", "closed"))
-			}*/
 	}()
 
 	server.httpSrv.Addr = service.GetAdresRun()
@@ -96,7 +81,6 @@ func Run() error {
 		err = server.httpSrv.ListenAndServe()
 	}
 	if err != nil {
-		//if err.Error() == "http: Server closed" {
 		if errors.Is(err, http.ErrServerClosed) {
 			server.logger.Info("Close server", zap.String("success:", err.Error()))
 		} else {

@@ -82,10 +82,10 @@ func SetDelBatch2(ctx context.Context, arrShortURL []string, db *sql.DB, usr str
 		return err
 	}
 	defer stmt.Close()
+	general.CntrAtomVar.IncrCntr()
 	outCh := genBatchShortURL(arrShortURL)
 
 	var wg sync.WaitGroup
-	general.CntrAtomVar.IncrCntr()
 
 	for shortURL := range outCh {
 		shortURL := shortURL
