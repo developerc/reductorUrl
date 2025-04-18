@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"go.uber.org/zap"
 
@@ -16,7 +17,8 @@ import (
 // Run метод запускает работу сервера и мягко останавливает.
 func Run() error {
 	var needStop bool = false
-	idleConnsClosed := make(chan struct{})
+	//idleConnsClosed := make(chan struct{})
+	idleConnsClosed := make(chan bool)
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
 	defer stop()
 
@@ -39,30 +41,39 @@ func Run() error {
 		<-ctx.Done()
 		server.logger.Info("Server", zap.String("shutdown", "begin"))
 		server.httpSrv.Shutdown(ctx)
-		close(idleConnsClosed)
+		//close(idleConnsClosed)
 		server.logger.Info("Server", zap.String("shutdown", "end"))
 		needStop = true
+		idleConnsClosed <- true
+		//server.logger.Info("first gorutine", zap.String("end", "closing"))
 	}()
 
 	go func() {
-		select {
-		case <-idleConnsClosed:
-			server.logger.Info("Close DB", zap.String("begin", "closing"))
-			if needStop && general.CntrAtomVar.GetCntr() == 0 {
-				err = service.CloseDB()
-				if err != nil {
-					server.logger.Info("Close DB", zap.String("error", err.Error()))
-				} else {
-					server.logger.Info("Close DB", zap.String("success", "closed"))
+	L:
+		for {
+			select {
+			case <-idleConnsClosed:
+				//fmt.Println("from idleConnsClosed:", needStop, general.CntrAtomVar.GetCntr(), x)
+				server.logger.Info("catch idleConnsClosed", zap.String("begin", "succ"))
+				if needStop && general.CntrAtomVar.GetCntr() == 0 {
+					err = service.CloseDB()
+					if err != nil {
+						server.logger.Info("Close DB", zap.String("error", err.Error()))
+					} else {
+						server.logger.Info("Close DB", zap.String("success", "closed"))
+					}
+					break L
 				}
-			}
-		case <-general.CntrAtomVar.GetChan():
-			if needStop && general.CntrAtomVar.GetCntr() == 0 {
-				err = service.CloseDB()
-				if err != nil {
-					server.logger.Info("Close DB", zap.String("error", err.Error()))
-				} else {
-					server.logger.Info("Close DB", zap.String("success", "closed"))
+			case <-general.CntrAtomVar.GetChan():
+				//fmt.Println("from GetChan:", needStop, general.CntrAtomVar.GetCntr())
+				if needStop && general.CntrAtomVar.GetCntr() == 0 {
+					err = service.CloseDB()
+					if err != nil {
+						server.logger.Info("Close DB_", zap.String("error", err.Error()))
+					} else {
+						server.logger.Info("Close DB_", zap.String("success", "closed"))
+					}
+					break L
 				}
 			}
 		}
@@ -93,5 +104,6 @@ func Run() error {
 		}
 	}
 
+	time.Sleep(time.Second)
 	return nil
 }
