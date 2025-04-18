@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"go.uber.org/zap"
 
@@ -17,7 +16,8 @@ import (
 // Run метод запускает работу сервера и мягко останавливает.
 func Run() error {
 	var needStop bool = false
-	idleConnsClosed := make(chan struct{})
+	signalToClose := make(chan struct{})
+	beforeStop := make(chan struct{})
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
 	defer stop()
 
@@ -42,14 +42,14 @@ func Run() error {
 		server.httpSrv.Shutdown(ctx)
 		server.logger.Info("Server", zap.String("shutdown", "end"))
 		needStop = true
-		close(idleConnsClosed)
+		close(signalToClose)
 	}()
 
 	go func() {
 	L:
 		for {
 			select {
-			case <-idleConnsClosed:
+			case <-signalToClose:
 				if needStop && general.CntrAtomVar.GetCntr() == 0 {
 					err = service.CloseDB()
 					if err != nil {
@@ -71,6 +71,7 @@ func Run() error {
 				}
 			}
 		}
+		close(beforeStop)
 	}()
 
 	server.httpSrv.Addr = service.GetAdresRun()
@@ -88,6 +89,6 @@ func Run() error {
 		}
 	}
 
-	time.Sleep(time.Second)
+	<-beforeStop
 	return nil
 }
