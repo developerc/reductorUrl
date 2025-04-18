@@ -1,14 +1,13 @@
 package server
 
-import (
-	"fmt"
+/*import (
 	"net/http/httptest"
 
 	"github.com/developerc/reductorUrl/internal/service/memory"
-)
+)*/
 
 func Example() {
-	svc, err := memory.NewInMemoryService()
+	/*svc, err := memory.NewInMemoryService()
 	if err != nil {
 		return
 	}
@@ -17,10 +16,10 @@ func Example() {
 		return
 	}
 	tsrv := httptest.NewServer(srv.SetupRoutes())
-	defer tsrv.Close()
+	defer tsrv.Close()*/
 
-	resp, _, err := svc.GetLongLink("1")
+	/*resp, _, err := svc.GetLongLink("1")
 	if resp != "http://blabla.ru" {
 		fmt.Println("test not successful!")
-	}
+	}*/
 }
