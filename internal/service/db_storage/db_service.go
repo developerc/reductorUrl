@@ -66,12 +66,22 @@ func InsertBatch2(ctx context.Context, arrLongURL []general.ArrLongURL, db *sql.
 
 // SetDelBatch2 в таблице делает отметку об удалении для нескольких коротких URL
 // func SetDelBatch2(ctx context.Context, arrShortURL []string, db *sql.DB, usr string) error {
-func SetDelBatch2(arrShortURL []string, db *sql.DB, usr string) error {
-	_, err := db.Exec("UPDATE url SET is_deleted = true WHERE uuid = ANY($1) AND usr = $2", arrShortURL, usr)
-	if err != nil {
-		return err
-	}
-	return nil
+func SetDelBatch(arrShortURL []string, db *sql.DB, usr string) error {
+	var err error
+	general.CntrAtomVar.WgGeneral.Add(1)
+	go func() {
+		defer general.CntrAtomVar.WgGeneral.Done()
+		general.CntrAtomVar.IncrCntr()
+		_, err = db.Exec("UPDATE url SET is_deleted = true WHERE uuid = ANY($1) AND usr = $2", arrShortURL, usr)
+		/*if err != nil {
+			log.Println(err)
+		}*/
+		general.CntrAtomVar.DecrCntr()
+	}()
+	general.CntrAtomVar.WgGeneral.Wait()
+	general.CntrAtomVar.SentNotif()
+
+	return err
 	/*tx, err := db.Begin()
 	if err != nil {
 		return err

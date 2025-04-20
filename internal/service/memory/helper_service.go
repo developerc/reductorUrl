@@ -114,7 +114,7 @@ func (s *Service) DelURLs(cookieValue string, buf bytes.Buffer) (bool, error) {
 	}
 
 	//if err := dbstorage.SetDelBatch2(ctx, arrShortURL, s.repo.GetShu().DB, u.Name); err != nil {
-	if err := dbstorage.SetDelBatch2(arrShortURL, s.repo.GetShu().DB, u.Name); err != nil {
+	if err := dbstorage.SetDelBatch(arrShortURL, s.repo.GetShu().DB, u.Name); err != nil {
 		return false, err
 	}
 

@@ -2,7 +2,10 @@
 // Служит для ухода от перекрестных зависимостей.
 package general
 
-import "sync/atomic"
+import (
+	"sync"
+	"sync/atomic"
+)
 
 // ArrLongURL структура списка длинных URL.
 type ArrLongURL struct {
@@ -20,6 +23,7 @@ type ArrRepoURL struct {
 type CntrAtom struct {
 	counter    atomic.Int64
 	chCntrAtom chan bool
+	WgGeneral  sync.WaitGroup
 }
 
 // NewCntrAtom конструктор CntrAtomVar
