@@ -212,7 +212,8 @@ func (shu *ShortURLAttr) addToFileStorage(cntr int, link string) error {
 	if cntr < 0 {
 		return errors.New("not valid counter")
 	}
-	event := filestorage.Event{UUID: uint(cntr), ShortURL: strconv.Itoa(cntr), OriginalURL: link}
+	//event := filestorage.Event{UUID: uint(cntr), ShortURL: strconv.Itoa(cntr), OriginalURL: link}
+	event := filestorage.Event{UUID: uint(cntr), OriginalURL: link, Usr: "user0", IsDeleted: "false"}
 	producer, err := filestorage.NewProducer(shu.Settings.FileStorage)
 	if err != nil {
 		return err
