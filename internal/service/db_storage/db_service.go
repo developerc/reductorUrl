@@ -73,9 +73,6 @@ func SetDelBatch(arrShortURL []string, db *sql.DB, usr string) error {
 		defer general.CntrAtomVar.WgGeneral.Done()
 		general.CntrAtomVar.IncrCntr()
 		_, err = db.Exec("UPDATE url SET is_deleted = true WHERE uuid = ANY($1) AND usr = $2", arrShortURL, usr)
-		/*if err != nil {
-			log.Println(err)
-		}*/
 		general.CntrAtomVar.DecrCntr()
 	}()
 	general.CntrAtomVar.WgGeneral.Wait()

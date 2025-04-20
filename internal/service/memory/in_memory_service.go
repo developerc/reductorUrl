@@ -150,6 +150,9 @@ func (s *Service) HandleBatchJSON(ctx context.Context, buf bytes.Buffer, usr str
 
 // CloseDB закрывает соединение с БД
 func (s *Service) CloseDB() error {
+	if s.repo.GetShu().Settings.TypeStorage != config.DBStorage {
+		return nil
+	}
 	if err := s.repo.GetShu().DB.Close(); err != nil {
 		return err
 	}
