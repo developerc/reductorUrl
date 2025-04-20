@@ -65,7 +65,6 @@ func InsertBatch2(ctx context.Context, arrLongURL []general.ArrLongURL, db *sql.
 }
 
 // SetDelBatch2 в таблице делает отметку об удалении для нескольких коротких URL
-// func SetDelBatch2(ctx context.Context, arrShortURL []string, db *sql.DB, usr string) error {
 func SetDelBatch(arrShortURL []string, db *sql.DB, usr string) error {
 	var err error
 	general.CntrAtomVar.WgGeneral.Add(1)
@@ -79,56 +78,6 @@ func SetDelBatch(arrShortURL []string, db *sql.DB, usr string) error {
 	general.CntrAtomVar.SentNotif()
 
 	return err
-	/*tx, err := db.Begin()
-	if err != nil {
-		return err
-	}
-	defer func() {
-		if err = tx.Rollback(); err != nil {
-			return
-		}
-	}()*/
-	/*stmt, err := tx.PrepareContext(ctx,
-		"UPDATE url SET is_deleted = true WHERE uuid = $1 AND usr = $2")
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
-	general.CntrAtomVar.IncrCntr()
-	outCh := genBatchShortURL(arrShortURL)
-
-	var wg sync.WaitGroup
-
-	for shortURL := range outCh {
-		shortURL := shortURL
-
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-
-			_, err := stmt.ExecContext(ctx, shortURL, usr)
-			if err != nil {
-				return
-			}
-		}()
-	}
-	wg.Wait()
-	general.CntrAtomVar.DecrCntr()
-	general.CntrAtomVar.SentNotif()*/
-
-	//return tx.Commit()
-}
-
-func genBatchShortURL(arrShortURL []string) chan string {
-	outCh := make(chan string)
-
-	go func() {
-		defer close(outCh)
-		for _, shortURL := range arrShortURL {
-			outCh <- shortURL
-		}
-	}()
-	return outCh
 }
 
 // CreateTable создает таблицу url если она не существовала

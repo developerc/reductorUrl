@@ -36,7 +36,6 @@ type svc interface {
 	AsURLExists(err error) bool
 	FetchURLs(ctx context.Context, cookieValue string) ([]byte, error)
 	HandleCookie(cookieValue string) (*http.Cookie, string, error)
-	//DelURLs(ctx context.Context, cookieValue string, buf bytes.Buffer) (bool, error)
 	DelURLs(cookieValue string, buf bytes.Buffer) (bool, error)
 }
 
@@ -195,7 +194,7 @@ func (s *Server) AddLinkJSON(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// // addBatchJSON обрабатывает запросы на добавление нескольких URL в формате JSON
+// addBatchJSON обрабатывает запросы на добавление нескольких URL в формате JSON
 func (s *Server) addBatchJSON(w http.ResponseWriter, r *http.Request) {
 	var buf bytes.Buffer
 	var jsonBytes []byte
@@ -338,7 +337,6 @@ func (s *Server) DelUserURLs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//ok, err := s.service.DelURLs(r.Context(), cookie.Value, buf)
 	ok, err := s.service.DelURLs(cookie.Value, buf)
 	if err != nil {
 		switch {

@@ -31,7 +31,6 @@ type repository interface {
 	GetShu() *ShortURLAttr
 	FetchURLs(ctx context.Context, cookieValue string) ([]byte, error)
 	HandleCookie(cookieValue string) (*http.Cookie, string, error)
-	//DelURLs(ctx context.Context, cookieValue string, buf bytes.Buffer) (bool, error)
 	DelURLs(ctx context.Context, cookieValue string, buf bytes.Buffer) (bool, error)
 	CloseDB() error
 }
