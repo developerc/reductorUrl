@@ -97,7 +97,8 @@ func CreateMapUser(ctx context.Context, shu *ShortURLAttr) (map[string]bool, err
 }
 
 // DelURLs делает отметку об удалении коротких URL-ы определенного пользователя
-func (s *Service) DelURLs(ctx context.Context, cookieValue string, buf bytes.Buffer) (bool, error) {
+// func (s *Service) DelURLs(ctx context.Context, cookieValue string, buf bytes.Buffer) (bool, error) {
+func (s *Service) DelURLs(cookieValue string, buf bytes.Buffer) (bool, error) {
 	u := &User{}
 	if err := s.secure.Decode("user", cookieValue, u); err != nil {
 		return false, err
@@ -112,7 +113,8 @@ func (s *Service) DelURLs(ctx context.Context, cookieValue string, buf bytes.Buf
 		return false, err
 	}
 
-	if err := dbstorage.SetDelBatch2(ctx, arrShortURL, s.repo.GetShu().DB, u.Name); err != nil {
+	//if err := dbstorage.SetDelBatch2(ctx, arrShortURL, s.repo.GetShu().DB, u.Name); err != nil {
+	if err := dbstorage.SetDelBatch2(arrShortURL, s.repo.GetShu().DB, u.Name); err != nil {
 		return false, err
 	}
 

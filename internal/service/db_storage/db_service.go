@@ -6,7 +6,6 @@ import (
 	"database/sql"
 	"fmt"
 	"strconv"
-	"sync"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 
@@ -66,8 +65,14 @@ func InsertBatch2(ctx context.Context, arrLongURL []general.ArrLongURL, db *sql.
 }
 
 // SetDelBatch2 в таблице делает отметку об удалении для нескольких коротких URL
-func SetDelBatch2(ctx context.Context, arrShortURL []string, db *sql.DB, usr string) error {
-	tx, err := db.Begin()
+// func SetDelBatch2(ctx context.Context, arrShortURL []string, db *sql.DB, usr string) error {
+func SetDelBatch2(arrShortURL []string, db *sql.DB, usr string) error {
+	_, err := db.Exec("UPDATE url SET is_deleted = true WHERE uuid = ANY($1) AND usr = $2", arrShortURL, usr)
+	if err != nil {
+		return err
+	}
+	return nil
+	/*tx, err := db.Begin()
 	if err != nil {
 		return err
 	}
@@ -75,8 +80,8 @@ func SetDelBatch2(ctx context.Context, arrShortURL []string, db *sql.DB, usr str
 		if err = tx.Rollback(); err != nil {
 			return
 		}
-	}()
-	stmt, err := tx.PrepareContext(ctx,
+	}()*/
+	/*stmt, err := tx.PrepareContext(ctx,
 		"UPDATE url SET is_deleted = true WHERE uuid = $1 AND usr = $2")
 	if err != nil {
 		return err
@@ -102,9 +107,9 @@ func SetDelBatch2(ctx context.Context, arrShortURL []string, db *sql.DB, usr str
 	}
 	wg.Wait()
 	general.CntrAtomVar.DecrCntr()
-	general.CntrAtomVar.SentNotif()
+	general.CntrAtomVar.SentNotif()*/
 
-	return tx.Commit()
+	//return tx.Commit()
 }
 
 func genBatchShortURL(arrShortURL []string) chan string {

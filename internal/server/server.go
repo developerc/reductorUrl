@@ -36,7 +36,8 @@ type svc interface {
 	AsURLExists(err error) bool
 	FetchURLs(ctx context.Context, cookieValue string) ([]byte, error)
 	HandleCookie(cookieValue string) (*http.Cookie, string, error)
-	DelURLs(ctx context.Context, cookieValue string, buf bytes.Buffer) (bool, error)
+	//DelURLs(ctx context.Context, cookieValue string, buf bytes.Buffer) (bool, error)
+	DelURLs(cookieValue string, buf bytes.Buffer) (bool, error)
 }
 
 // Server структура сервера приложения
@@ -337,7 +338,8 @@ func (s *Server) DelUserURLs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ok, err := s.service.DelURLs(r.Context(), cookie.Value, buf)
+	//ok, err := s.service.DelURLs(r.Context(), cookie.Value, buf)
+	ok, err := s.service.DelURLs(cookie.Value, buf)
 	if err != nil {
 		switch {
 		case errors.Is(err, http.ErrNoCookie):
