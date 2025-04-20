@@ -337,7 +337,11 @@ func (s *Server) DelUserURLs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ok, err := s.service.DelURLs(cookie.Value, buf)
+	go func() {
+		//ok, err := s.service.DelURLs(cookie.Value, buf)
+		_, err = s.service.DelURLs(cookie.Value, buf)
+	}()
+
 	if err != nil {
 		switch {
 		case errors.Is(err, http.ErrNoCookie):
@@ -348,17 +352,17 @@ func (s *Server) DelUserURLs(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	if ok {
-		w.WriteHeader(http.StatusAccepted)
-		if _, err := w.Write([]byte("Accepted")); err != nil {
-			return
-		}
-	} else {
+	//if ok {
+	w.WriteHeader(http.StatusAccepted)
+	if _, err := w.Write([]byte("Accepted")); err != nil {
+		return
+	}
+	/*} else {
 		w.WriteHeader(http.StatusUnauthorized)
 		if _, err := w.Write([]byte("Not accepted!")); err != nil {
 			return
 		}
-	}
+	}*/
 }
 
 // SetupRoutes устанавливает маршруты для обработчиков запросов
