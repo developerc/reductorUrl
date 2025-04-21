@@ -165,7 +165,7 @@ func NewInMemoryService(ctx context.Context) (*Service, error) {
 
 	shu := new(ShortURLAttr)
 	shu.Settings = *config.NewServerSettings()
-	shu.MapURL = make(map[int]string)
+	shu.MapURL = make(map[int]MapURLVal) //make(map[int]string)
 
 	switch shu.Settings.TypeStorage {
 	case config.FileStorage:

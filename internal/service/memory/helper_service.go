@@ -19,9 +19,16 @@ import (
 	filestorage "github.com/developerc/reductorUrl/internal/service/file_storage"
 )
 
+// MapURLVal структура для значения map MapURL
+type MapURLVal struct {
+	OriginalURL string
+	Usr         string
+	IsDeleted   string
+}
+
 // ShortURLAttr структура аттрибутов коротких URL
 type ShortURLAttr struct {
-	MapURL   map[int]string
+	MapURL   map[int]MapURLVal
 	MapUser  map[string]bool
 	DB       *sql.DB
 	Settings config.ServerSettings
@@ -205,7 +212,7 @@ func getFileSettings(shu *ShortURLAttr) error {
 		if event.UUID > math.MaxInt32 {
 			event.UUID = math.MaxInt32
 		}
-		shu.MapURL[int(event.UUID)] = event.OriginalURL
+		shu.MapURL[int(event.UUID)] = MapURLVal{OriginalURL: event.OriginalURL} //event.OriginalURL
 	}
 	shu.Cntr = len(events)
 

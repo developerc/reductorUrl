@@ -22,12 +22,13 @@ func (s *Service) GetDSN() (string, error) {
 
 // GetLongURL получает длинный URL по ID
 func (s *Service) GetLongURL(i int) (string, error) {
-	return s.shu.MapURL[i], nil
+	return s.shu.MapURL[i].OriginalURL, nil
 }
 
 // AddLongURL добавляет длинный URL в Map
 func (s *Service) AddLongURL(i int, link string) {
-	s.shu.MapURL[i] = link
+	mapURLVal := MapURLVal{OriginalURL: link}
+	s.shu.MapURL[i] = mapURLVal
 }
 
 // AddLongURL получает адрес запуска сервера
