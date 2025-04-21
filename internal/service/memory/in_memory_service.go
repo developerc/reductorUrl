@@ -71,13 +71,13 @@ func (s *Service) AddLink(ctx context.Context, link, usr string) (string, error)
 	s.IncrCounter()
 	switch s.shu.Settings.TypeStorage {
 	case config.MemoryStorage:
-		s.AddLongURL(s.GetCounter(), link)
+		s.AddLongURL(s.GetCounter(), link, usr)
 		return s.GetAdresBase() + "/" + strconv.Itoa(s.GetCounter()), nil
 	case config.FileStorage:
 		if err = s.shu.addToFileStorage(s.GetCounter(), link); err != nil {
 			return "", err
 		}
-		s.AddLongURL(s.GetCounter(), link)
+		s.AddLongURL(s.GetCounter(), link, usr)
 		return s.GetAdresBase() + "/" + strconv.Itoa(s.GetCounter()), nil
 	case config.DBStorage:
 		shURL, err = dbstorage.InsertRecord(ctx, s.shu.DB, link, usr)

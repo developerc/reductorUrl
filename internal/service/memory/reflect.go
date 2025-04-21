@@ -26,9 +26,11 @@ func (s *Service) GetLongURL(i int) (string, error) {
 }
 
 // AddLongURL добавляет длинный URL в Map
-func (s *Service) AddLongURL(i int, link string) {
-	mapURLVal := MapURLVal{OriginalURL: link}
+func (s *Service) AddLongURL(i int, link, usr string) {
+	mapURLVal := MapURLVal{OriginalURL: link, Usr: usr}
 	s.shu.MapURL[i] = mapURLVal
+	//fmt.Println("usr: ", usr)
+	//fmt.Println(s.shu.MapURL)
 }
 
 // AddLongURL получает адрес запуска сервера
