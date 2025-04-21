@@ -75,7 +75,7 @@ func (s *Service) AddLink(ctx context.Context, link, usr string) (string, error)
 		s.shu.MapUser[usr] = true
 		return s.GetAdresBase() + "/" + strconv.Itoa(s.GetCounter()), nil
 	case config.FileStorage:
-		if err = s.shu.addToFileStorage(s.GetCounter(), link); err != nil {
+		if err = s.shu.addToFileStorage(s.GetCounter(), link, usr); err != nil {
 			return "", err
 		}
 		s.AddLongURL(s.GetCounter(), link, usr)
@@ -173,6 +173,7 @@ func NewInMemoryService(ctx context.Context) (*Service, error) {
 	case config.MemoryStorage:
 		shu.MapUser = make(map[string]bool)
 	case config.FileStorage:
+		shu.MapUser = make(map[string]bool)
 		if err = getFileSettings(shu); err != nil {
 			log.Println(err)
 		}
@@ -207,11 +208,11 @@ func (s *Service) InitSecure() {
 }
 
 // addToFileStorage добавляет длинный URL в файловое хранилище
-func (shu *ShortURLAttr) addToFileStorage(cntr int, link string) error {
+func (shu *ShortURLAttr) addToFileStorage(cntr int, link, usr string) error {
 	if cntr < 0 {
 		return errors.New("not valid counter")
 	}
-	event := filestorage.Event{UUID: uint(cntr), OriginalURL: link, Usr: "user0", IsDeleted: "false"}
+	event := filestorage.Event{UUID: uint(cntr), OriginalURL: link, Usr: usr, IsDeleted: "false"}
 	producer, err := filestorage.NewProducer(shu.Settings.FileStorage)
 	if err != nil {
 		return err
