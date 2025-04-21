@@ -28,7 +28,6 @@ type repository interface {
 	GetLongLink(ctx context.Context, id string) (string, bool, error)
 	HandleBatchJSON(ctx context.Context, buf bytes.Buffer, usr string) ([]byte, error)
 	AsURLExists(err error) bool
-	GetShu() *ShortURLAttr
 	FetchURLs(ctx context.Context, cookieValue string) ([]byte, error)
 	HandleCookie(cookieValue string) (*http.Cookie, string, error)
 	DelURLs(ctx context.Context, cookieValue string, buf bytes.Buffer) (bool, error)
@@ -70,20 +69,17 @@ func (s *Service) AddLink(ctx context.Context, link, usr string) (string, error)
 	var err error
 
 	s.IncrCounter()
-	//switch s.repo.GetShu().Settings.TypeStorage {
 	switch s.shu.Settings.TypeStorage {
 	case config.MemoryStorage:
 		s.AddLongURL(s.GetCounter(), link)
 		return s.GetAdresBase() + "/" + strconv.Itoa(s.GetCounter()), nil
 	case config.FileStorage:
-		//if err = s.repo.GetShu().addToFileStorage(s.GetCounter(), link); err != nil {
 		if err = s.shu.addToFileStorage(s.GetCounter(), link); err != nil {
 			return "", err
 		}
 		s.AddLongURL(s.GetCounter(), link)
 		return s.GetAdresBase() + "/" + strconv.Itoa(s.GetCounter()), nil
 	case config.DBStorage:
-		//shURL, err = dbstorage.InsertRecord(ctx, s.repo.GetShu().DB, link, usr)
 		shURL, err = dbstorage.InsertRecord(ctx, s.shu.DB, link, usr)
 		if err != nil {
 			var pgErr *pgconn.PgError
@@ -96,7 +92,6 @@ func (s *Service) AddLink(ctx context.Context, link, usr string) (string, error)
 			}
 			return "", err
 		}
-		//s.repo.GetShu().MapUser[usr] = true
 		s.shu.MapUser[usr] = true
 	}
 	return s.GetAdresBase() + "/" + shURL, nil
@@ -193,7 +188,6 @@ func NewInMemoryService(ctx context.Context) (*Service, error) {
 
 	}
 
-	//service := Service{repo: shu}
 	service := Service{shu: shu}
 	service.logger, err = logger.Initialize(service.GetLogLevel())
 	service.InitSecure()
@@ -207,17 +201,11 @@ func (s *Service) InitSecure() {
 	s.secure = securecookie.New(hashKey, blockKey)
 }
 
-// AddLink заглушка для ShortURLAttr
-/*func (shu *ShortURLAttr) AddLink(ctx context.Context, link, usr string) (string, error) {
-	return "", nil
-}*/
-
 // addToFileStorage добавляет длинный URL в файловое хранилище
 func (shu *ShortURLAttr) addToFileStorage(cntr int, link string) error {
 	if cntr < 0 {
 		return errors.New("not valid counter")
 	}
-	//event := filestorage.Event{UUID: uint(cntr), ShortURL: strconv.Itoa(cntr), OriginalURL: link}
 	event := filestorage.Event{UUID: uint(cntr), OriginalURL: link, Usr: "user0", IsDeleted: "false"}
 	producer, err := filestorage.NewProducer(shu.Settings.FileStorage)
 	if err != nil {
@@ -228,58 +216,3 @@ func (shu *ShortURLAttr) addToFileStorage(cntr int, link string) error {
 	}
 	return nil
 }
-
-// Ping заглушка для ShortURLAttr
-/*func (shu *ShortURLAttr) Ping() error {
-	return nil
-}*/
-
-// GetLongLink заглушка для ShortURLAttr
-/*func (shu *ShortURLAttr) GetLongLink(ctx context.Context, id string) (longURL string, isDeleted bool, err error) {
-	return "", false, nil
-}*/
-
-// HandleBatchJSON заглушка для ShortURLAttr
-/*func (shu *ShortURLAttr) HandleBatchJSON(ctx context.Context, buf bytes.Buffer, usr string) ([]byte, error) {
-	return nil, nil
-}*/
-
-// AsURLExists заглушка для ShortURLAttr
-/*func (shu *ShortURLAttr) AsURLExists(err error) bool {
-	return true
-}*/
-
-// GetShu заглушка для ShortURLAttr
-/*func (shu *ShortURLAttr) GetShu() *ShortURLAttr {
-	return shu
-}*/
-
-// GetCripto заглушка для ShortURLAttr
-/*func (shu *ShortURLAttr) GetCripto() (string, error) {
-	return "", nil
-}*/
-
-// FetchURLs заглушка для ShortURLAttr
-/*func (shu *ShortURLAttr) FetchURLs(ctx context.Context, cookieValue string) ([]byte, error) {
-	return nil, nil
-}*/
-
-// GetCounter заглушка для ShortURLAttr
-/*func (shu *ShortURLAttr) GetCounter() int {
-	return 0
-}*/
-
-// HandleCookie заглушка для ShortURLAttr
-/*func (shu *ShortURLAttr) HandleCookie(cookieValue string) (*http.Cookie, string, error) {
-	return nil, "", nil
-}*/
-
-// DelURLs заглушка для ShortURLAttr
-/*func (shu *ShortURLAttr) DelURLs(ctx context.Context, cookieValue string, buf bytes.Buffer) (bool, error) {
-	return false, nil
-}*/
-
-// CloseDB заглушка для ShortURLAttr
-/*func (shu *ShortURLAttr) CloseDB() error {
-	return nil
-}*/

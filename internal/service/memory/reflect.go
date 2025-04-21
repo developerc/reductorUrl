@@ -12,7 +12,6 @@ func (s *Service) IncrCounter() {
 
 // GetAdresBase получает базовый адрес сервера
 func (s *Service) GetAdresBase() string {
-	//return s.repo.GetShu().Settings.AdresBase
 	return s.shu.Settings.AdresBase
 }
 
@@ -28,7 +27,6 @@ func (s *Service) GetLongURL(i int) (string, error) {
 
 // AddLongURL добавляет длинный URL в Map
 func (s *Service) AddLongURL(i int, link string) {
-	//s.repo.GetShu().MapURL[i] = link
 	s.shu.MapURL[i] = link
 }
 
@@ -39,7 +37,6 @@ func (s *Service) GetAdresRun() string {
 
 // GetLogLevel получает уровень логирования
 func (s *Service) GetLogLevel() string {
-	//return s.repo.GetShu().Settings.LogLevel
 	return s.shu.Settings.LogLevel
 }
 
