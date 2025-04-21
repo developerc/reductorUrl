@@ -54,43 +54,43 @@ func (s *Service) HandleCookie(cookieValue string) (*http.Cookie, string, error)
 		Name: usr,
 	}
 
-	if s.shu.Settings.TypeStorage == config.DBStorage {
-		if cookieValue == "" {
-			usr = "user" + strconv.Itoa(s.GetCounter())
-			u.Name = usr
-			if encoded, err := s.secure.Encode("user", u); err == nil {
-				cookie = &http.Cookie{
-					Name:  "user",
-					Value: encoded,
-				}
-				return cookie, usr, nil
-			} else {
-				return nil, "", err
+	//if s.shu.Settings.TypeStorage == config.DBStorage {
+	if cookieValue == "" {
+		usr = "user" + strconv.Itoa(s.GetCounter())
+		u.Name = usr
+		if encoded, err := s.secure.Encode("user", u); err == nil {
+			cookie = &http.Cookie{
+				Name:  "user",
+				Value: encoded,
 			}
-		}
-		if err := s.secure.Decode("user", cookieValue, u); err != nil {
+			return cookie, usr, nil
+		} else {
 			return nil, "", err
 		}
-		fmt.Println("u: ", u)
-		if _, ok := s.shu.MapUser[u.Name]; ok {
-			return nil, u.Name, nil
-		} else {
-			usr = "user" + strconv.Itoa(s.GetCounter())
-			u.Name = usr
-			if encoded, err := s.secure.Encode("user", u); err == nil {
-				cookie = &http.Cookie{
-					Name:  "user",
-					Value: encoded,
-				}
-				s.shu.MapUser[usr] = true
-				return cookie, usr, nil
-			} else {
-				return nil, "", err
-			}
-		}
-	} else {
-		return nil, "", nil
 	}
+	if err := s.secure.Decode("user", cookieValue, u); err != nil {
+		return nil, "", err
+	}
+	fmt.Println("u: ", u)
+	if _, ok := s.shu.MapUser[u.Name]; ok {
+		return nil, u.Name, nil
+	} else {
+		usr = "user" + strconv.Itoa(s.GetCounter())
+		u.Name = usr
+		if encoded, err := s.secure.Encode("user", u); err == nil {
+			cookie = &http.Cookie{
+				Name:  "user",
+				Value: encoded,
+			}
+			s.shu.MapUser[usr] = true
+			return cookie, usr, nil
+		} else {
+			return nil, "", err
+		}
+	}
+	/*} else {
+		return nil, "", nil
+	}*/
 }
 
 // CreateMapUser создает Map пользователей
@@ -212,9 +212,9 @@ func getFileSettings(shu *ShortURLAttr) error {
 		if event.UUID > math.MaxInt32 {
 			event.UUID = math.MaxInt32
 		}
-		shu.MapURL[int(event.UUID)] = MapURLVal{OriginalURL: event.OriginalURL} //event.OriginalURL
+		shu.MapURL[int(event.UUID)] = MapURLVal{OriginalURL: event.OriginalURL, Usr: event.Usr, IsDeleted: event.IsDeleted} //event.OriginalURL
 	}
-	shu.Cntr = len(events)
+	shu.Cntr = len(events) //исправить на количество юзеров
 
 	if _, err := filestorage.NewProducer(shu.Settings.FileStorage); err != nil {
 		return err

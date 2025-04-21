@@ -72,12 +72,14 @@ func (s *Service) AddLink(ctx context.Context, link, usr string) (string, error)
 	switch s.shu.Settings.TypeStorage {
 	case config.MemoryStorage:
 		s.AddLongURL(s.GetCounter(), link, usr)
+		s.shu.MapUser[usr] = true
 		return s.GetAdresBase() + "/" + strconv.Itoa(s.GetCounter()), nil
 	case config.FileStorage:
 		if err = s.shu.addToFileStorage(s.GetCounter(), link); err != nil {
 			return "", err
 		}
 		s.AddLongURL(s.GetCounter(), link, usr)
+		s.shu.MapUser[usr] = true
 		return s.GetAdresBase() + "/" + strconv.Itoa(s.GetCounter()), nil
 	case config.DBStorage:
 		shURL, err = dbstorage.InsertRecord(ctx, s.shu.DB, link, usr)
@@ -168,10 +170,13 @@ func NewInMemoryService(ctx context.Context) (*Service, error) {
 	shu.MapURL = make(map[int]MapURLVal) //make(map[int]string)
 
 	switch shu.Settings.TypeStorage {
+	case config.MemoryStorage:
+		shu.MapUser = make(map[string]bool)
 	case config.FileStorage:
 		if err = getFileSettings(shu); err != nil {
 			log.Println(err)
 		}
+		//добавить создание и заполнение shu.MapUser !
 	case config.DBStorage:
 		dsn := shu.Settings.DBStorage
 		shu.DB, err = sql.Open("pgx", dsn)

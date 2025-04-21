@@ -1,5 +1,7 @@
 package memory
 
+import "fmt"
+
 // GetCounter возвращает значение счетчика для формирования идентификатора сокращенного URL
 func (s *Service) GetCounter() int {
 	return s.shu.Cntr
@@ -29,8 +31,8 @@ func (s *Service) GetLongURL(i int) (string, error) {
 func (s *Service) AddLongURL(i int, link, usr string) {
 	mapURLVal := MapURLVal{OriginalURL: link, Usr: usr}
 	s.shu.MapURL[i] = mapURLVal
-	//fmt.Println("usr: ", usr)
-	//fmt.Println(s.shu.MapURL)
+	fmt.Println("usr: ", usr)
+	fmt.Println(s.shu.MapURL)
 }
 
 // AddLongURL получает адрес запуска сервера

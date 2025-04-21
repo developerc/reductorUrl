@@ -13,6 +13,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -158,6 +159,7 @@ func (s *Server) AddLinkJSON(w http.ResponseWriter, r *http.Request) {
 			http.SetCookie(w, gc)
 		}
 	}
+	fmt.Println("from AddLinkJSON usr: ", usr)
 
 	longURL, err := api.HandleAPIShorten(buf, s.logger)
 	if err != nil {
@@ -364,9 +366,9 @@ func (s *Server) SetupRoutes() http.Handler {
 	r.Use(middleware.Middleware)
 	r.Use(middleware.GzipHandle)
 	r.Use(m.Timeout(3 * time.Second))
-	r.Post("/", s.addLink)
+	r.Post("/", s.addLink) //+
 	r.Post("/api/shorten", s.AddLinkJSON)
-	r.Get("/{id}", s.GetLongLink)
+	r.Get("/{id}", s.GetLongLink) //+
 	r.Get("/ping", s.CheckPing)
 	r.Post("/api/shorten/batch", s.addBatchJSON)
 	r.Get("/api/user/urls", s.UserURLs)
