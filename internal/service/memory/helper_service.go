@@ -47,7 +47,7 @@ func (s *Service) HandleCookie(cookieValue string) (*http.Cookie, string, error)
 		Name: usr,
 	}
 
-	if s.repo.GetShu().Settings.TypeStorage == config.DBStorage {
+	if s.shu.Settings.TypeStorage == config.DBStorage {
 		if cookieValue == "" {
 			usr = "user" + strconv.Itoa(s.GetCounter())
 			u.Name = usr
@@ -65,7 +65,7 @@ func (s *Service) HandleCookie(cookieValue string) (*http.Cookie, string, error)
 			return nil, "", err
 		}
 		fmt.Println("u: ", u)
-		if _, ok := s.repo.GetShu().MapUser[u.Name]; ok {
+		if _, ok := s.shu.MapUser[u.Name]; ok {
 			return nil, u.Name, nil
 		} else {
 			usr = "user" + strconv.Itoa(s.GetCounter())
@@ -75,7 +75,7 @@ func (s *Service) HandleCookie(cookieValue string) (*http.Cookie, string, error)
 					Name:  "user",
 					Value: encoded,
 				}
-				s.repo.GetShu().MapUser[usr] = true
+				s.shu.MapUser[usr] = true
 				return cookie, usr, nil
 			} else {
 				return nil, "", err
@@ -103,7 +103,7 @@ func (s *Service) DelURLs(cookieValue string, buf bytes.Buffer) (bool, error) {
 		return false, err
 	}
 
-	if _, ok := s.repo.GetShu().MapUser[u.Name]; !ok {
+	if _, ok := s.shu.MapUser[u.Name]; !ok {
 		return false, http.ErrNoCookie
 	}
 
@@ -112,7 +112,7 @@ func (s *Service) DelURLs(cookieValue string, buf bytes.Buffer) (bool, error) {
 		return false, err
 	}
 
-	if err := dbstorage.SetDelBatch(arrShortURL, s.repo.GetShu().DB, u.Name); err != nil {
+	if err := dbstorage.SetDelBatch(arrShortURL, s.shu.DB, u.Name); err != nil {
 		return false, err
 	}
 
@@ -126,11 +126,11 @@ func (s *Service) FetchURLs(ctx context.Context, cookieValue string) ([]byte, er
 		return nil, err
 	}
 
-	if _, ok := s.repo.GetShu().MapUser[u.Name]; !ok {
+	if _, ok := s.shu.MapUser[u.Name]; !ok {
 		return nil, http.ErrNoCookie
 	}
 
-	arrRepoURL, err := dbstorage.ListRepoURLs(ctx, s.repo.GetShu().DB, s.GetAdresBase(), u.Name)
+	arrRepoURL, err := dbstorage.ListRepoURLs(ctx, s.shu.DB, s.GetAdresBase(), u.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -151,7 +151,7 @@ func listLongURL(buf bytes.Buffer) ([]general.ArrLongURL, error) {
 }
 
 func (s *Service) handleArrLongURL(ctx context.Context, arrLongURL []general.ArrLongURL, usr string) ([]byte, error) {
-	shu := s.repo.GetShu()
+	shu := s.shu
 	if shu.Settings.TypeStorage != config.DBStorage {
 		arrShortURL := make([]ArrShortURL, 0)
 		for _, longURL := range arrLongURL {
@@ -219,7 +219,7 @@ func getFileSettings(shu *ShortURLAttr) error {
 func (s *Service) Ping() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
-	if err := s.repo.GetShu().DB.PingContext(ctx); err != nil {
+	if err := s.shu.DB.PingContext(ctx); err != nil {
 		return err
 	}
 	return nil
