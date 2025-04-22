@@ -105,7 +105,7 @@ func CreateMapUser(ctx context.Context, shu *ShortURLAttr) (map[string]bool, err
 
 func (s *Service) setDelMemory(arrShortURL []string, usr string) error {
 	//делаем отметку isdeleted=true
-	//fmt.Println(s.shu.MapURL)
+	fmt.Println(s.shu.MapURL)
 	var err error
 	for _, shortURL := range arrShortURL {
 		intShortURL, err := strconv.Atoi(shortURL)
@@ -120,7 +120,10 @@ func (s *Service) setDelMemory(arrShortURL []string, usr string) error {
 			}
 		}
 	}
-	//fmt.Println(s.shu.MapURL)
+	fmt.Println(s.shu.MapURL)
+	if s.shu.Settings.TypeStorage == config.FileStorage {
+		s.shu.changeFileStorage()
+	}
 	return err
 }
 

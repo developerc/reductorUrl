@@ -8,6 +8,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/gorilla/securecookie"
@@ -221,5 +222,22 @@ func (shu *ShortURLAttr) addToFileStorage(cntr int, link, usr string) error {
 	if err := producer.WriteEvent(&event); err != nil {
 		log.Println(err)
 	}
+	return nil
+}
+
+func (shu *ShortURLAttr) changeFileStorage() error {
+	//filestorage.Mu.Lock()
+	os.Remove(shu.Settings.FileStorage)
+	for uuid, mapURL := range shu.MapURL {
+		event := filestorage.Event{UUID: uint(uuid), OriginalURL: mapURL.OriginalURL, Usr: mapURL.Usr, IsDeleted: mapURL.IsDeleted}
+		producer, err := filestorage.NewProducer(shu.Settings.FileStorage)
+		if err != nil {
+			return err
+		}
+		if err := producer.WriteEvent(&event); err != nil {
+			log.Println(err)
+		}
+	}
+	//filestorage.Mu.Unlock()
 	return nil
 }
