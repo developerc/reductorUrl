@@ -5,7 +5,6 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"math"
 	"net/http"
 	"strconv"
@@ -71,7 +70,6 @@ func (s *Service) HandleCookie(cookieValue string) (*http.Cookie, string, error)
 	if err := s.secure.Decode("user", cookieValue, u); err != nil {
 		return nil, "", err
 	}
-	fmt.Println("u: ", u)
 	if _, ok := s.shu.MapUser[u.Name]; ok {
 		return nil, u.Name, nil
 	} else {
@@ -105,7 +103,6 @@ func CreateMapUser(ctx context.Context, shu *ShortURLAttr) (map[string]bool, err
 
 func (s *Service) setDelMemory(arrShortURL []string, usr string) error {
 	//делаем отметку isdeleted=true
-	fmt.Println(s.shu.MapURL)
 	var err error
 	for _, shortURL := range arrShortURL {
 		intShortURL, err := strconv.Atoi(shortURL)
@@ -120,7 +117,6 @@ func (s *Service) setDelMemory(arrShortURL []string, usr string) error {
 			}
 		}
 	}
-	fmt.Println(s.shu.MapURL)
 	if s.shu.Settings.TypeStorage == config.FileStorage {
 		s.shu.changeFileStorage()
 	}
@@ -161,15 +157,12 @@ func (s *Service) listURLsMemory(usr string) ([]general.ArrRepoURL, error) {
 	arrRepoURL := make([]general.ArrRepoURL, 0)
 	for uuid, val := range s.shu.MapURL {
 		if val.Usr == usr {
-			fmt.Println(uuid, val)
-			//var repoURL general.ArrRepoURL = general.ArrRepoURL{}
 			repoURL := general.ArrRepoURL{}
 			repoURL.ShortURL = s.shu.Settings.AdresBase + "/" + strconv.Itoa(uuid)
 			repoURL.OriginalURL = val.OriginalURL
 			arrRepoURL = append(arrRepoURL, repoURL)
 		}
 	}
-	fmt.Println(arrRepoURL)
 	return arrRepoURL, nil
 }
 
@@ -269,14 +262,10 @@ func getFileSettings(shu *ShortURLAttr) error {
 			event.UUID = math.MaxInt32
 		}
 
-		shu.MapURL[int(event.UUID)] = MapURLVal{OriginalURL: event.OriginalURL, Usr: event.Usr, IsDeleted: event.IsDeleted} //event.OriginalURL
+		shu.MapURL[int(event.UUID)] = MapURLVal{OriginalURL: event.OriginalURL, Usr: event.Usr, IsDeleted: event.IsDeleted}
 		shu.MapUser[shu.MapURL[int(event.UUID)].Usr] = true
 	}
-	fmt.Println("shu.MapURL: ", shu.MapURL)
-	fmt.Println("shu.MapUser: ", shu.MapUser)
-	//shu.Cntr = len(shu.MapUser)
 	shu.Cntr = len(events)
-	fmt.Println("shu.Cntr: ", shu.Cntr)
 
 	if _, err := filestorage.NewProducer(shu.Settings.FileStorage); err != nil {
 		return err
