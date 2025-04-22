@@ -4,7 +4,6 @@ package dbstorage
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"strconv"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -38,7 +37,6 @@ func CreateMapUser(ctx context.Context, db *sql.DB) (map[string]bool, error) {
 
 // InsertBatch2 вставляет несколько длинных URL в таблицу
 func InsertBatch2(ctx context.Context, arrLongURL []general.ArrLongURL, db *sql.DB, usr string) error {
-	fmt.Println("from InsertBatch2 arrLongURL: ", arrLongURL)
 	tx, err := db.Begin()
 	if err != nil {
 		return err

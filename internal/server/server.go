@@ -13,7 +13,6 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -159,7 +158,6 @@ func (s *Server) AddLinkJSON(w http.ResponseWriter, r *http.Request) {
 			http.SetCookie(w, gc)
 		}
 	}
-	fmt.Println("from AddLinkJSON usr: ", usr)
 
 	longURL, err := api.HandleAPIShorten(buf, s.logger)
 	if err != nil {

@@ -53,7 +53,6 @@ func (s *Service) HandleCookie(cookieValue string) (*http.Cookie, string, error)
 		Name: usr,
 	}
 
-	//if s.shu.Settings.TypeStorage == config.DBStorage {
 	if cookieValue == "" {
 		usr = "user" + strconv.Itoa(s.GetCounter())
 		u.Name = usr
@@ -86,9 +85,6 @@ func (s *Service) HandleCookie(cookieValue string) (*http.Cookie, string, error)
 			return nil, "", err
 		}
 	}
-	/*} else {
-		return nil, "", nil
-	}*/
 }
 
 // CreateMapUser создает Map пользователей
