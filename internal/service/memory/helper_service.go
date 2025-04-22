@@ -132,7 +132,8 @@ func (s *Service) listURLsMemory(usr string) ([]general.ArrRepoURL, error) {
 	for uuid, val := range s.shu.MapURL {
 		if val.Usr == usr {
 			fmt.Println(uuid, val)
-			var repoURL general.ArrRepoURL = general.ArrRepoURL{}
+			//var repoURL general.ArrRepoURL = general.ArrRepoURL{}
+			repoURL := general.ArrRepoURL{}
 			repoURL.ShortURL = s.shu.Settings.AdresBase + "/" + strconv.Itoa(uuid)
 			repoURL.OriginalURL = val.OriginalURL
 			arrRepoURL = append(arrRepoURL, repoURL)
