@@ -1,3 +1,0 @@
-{"uuid":1,"original_url":"http://blabla1.ru","usr":"user0","is_deleted":"true"}
-{"uuid":2,"original_url":"http://blabla2.ru","usr":"user0","is_deleted":"false"}
-{"uuid":3,"original_url":"http://blabla3.ru","usr":"user0","is_deleted":"false"}

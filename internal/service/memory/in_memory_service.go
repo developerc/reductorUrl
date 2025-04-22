@@ -42,7 +42,7 @@ type Service struct {
 	logger *zap.Logger
 	secure *securecookie.SecureCookie
 	shu    *ShortURLAttr
-	mu     sync.Mutex
+	mu     sync.RWMutex
 }
 
 // AsURLExists делает проверку существования длинного URL
@@ -71,20 +71,22 @@ func (s *Service) AddLink(ctx context.Context, link, usr string) (string, error)
 	var shURL string
 	var err error
 
-	s.mu.Lock()
-	defer s.mu.Unlock()
 	s.IncrCounter()
 	switch s.shu.Settings.TypeStorage {
 	case config.MemoryStorage:
 		s.AddLongURL(s.GetCounter(), link, usr)
+		s.mu.Lock()
 		s.shu.MapUser[usr] = true
+		s.mu.Unlock()
 		return s.GetAdresBase() + "/" + strconv.Itoa(s.GetCounter()), nil
 	case config.FileStorage:
 		if err = s.shu.addToFileStorage(s.GetCounter(), link, usr); err != nil {
 			return "", err
 		}
 		s.AddLongURL(s.GetCounter(), link, usr)
+		s.mu.Lock()
 		s.shu.MapUser[usr] = true
+		s.mu.Unlock()
 		return s.GetAdresBase() + "/" + strconv.Itoa(s.GetCounter()), nil
 	case config.DBStorage:
 		shURL, err = dbstorage.InsertRecord(ctx, s.shu.DB, link, usr)
@@ -99,7 +101,9 @@ func (s *Service) AddLink(ctx context.Context, link, usr string) (string, error)
 			}
 			return "", err
 		}
+		s.mu.Lock()
 		s.shu.MapUser[usr] = true
+		s.mu.Unlock()
 	}
 	return s.GetAdresBase() + "/" + shURL, nil
 }
@@ -183,7 +187,6 @@ func NewInMemoryService(ctx context.Context) (*Service, error) {
 		if err = getFileSettings(shu); err != nil {
 			log.Println(err)
 		}
-		//добавить создание и заполнение shu.MapUser !
 	case config.DBStorage:
 		dsn := shu.Settings.DBStorage
 		shu.DB, err = sql.Open("pgx", dsn)
@@ -229,12 +232,14 @@ func (shu *ShortURLAttr) addToFileStorage(cntr int, link, usr string) error {
 	return nil
 }
 
-func (shu *ShortURLAttr) changeFileStorage() error {
-	//filestorage.Mu.Lock()
-	os.Remove(shu.Settings.FileStorage)
-	for uuid, mapURL := range shu.MapURL {
+// func (shu *ShortURLAttr) changeFileStorage() error {
+func (s *Service) changeFileStorage() error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	os.Remove(s.shu.Settings.FileStorage)
+	for uuid, mapURL := range s.shu.MapURL {
 		event := filestorage.Event{UUID: uint(uuid), OriginalURL: mapURL.OriginalURL, Usr: mapURL.Usr, IsDeleted: mapURL.IsDeleted}
-		producer, err := filestorage.NewProducer(shu.Settings.FileStorage)
+		producer, err := filestorage.NewProducer(s.shu.Settings.FileStorage)
 		if err != nil {
 			return err
 		}
@@ -242,6 +247,5 @@ func (shu *ShortURLAttr) changeFileStorage() error {
 			log.Println(err)
 		}
 	}
-	//filestorage.Mu.Unlock()
 	return nil
 }
