@@ -103,6 +103,27 @@ func CreateMapUser(ctx context.Context, shu *ShortURLAttr) (map[string]bool, err
 	return mapUser, nil
 }
 
+func (s *Service) setDelMemory(arrShortURL []string, usr string) error {
+	//делаем отметку isdeleted=true
+	//fmt.Println(s.shu.MapURL)
+	var err error
+	for _, shortURL := range arrShortURL {
+		intShortURL, err := strconv.Atoi(shortURL)
+		if err != nil {
+			return err
+		}
+		if val, ok := s.shu.MapURL[intShortURL]; ok {
+			if val.Usr == usr {
+				mapURLVal := s.shu.MapURL[intShortURL]
+				mapURLVal.IsDeleted = "true"
+				s.shu.MapURL[intShortURL] = mapURLVal
+			}
+		}
+	}
+	//fmt.Println(s.shu.MapURL)
+	return err
+}
+
 // DelURLs делает отметку об удалении коротких URL-ы определенного пользователя
 func (s *Service) DelURLs(cookieValue string, buf bytes.Buffer) (bool, error) {
 	u := &User{}
@@ -119,8 +140,14 @@ func (s *Service) DelURLs(cookieValue string, buf bytes.Buffer) (bool, error) {
 		return false, err
 	}
 
-	if err := dbstorage.SetDelBatch(arrShortURL, s.shu.DB, u.Name); err != nil {
-		return false, err
+	if s.shu.Settings.TypeStorage != config.DBStorage {
+		if err := s.setDelMemory(arrShortURL, u.Name); err != nil {
+			return false, err
+		}
+	} else {
+		if err := dbstorage.SetDelBatch(arrShortURL, s.shu.DB, u.Name); err != nil {
+			return false, err
+		}
 	}
 
 	return true, nil
