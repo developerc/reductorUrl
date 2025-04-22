@@ -126,6 +126,22 @@ func (s *Service) DelURLs(cookieValue string, buf bytes.Buffer) (bool, error) {
 	return true, nil
 }
 
+// listURLsMemory для определенного пользователя получает список пар короткий URL, длинный URL
+func (s *Service) listURLsMemory(usr string) ([]general.ArrRepoURL, error) {
+	arrRepoURL := make([]general.ArrRepoURL, 0)
+	for uuid, val := range s.shu.MapURL {
+		if val.Usr == usr {
+			fmt.Println(uuid, val)
+			var repoURL general.ArrRepoURL = general.ArrRepoURL{}
+			repoURL.ShortURL = s.shu.Settings.AdresBase + "/" + strconv.Itoa(uuid)
+			repoURL.OriginalURL = val.OriginalURL
+			arrRepoURL = append(arrRepoURL, repoURL)
+		}
+	}
+	fmt.Println(arrRepoURL)
+	return arrRepoURL, nil
+}
+
 // FetchURLs получает URL-ы определенного пользователя
 func (s *Service) FetchURLs(ctx context.Context, cookieValue string) ([]byte, error) {
 	u := &User{}
@@ -136,13 +152,22 @@ func (s *Service) FetchURLs(ctx context.Context, cookieValue string) ([]byte, er
 	if _, ok := s.shu.MapUser[u.Name]; !ok {
 		return nil, http.ErrNoCookie
 	}
-
-	arrRepoURL, err := dbstorage.ListRepoURLs(ctx, s.shu.DB, s.GetAdresBase(), u.Name)
-	if err != nil {
-		return nil, err
+	var jsonBytes []byte
+	var arrRepoURL []general.ArrRepoURL
+	var err error
+	if s.shu.Settings.TypeStorage != config.DBStorage {
+		arrRepoURL, err = s.listURLsMemory(u.Name)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		arrRepoURL, err = dbstorage.ListRepoURLs(ctx, s.shu.DB, s.GetAdresBase(), u.Name)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	jsonBytes, err := json.Marshal(arrRepoURL)
+	jsonBytes, err = json.Marshal(arrRepoURL)
 	if err != nil {
 		return nil, err
 	}

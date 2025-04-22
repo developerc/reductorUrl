@@ -142,33 +142,11 @@ func (s *Service) HandleBatchJSON(ctx context.Context, buf bytes.Buffer, usr str
 		return nil, errors.New("error: length array is zero")
 	}
 
-	var jsonBytes []byte
-	jsonBytes, err = s.handleArrLongURL(ctx, arrLongURL, usr)
+	jsonBytes, err := s.handleArrLongURL(ctx, arrLongURL, usr)
 	if err != nil {
 		return nil, err
 	}
 
-	/*switch s.shu.Settings.TypeStorage {
-	case config.MemoryStorage:
-		fmt.Println(arrLongURL)
-		jsonBytes, err = s.handleArrLongURL(ctx, arrLongURL, usr)
-		if err != nil {
-			return nil, err
-		}
-		fmt.Println(jsonBytes)
-	case config.FileStorage:
-		fmt.Println(arrLongURL)
-		jsonBytes, err = s.handleArrLongURL(ctx, arrLongURL, usr)
-		if err != nil {
-			return nil, err
-		}
-		fmt.Println(jsonBytes)
-	case config.DBStorage:
-		jsonBytes, err = s.handleArrLongURL(ctx, arrLongURL, usr)
-		if err != nil {
-			return nil, err
-		}
-	}*/
 	return jsonBytes, nil
 }
 

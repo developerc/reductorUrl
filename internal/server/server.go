@@ -370,8 +370,8 @@ func (s *Server) SetupRoutes() http.Handler {
 	r.Post("/api/shorten", s.AddLinkJSON) //+
 	r.Get("/{id}", s.GetLongLink)         //+
 	r.Get("/ping", s.CheckPing)
-	r.Post("/api/shorten/batch", s.addBatchJSON) //12 инкр
-	r.Get("/api/user/urls", s.UserURLs)
+	r.Post("/api/shorten/batch", s.addBatchJSON) //12 инкр +
+	r.Get("/api/user/urls", s.UserURLs)          //14 инкр
 	r.Delete("/api/user/urls", s.DelUserURLs)
 	return r
 }
