@@ -29,7 +29,7 @@ func (s *Service) GetLongURL(i int) (string, error) {
 
 // AddLongURL добавляет длинный URL в Map
 func (s *Service) AddLongURL(i int, link, usr string) {
-	mapURLVal := MapURLVal{OriginalURL: link, Usr: usr}
+	mapURLVal := MapURLVal{OriginalURL: link, Usr: usr, IsDeleted: "false"}
 	s.shu.MapURL[i] = mapURLVal
 	fmt.Println("usr: ", usr)
 	fmt.Println(s.shu.MapURL)
