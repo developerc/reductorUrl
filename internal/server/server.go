@@ -366,11 +366,11 @@ func (s *Server) SetupRoutes() http.Handler {
 	r.Use(middleware.Middleware)
 	r.Use(middleware.GzipHandle)
 	r.Use(m.Timeout(3 * time.Second))
-	r.Post("/", s.addLink) //+
-	r.Post("/api/shorten", s.AddLinkJSON)
-	r.Get("/{id}", s.GetLongLink) //+
+	r.Post("/", s.addLink)                //+
+	r.Post("/api/shorten", s.AddLinkJSON) //+
+	r.Get("/{id}", s.GetLongLink)         //+
 	r.Get("/ping", s.CheckPing)
-	r.Post("/api/shorten/batch", s.addBatchJSON)
+	r.Post("/api/shorten/batch", s.addBatchJSON) //12 инкр
 	r.Get("/api/user/urls", s.UserURLs)
 	r.Delete("/api/user/urls", s.DelUserURLs)
 	return r

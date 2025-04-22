@@ -1,0 +1,4 @@
+{"uuid":1,"original_url":"http://blabla17.ru","usr":"user0","is_deleted":"false"}
+{"uuid":2,"original_url":"http://blabla38.ru","usr":"user1","is_deleted":"false"}
+{"uuid":3,"original_url":"http://blabla39.ru","usr":"user1","is_deleted":"false"}
+{"uuid":4,"original_url":"http://blabla40.ru","usr":"user1","is_deleted":"false"}
