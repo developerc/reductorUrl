@@ -80,13 +80,13 @@ func (s *Service) AddLink(ctx context.Context, link, usr string) (string, error)
 		s.mu.Unlock()
 		return s.GetAdresBase() + "/" + strconv.Itoa(s.GetCounter()), nil
 	case config.FileStorage:
+		s.mu.Lock()
 		if err = s.shu.addToFileStorage(s.GetCounter(), link, usr); err != nil {
 			return "", err
 		}
-		s.AddLongURL(s.GetCounter(), link, usr)
-		s.mu.Lock()
 		s.shu.MapUser[usr] = true
 		s.mu.Unlock()
+		s.AddLongURL(s.GetCounter(), link, usr)
 		return s.GetAdresBase() + "/" + strconv.Itoa(s.GetCounter()), nil
 	case config.DBStorage:
 		shURL, err = dbstorage.InsertRecord(ctx, s.shu.DB, link, usr)
@@ -177,7 +177,7 @@ func NewInMemoryService(ctx context.Context) (*Service, error) {
 
 	shu := new(ShortURLAttr)
 	shu.Settings = *config.NewServerSettings()
-	shu.MapURL = make(map[int]MapURLVal) //make(map[int]string)
+	shu.MapURL = make(map[int]MapURLVal)
 
 	switch shu.Settings.TypeStorage {
 	case config.MemoryStorage:

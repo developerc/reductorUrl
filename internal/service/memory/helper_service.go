@@ -69,7 +69,10 @@ func (s *Service) HandleCookie(cookieValue string) (*http.Cookie, string, error)
 	if err := s.secure.Decode("user", cookieValue, u); err != nil {
 		return nil, "", err
 	}
-	if _, ok := s.shu.MapUser[u.Name]; ok {
+	s.mu.RLock()
+	_, ok := s.shu.MapUser[u.Name]
+	s.mu.RUnlock()
+	if ok {
 		return nil, u.Name, nil
 	} else {
 		usr = "user" + strconv.Itoa(s.GetCounter())
@@ -79,7 +82,9 @@ func (s *Service) HandleCookie(cookieValue string) (*http.Cookie, string, error)
 				Name:  "user",
 				Value: encoded,
 			}
+			s.mu.Lock()
 			s.shu.MapUser[usr] = true
+			s.mu.Unlock()
 			return cookie, usr, nil
 		} else {
 			return nil, "", err
@@ -128,7 +133,10 @@ func (s *Service) DelURLs(cookieValue string, buf bytes.Buffer) (bool, error) {
 		return false, err
 	}
 
-	if _, ok := s.shu.MapUser[u.Name]; !ok {
+	s.mu.RLock()
+	_, ok := s.shu.MapUser[u.Name]
+	s.mu.RUnlock()
+	if !ok {
 		return false, http.ErrNoCookie
 	}
 
@@ -153,6 +161,8 @@ func (s *Service) DelURLs(cookieValue string, buf bytes.Buffer) (bool, error) {
 // listURLsMemory для определенного пользователя получает список пар короткий URL, длинный URL
 func (s *Service) listURLsMemory(usr string) ([]general.ArrRepoURL, error) {
 	arrRepoURL := make([]general.ArrRepoURL, 0)
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 	for uuid, val := range s.shu.MapURL {
 		if val.Usr == usr {
 			repoURL := general.ArrRepoURL{}
@@ -171,7 +181,10 @@ func (s *Service) FetchURLs(ctx context.Context, cookieValue string) ([]byte, er
 		return nil, err
 	}
 
-	if _, ok := s.shu.MapUser[u.Name]; !ok {
+	s.mu.RLock()
+	_, ok := s.shu.MapUser[u.Name]
+	s.mu.RUnlock()
+	if !ok {
 		return nil, http.ErrNoCookie
 	}
 	var jsonBytes []byte
