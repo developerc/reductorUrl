@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"sync"
 
 	"github.com/gorilla/securecookie"
 	"github.com/jackc/pgerrcode"
@@ -41,6 +42,7 @@ type Service struct {
 	logger *zap.Logger
 	secure *securecookie.SecureCookie
 	shu    *ShortURLAttr
+	mu     sync.Mutex
 }
 
 // AsURLExists делает проверку существования длинного URL
@@ -69,6 +71,8 @@ func (s *Service) AddLink(ctx context.Context, link, usr string) (string, error)
 	var shURL string
 	var err error
 
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.IncrCounter()
 	switch s.shu.Settings.TypeStorage {
 	case config.MemoryStorage:
