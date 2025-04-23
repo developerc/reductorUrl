@@ -164,10 +164,8 @@ func (s *Service) CloseDB() error {
 	if s.shu.Settings.TypeStorage != config.DBStorage {
 		return nil
 	}
-	if err := s.shu.DB.Close(); err != nil {
-		return err
-	}
-	return nil
+
+	return s.shu.DB.Close()
 }
 
 // NewInMemoryService конструктор сервиса
