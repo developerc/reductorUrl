@@ -32,7 +32,7 @@ type repository interface {
 	AsURLExists(err error) bool
 	FetchURLs(ctx context.Context, cookieValue string) ([]byte, error)
 	HandleCookie(cookieValue string) (*http.Cookie, string, error)
-	DelURLs(ctx context.Context, cookieValue string, buf bytes.Buffer) (bool, error)
+	DelURLs(ctx context.Context, cookieValue string, buf bytes.Buffer) error
 	CloseDB() error
 }
 

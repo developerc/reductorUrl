@@ -127,35 +127,35 @@ func (s *Service) setDelMemory(arrShortURL []string, usr string) error {
 }
 
 // DelURLs делает отметку об удалении коротких URL-ы определенного пользователя
-func (s *Service) DelURLs(cookieValue string, buf bytes.Buffer) (bool, error) {
+func (s *Service) DelURLs(cookieValue string, buf bytes.Buffer) error {
 	u := &User{}
 	if err := s.secure.Decode("user", cookieValue, u); err != nil {
-		return false, err
+		return err
 	}
 
 	s.mu.RLock()
 	_, ok := s.shu.MapUser[u.Name]
 	s.mu.RUnlock()
 	if !ok {
-		return false, http.ErrNoCookie
+		return http.ErrNoCookie
 	}
 
 	arrShortURL := make([]string, 0)
 	if err := json.Unmarshal(buf.Bytes(), &arrShortURL); err != nil {
-		return false, err
+		return err
 	}
 
 	if s.shu.Settings.TypeStorage != config.DBStorage {
 		if err := s.setDelMemory(arrShortURL, u.Name); err != nil {
-			return false, err
+			return err
 		}
 	} else {
 		if err := dbstorage.SetDelBatch(arrShortURL, s.shu.DB, u.Name); err != nil {
-			return false, err
+			return err
 		}
 	}
 
-	return true, nil
+	return nil
 }
 
 // listURLsMemory для определенного пользователя получает список пар короткий URL, длинный URL

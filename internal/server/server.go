@@ -36,7 +36,7 @@ type svc interface {
 	AsURLExists(err error) bool
 	FetchURLs(ctx context.Context, cookieValue string) ([]byte, error)
 	HandleCookie(cookieValue string) (*http.Cookie, string, error)
-	DelURLs(cookieValue string, buf bytes.Buffer) (bool, error)
+	DelURLs(cookieValue string, buf bytes.Buffer) error
 }
 
 // Server структура сервера приложения
@@ -338,10 +338,14 @@ func (s *Server) DelUserURLs(w http.ResponseWriter, r *http.Request) {
 	}
 
 	go func() {
-		_, err = s.service.DelURLs(cookie.Value, buf)
+		err = s.service.DelURLs(cookie.Value, buf)
+		if err != nil {
+			s.logger.Info("DelURLs", zap.String("error", err.Error()))
+		}
+
 	}()
 
-	if err != nil {
+	/*if err != nil {
 		switch {
 		case errors.Is(err, http.ErrNoCookie):
 			http.Error(w, err.Error(), http.StatusUnauthorized)
@@ -350,7 +354,7 @@ func (s *Server) DelUserURLs(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-	}
+	}*/
 
 	w.WriteHeader(http.StatusAccepted)
 	if _, err := w.Write([]byte("Accepted")); err != nil {
