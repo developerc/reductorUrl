@@ -66,17 +66,6 @@ func InsertBatch2(ctx context.Context, arrLongURL []general.ArrLongURL, db *sql.
 func SetDelBatch(arrShortURL []string, db *sql.DB, usr string) error {
 	_, err := db.Exec("UPDATE url SET is_deleted = true WHERE uuid = ANY($1) AND usr = $2", arrShortURL, usr)
 
-	/*var err error
-	general.CntrAtomVar.WgGeneral.Add(1)
-	go func() {
-		defer general.CntrAtomVar.WgGeneral.Done()
-		general.CntrAtomVar.IncrCntr()
-		_, err = db.Exec("UPDATE url SET is_deleted = true WHERE uuid = ANY($1) AND usr = $2", arrShortURL, usr)
-		general.CntrAtomVar.DecrCntr()
-	}()
-	general.CntrAtomVar.WgGeneral.Wait()
-	general.CntrAtomVar.SentNotif()*/
-
 	return err
 }
 

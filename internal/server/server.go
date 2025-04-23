@@ -344,17 +344,6 @@ func (s *Server) DelUserURLs(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	/*if err != nil {
-		switch {
-		case errors.Is(err, http.ErrNoCookie):
-			http.Error(w, err.Error(), http.StatusUnauthorized)
-			return
-		default:
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	}*/
-
 	w.WriteHeader(http.StatusAccepted)
 	if _, err := w.Write([]byte("Accepted")); err != nil {
 		return
@@ -367,12 +356,12 @@ func (s *Server) SetupRoutes() http.Handler {
 	r.Use(middleware.Middleware)
 	r.Use(middleware.GzipHandle)
 	r.Use(m.Timeout(3 * time.Second))
-	r.Post("/", s.addLink)                //+
-	r.Post("/api/shorten", s.AddLinkJSON) //+
-	r.Get("/{id}", s.GetLongLink)         //+
+	r.Post("/", s.addLink)
+	r.Post("/api/shorten", s.AddLinkJSON)
+	r.Get("/{id}", s.GetLongLink)
 	r.Get("/ping", s.CheckPing)
-	r.Post("/api/shorten/batch", s.addBatchJSON) //12 инкр +
-	r.Get("/api/user/urls", s.UserURLs)          //14 инкр +
-	r.Delete("/api/user/urls", s.DelUserURLs)    //15 инкр
+	r.Post("/api/shorten/batch", s.addBatchJSON)
+	r.Get("/api/user/urls", s.UserURLs)
+	r.Delete("/api/user/urls", s.DelUserURLs)
 	return r
 }

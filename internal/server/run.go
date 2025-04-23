@@ -47,7 +47,7 @@ func Run() error {
 
 	go func() {
 		defer close(beforeStop)
-		//L:
+
 		for {
 			select {
 			case <-signalToClose:
@@ -59,7 +59,6 @@ func Run() error {
 						server.logger.Info("Close DB", zap.String("success", "closed"))
 					}
 					return
-					//break L
 				}
 			case <-general.CntrAtomVar.GetChan():
 				if needStop && general.CntrAtomVar.GetCntr() == 0 {
@@ -70,11 +69,9 @@ func Run() error {
 						server.logger.Info("Close DB_", zap.String("success", "closed"))
 					}
 					return
-					//break L
 				}
 			}
 		}
-		//close(beforeStop)
 	}()
 
 	server.httpSrv.Addr = service.GetAdresRun()
