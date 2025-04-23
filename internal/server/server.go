@@ -342,7 +342,6 @@ func (s *Server) DelUserURLs(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			s.logger.Info("DelURLs", zap.String("error", err.Error()))
 		}
-
 	}()
 
 	/*if err != nil {

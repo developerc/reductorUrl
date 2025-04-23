@@ -3,7 +3,6 @@
 package general
 
 import (
-	"sync"
 	"sync/atomic"
 )
 
@@ -23,7 +22,7 @@ type ArrRepoURL struct {
 type CntrAtom struct {
 	counter    atomic.Int64
 	chCntrAtom chan bool
-	WgGeneral  sync.WaitGroup
+	//WgGeneral  sync.WaitGroup
 }
 
 // NewCntrAtom конструктор CntrAtomVar

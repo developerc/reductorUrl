@@ -128,6 +128,7 @@ func (s *Service) setDelMemory(arrShortURL []string, usr string) error {
 
 // DelURLs делает отметку об удалении коротких URL-ы определенного пользователя
 func (s *Service) DelURLs(cookieValue string, buf bytes.Buffer) error {
+	general.CntrAtomVar.IncrCntr()
 	u := &User{}
 	if err := s.secure.Decode("user", cookieValue, u); err != nil {
 		return err
@@ -155,6 +156,8 @@ func (s *Service) DelURLs(cookieValue string, buf bytes.Buffer) error {
 		}
 	}
 
+	general.CntrAtomVar.DecrCntr()
+	general.CntrAtomVar.SentNotif()
 	return nil
 }
 
