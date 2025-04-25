@@ -3,11 +3,14 @@ package memory
 
 import (
 	"bytes"
+	"context"
 	"database/sql"
 	"errors"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
+	"sync"
 
 	"github.com/gorilla/securecookie"
 	"github.com/jackc/pgerrcode"
@@ -15,21 +18,22 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/developerc/reductorUrl/internal/config"
+	"github.com/developerc/reductorUrl/internal/general"
 	"github.com/developerc/reductorUrl/internal/logger"
 	dbstorage "github.com/developerc/reductorUrl/internal/service/db_storage"
 	filestorage "github.com/developerc/reductorUrl/internal/service/file_storage"
 )
 
 type repository interface {
-	AddLink(link string, usr string) (string, error)
+	AddLink(ctx context.Context, link string, usr string) (string, error)
 	Ping() error
-	GetLongLink(id string) (string, bool, error)
-	HandleBatchJSON(buf bytes.Buffer, usr string) ([]byte, error)
+	GetLongLink(ctx context.Context, id string) (string, bool, error)
+	HandleBatchJSON(ctx context.Context, buf bytes.Buffer, usr string) ([]byte, error)
 	AsURLExists(err error) bool
-	GetShu() *ShortURLAttr
-	FetchURLs(cookieValue string) ([]byte, error)
+	FetchURLs(ctx context.Context, cookieValue string) ([]byte, error)
 	HandleCookie(cookieValue string) (*http.Cookie, string, error)
-	DelURLs(cookieValue string, buf bytes.Buffer) (bool, error)
+	DelURLs(ctx context.Context, cookieValue string, buf bytes.Buffer) error
+	CloseDB() error
 }
 
 // Service структура сервиса приложения
@@ -37,6 +41,8 @@ type Service struct {
 	repo   repository
 	logger *zap.Logger
 	secure *securecookie.SecureCookie
+	shu    *ShortURLAttr
+	mu     sync.RWMutex
 }
 
 // AsURLExists делает проверку существования длинного URL
@@ -61,27 +67,33 @@ func (e *ErrorURLExists) AsURLExists(err error) bool {
 }
 
 // AddLink добавляет в хранилище длинный URL, возвращает короткий
-func (s *Service) AddLink(link, usr string) (string, error) {
+func (s *Service) AddLink(ctx context.Context, link, usr string) (string, error) {
 	var shURL string
 	var err error
 
 	s.IncrCounter()
-	switch s.repo.GetShu().Settings.TypeStorage {
+	switch s.shu.Settings.TypeStorage {
 	case config.MemoryStorage:
-		s.AddLongURL(s.GetCounter(), link)
+		s.AddLongURL(s.GetCounter(), link, usr)
+		s.mu.Lock()
+		s.shu.MapUser[usr] = true
+		s.mu.Unlock()
 		return s.GetAdresBase() + "/" + strconv.Itoa(s.GetCounter()), nil
 	case config.FileStorage:
-		if err = s.repo.GetShu().addToFileStorage(s.GetCounter(), link); err != nil {
+		s.mu.Lock()
+		if err = s.shu.addToFileStorage(s.GetCounter(), link, usr); err != nil {
 			return "", err
 		}
-		s.AddLongURL(s.GetCounter(), link)
+		s.shu.MapUser[usr] = true
+		s.mu.Unlock()
+		s.AddLongURL(s.GetCounter(), link, usr)
 		return s.GetAdresBase() + "/" + strconv.Itoa(s.GetCounter()), nil
 	case config.DBStorage:
-		shURL, err = dbstorage.InsertRecord(s.repo.GetShu().DB, link, usr)
+		shURL, err = dbstorage.InsertRecord(ctx, s.shu.DB, link, usr)
 		if err != nil {
 			var pgErr *pgconn.PgError
 			if errors.As(err, &pgErr) && pgerrcode.IsIntegrityConstraintViolation(pgErr.Code) && pgErr.ConstraintName == "must_be_different" {
-				shortURL, err2 := s.GetShortByOriginalURL(link)
+				shortURL, err2 := s.GetShortByOriginalURL(ctx, link)
 				if err2 != nil {
 					return "", err
 				}
@@ -89,25 +101,27 @@ func (s *Service) AddLink(link, usr string) (string, error) {
 			}
 			return "", err
 		}
-		s.repo.GetShu().MapUser[usr] = true
+		s.mu.Lock()
+		s.shu.MapUser[usr] = true
+		s.mu.Unlock()
 	}
 	return s.GetAdresBase() + "/" + shURL, nil
 }
 
 // GetShortByOriginalURL получает короткий URL по значению длинного
-func (s *Service) GetShortByOriginalURL(originalURL string) (string, error) {
-	shortURL, err := dbstorage.GetShortByOriginalURL(s.repo.GetShu().DB, originalURL)
+func (s *Service) GetShortByOriginalURL(ctx context.Context, originalURL string) (string, error) {
+	shortURL, err := dbstorage.GetShortByOriginalURL(ctx, s.shu.DB, originalURL)
 	return s.GetAdresBase() + "/" + shortURL, err
 }
 
 // GetLongLink получает длинный URL по ID
-func (s *Service) GetLongLink(id string) (longURL string, isDeleted bool, err error) {
+func (s *Service) GetLongLink(ctx context.Context, id string) (longURL string, isDeleted bool, err error) {
 	i, err := strconv.Atoi(id)
 	if err != nil {
 		return
 	}
 
-	switch s.repo.GetShu().Settings.TypeStorage {
+	switch s.shu.Settings.TypeStorage {
 	case config.MemoryStorage:
 		longURL, err = s.GetLongURL(i)
 		if err != nil {
@@ -119,7 +133,7 @@ func (s *Service) GetLongLink(id string) (longURL string, isDeleted bool, err er
 			return
 		}
 	case config.DBStorage:
-		longURL, isDeleted, err = dbstorage.GetLongByUUID(s.repo.GetShu().DB, i)
+		longURL, isDeleted, err = dbstorage.GetLongByUUID(ctx, s.shu.DB, i)
 		if err != nil {
 			return
 		}
@@ -128,7 +142,7 @@ func (s *Service) GetLongLink(id string) (longURL string, isDeleted bool, err er
 }
 
 // HandleBatchJSON добавляет в хранилище несколько длинных URL
-func (s *Service) HandleBatchJSON(buf bytes.Buffer, usr string) ([]byte, error) {
+func (s *Service) HandleBatchJSON(ctx context.Context, buf bytes.Buffer, usr string) ([]byte, error) {
 	arrLongURL, err := listLongURL(buf)
 	if err != nil {
 		return nil, err
@@ -137,23 +151,37 @@ func (s *Service) HandleBatchJSON(buf bytes.Buffer, usr string) ([]byte, error) 
 		return nil, errors.New("error: length array is zero")
 	}
 
-	jsonBytes, err := s.handleArrLongURL(arrLongURL, usr)
+	jsonBytes, err := s.handleArrLongURL(ctx, arrLongURL, usr)
 	if err != nil {
 		return nil, err
 	}
+
 	return jsonBytes, nil
 }
 
+// CloseDB закрывает соединение с БД
+func (s *Service) CloseDB() error {
+	if s.shu.Settings.TypeStorage != config.DBStorage {
+		return nil
+	}
+
+	return s.shu.DB.Close()
+}
+
 // NewInMemoryService конструктор сервиса
-func NewInMemoryService() (*Service, error) {
+func NewInMemoryService(ctx context.Context) (*Service, error) {
 	var err error
+	general.NewCntrAtom()
 
 	shu := new(ShortURLAttr)
 	shu.Settings = *config.NewServerSettings()
-	shu.MapURL = make(map[int]string)
+	shu.MapURL = make(map[int]MapURLVal)
 
 	switch shu.Settings.TypeStorage {
+	case config.MemoryStorage:
+		shu.MapUser = make(map[string]bool)
 	case config.FileStorage:
+		shu.MapUser = make(map[string]bool)
 		if err = getFileSettings(shu); err != nil {
 			log.Println(err)
 		}
@@ -163,16 +191,17 @@ func NewInMemoryService() (*Service, error) {
 		if err != nil {
 			return nil, err
 		}
-		if err = dbstorage.CreateTable(shu.DB); err != nil {
+		if err = dbstorage.CreateTable(ctx, shu.DB); err != nil {
 			log.Println(err)
 		}
-		shu.MapUser, err = CreateMapUser(shu)
+		shu.MapUser, err = CreateMapUser(ctx, shu)
 		if err != nil {
 			return nil, err
 		}
+
 	}
 
-	service := Service{repo: shu}
+	service := Service{shu: shu}
 	service.logger, err = logger.Initialize(service.GetLogLevel())
 	service.InitSecure()
 	return &service, err
@@ -185,17 +214,12 @@ func (s *Service) InitSecure() {
 	s.secure = securecookie.New(hashKey, blockKey)
 }
 
-// AddLink заглушка для ShortURLAttr
-func (shu *ShortURLAttr) AddLink(link, usr string) (string, error) {
-	return "", nil
-}
-
 // addToFileStorage добавляет длинный URL в файловое хранилище
-func (shu *ShortURLAttr) addToFileStorage(cntr int, link string) error {
+func (shu *ShortURLAttr) addToFileStorage(cntr int, link, usr string) error {
 	if cntr < 0 {
 		return errors.New("not valid counter")
 	}
-	event := filestorage.Event{UUID: uint(cntr), ShortURL: strconv.Itoa(cntr), OriginalURL: link}
+	event := filestorage.Event{UUID: uint(cntr), OriginalURL: link, Usr: usr, IsDeleted: "false"}
 	producer, err := filestorage.NewProducer(shu.Settings.FileStorage)
 	if err != nil {
 		return err
@@ -206,52 +230,20 @@ func (shu *ShortURLAttr) addToFileStorage(cntr int, link string) error {
 	return nil
 }
 
-// Ping заглушка для ShortURLAttr
-func (shu *ShortURLAttr) Ping() error {
+// func (shu *ShortURLAttr) changeFileStorage() error {
+func (s *Service) changeFileStorage() error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	os.Remove(s.shu.Settings.FileStorage)
+	for uuid, mapURL := range s.shu.MapURL {
+		event := filestorage.Event{UUID: uint(uuid), OriginalURL: mapURL.OriginalURL, Usr: mapURL.Usr, IsDeleted: mapURL.IsDeleted}
+		producer, err := filestorage.NewProducer(s.shu.Settings.FileStorage)
+		if err != nil {
+			return err
+		}
+		if err := producer.WriteEvent(&event); err != nil {
+			log.Println(err)
+		}
+	}
 	return nil
-}
-
-// GetLongLink заглушка для ShortURLAttr
-func (shu *ShortURLAttr) GetLongLink(id string) (longURL string, isDeleted bool, err error) {
-	return "", false, nil
-}
-
-// HandleBatchJSON заглушка для ShortURLAttr
-func (shu *ShortURLAttr) HandleBatchJSON(buf bytes.Buffer, usr string) ([]byte, error) {
-	return nil, nil
-}
-
-// AsURLExists заглушка для ShortURLAttr
-func (shu *ShortURLAttr) AsURLExists(err error) bool {
-	return true
-}
-
-// GetShu заглушка для ShortURLAttr
-func (shu *ShortURLAttr) GetShu() *ShortURLAttr {
-	return shu
-}
-
-// GetCripto заглушка для ShortURLAttr
-func (shu *ShortURLAttr) GetCripto() (string, error) {
-	return "", nil
-}
-
-// FetchURLs заглушка для ShortURLAttr
-func (shu *ShortURLAttr) FetchURLs(cookieValue string) ([]byte, error) {
-	return nil, nil
-}
-
-// GetCounter заглушка для ShortURLAttr
-func (shu *ShortURLAttr) GetCounter() int {
-	return 0
-}
-
-// HandleCookie заглушка для ShortURLAttr
-func (shu *ShortURLAttr) HandleCookie(cookieValue string) (*http.Cookie, string, error) {
-	return nil, "", nil
-}
-
-// DelURLs заглушка для ShortURLAttr
-func (shu *ShortURLAttr) DelURLs(cookieValue string, buf bytes.Buffer) (bool, error) {
-	return false, nil
 }

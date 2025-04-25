@@ -5,7 +5,6 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"math"
 	"net/http"
 	"strconv"
@@ -19,9 +18,16 @@ import (
 	filestorage "github.com/developerc/reductorUrl/internal/service/file_storage"
 )
 
+// MapURLVal структура для значения map MapURL
+type MapURLVal struct {
+	OriginalURL string
+	Usr         string
+	IsDeleted   string
+}
+
 // ShortURLAttr структура аттрибутов коротких URL
 type ShortURLAttr struct {
-	MapURL   map[int]string
+	MapURL   map[int]MapURLVal
 	MapUser  map[string]bool
 	DB       *sql.DB
 	Settings config.ServerSettings
@@ -47,48 +53,48 @@ func (s *Service) HandleCookie(cookieValue string) (*http.Cookie, string, error)
 		Name: usr,
 	}
 
-	if s.repo.GetShu().Settings.TypeStorage == config.DBStorage {
-		if cookieValue == "" {
-			usr = "user" + strconv.Itoa(s.GetCounter())
-			u.Name = usr
-			if encoded, err := s.secure.Encode("user", u); err == nil {
-				cookie = &http.Cookie{
-					Name:  "user",
-					Value: encoded,
-				}
-				return cookie, usr, nil
-			} else {
-				return nil, "", err
+	if cookieValue == "" {
+		usr = "user" + strconv.Itoa(s.GetCounter())
+		u.Name = usr
+		if encoded, err := s.secure.Encode("user", u); err == nil {
+			cookie = &http.Cookie{
+				Name:  "user",
+				Value: encoded,
 			}
-		}
-		if err := s.secure.Decode("user", cookieValue, u); err != nil {
+			return cookie, usr, nil
+		} else {
 			return nil, "", err
 		}
-		fmt.Println("u: ", u)
-		if _, ok := s.repo.GetShu().MapUser[u.Name]; ok {
-			return nil, u.Name, nil
-		} else {
-			usr = "user" + strconv.Itoa(s.GetCounter())
-			u.Name = usr
-			if encoded, err := s.secure.Encode("user", u); err == nil {
-				cookie = &http.Cookie{
-					Name:  "user",
-					Value: encoded,
-				}
-				s.repo.GetShu().MapUser[usr] = true
-				return cookie, usr, nil
-			} else {
-				return nil, "", err
-			}
-		}
+	}
+	if err := s.secure.Decode("user", cookieValue, u); err != nil {
+		return nil, "", err
+	}
+	s.mu.RLock()
+	_, ok := s.shu.MapUser[u.Name]
+	s.mu.RUnlock()
+	if ok {
+		return nil, u.Name, nil
 	} else {
-		return nil, "", nil
+		usr = "user" + strconv.Itoa(s.GetCounter())
+		u.Name = usr
+		if encoded, err := s.secure.Encode("user", u); err == nil {
+			cookie = &http.Cookie{
+				Name:  "user",
+				Value: encoded,
+			}
+			s.mu.Lock()
+			s.shu.MapUser[usr] = true
+			s.mu.Unlock()
+			return cookie, usr, nil
+		} else {
+			return nil, "", err
+		}
 	}
 }
 
 // CreateMapUser создает Map пользователей
-func CreateMapUser(shu *ShortURLAttr) (map[string]bool, error) {
-	mapUser, err := dbstorage.CreateMapUser(shu.DB)
+func CreateMapUser(ctx context.Context, shu *ShortURLAttr) (map[string]bool, error) {
+	mapUser, err := dbstorage.CreateMapUser(ctx, shu.DB)
 	if err != nil {
 		return nil, err
 	}
@@ -96,46 +102,110 @@ func CreateMapUser(shu *ShortURLAttr) (map[string]bool, error) {
 	return mapUser, nil
 }
 
+func (s *Service) setDelMemory(arrShortURL []string, usr string) error {
+	var err error
+
+	for _, shortURL := range arrShortURL {
+		intShortURL, err := strconv.Atoi(shortURL)
+		if err != nil {
+			return err
+		}
+		if val, ok := s.shu.MapURL[intShortURL]; ok {
+			if val.Usr == usr {
+				s.mu.Lock()
+				mapURLVal := s.shu.MapURL[intShortURL]
+				mapURLVal.IsDeleted = "true"
+				s.shu.MapURL[intShortURL] = mapURLVal
+				s.mu.Unlock()
+			}
+		}
+	}
+	if s.shu.Settings.TypeStorage == config.FileStorage {
+		s.changeFileStorage()
+	}
+	return err
+}
+
 // DelURLs делает отметку об удалении коротких URL-ы определенного пользователя
-func (s *Service) DelURLs(cookieValue string, buf bytes.Buffer) (bool, error) {
+func (s *Service) DelURLs(cookieValue string, buf bytes.Buffer) error {
+	general.CntrAtomVar.IncrCntr()
 	u := &User{}
 	if err := s.secure.Decode("user", cookieValue, u); err != nil {
-		return false, err
+		return err
 	}
 
-	if _, ok := s.repo.GetShu().MapUser[u.Name]; !ok {
-		return false, http.ErrNoCookie
+	s.mu.RLock()
+	_, ok := s.shu.MapUser[u.Name]
+	s.mu.RUnlock()
+	if !ok {
+		return http.ErrNoCookie
 	}
 
 	arrShortURL := make([]string, 0)
 	if err := json.Unmarshal(buf.Bytes(), &arrShortURL); err != nil {
-		return false, err
+		return err
 	}
 
-	if err := dbstorage.SetDelBatch2(arrShortURL, s.repo.GetShu().DB, u.Name); err != nil {
-		return false, err
+	if s.shu.Settings.TypeStorage != config.DBStorage {
+		if err := s.setDelMemory(arrShortURL, u.Name); err != nil {
+			return err
+		}
+	} else {
+		if err := dbstorage.SetDelBatch(arrShortURL, s.shu.DB, u.Name); err != nil {
+			return err
+		}
 	}
 
-	return true, nil
+	general.CntrAtomVar.DecrCntr()
+	general.CntrAtomVar.SentNotif()
+	return nil
+}
+
+// listURLsMemory для определенного пользователя получает список пар короткий URL, длинный URL
+func (s *Service) listURLsMemory(usr string) ([]general.ArrRepoURL, error) {
+	arrRepoURL := make([]general.ArrRepoURL, 0)
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	for uuid, val := range s.shu.MapURL {
+		if val.Usr == usr {
+			repoURL := general.ArrRepoURL{}
+			repoURL.ShortURL = s.shu.Settings.AdresBase + "/" + strconv.Itoa(uuid)
+			repoURL.OriginalURL = val.OriginalURL
+			arrRepoURL = append(arrRepoURL, repoURL)
+		}
+	}
+	return arrRepoURL, nil
 }
 
 // FetchURLs получает URL-ы определенного пользователя
-func (s *Service) FetchURLs(cookieValue string) ([]byte, error) {
+func (s *Service) FetchURLs(ctx context.Context, cookieValue string) ([]byte, error) {
 	u := &User{}
 	if err := s.secure.Decode("user", cookieValue, u); err != nil {
 		return nil, err
 	}
 
-	if _, ok := s.repo.GetShu().MapUser[u.Name]; !ok {
+	s.mu.RLock()
+	_, ok := s.shu.MapUser[u.Name]
+	s.mu.RUnlock()
+	if !ok {
 		return nil, http.ErrNoCookie
 	}
-
-	arrRepoURL, err := dbstorage.ListRepoURLs(s.repo.GetShu().DB, s.GetAdresBase(), u.Name)
-	if err != nil {
-		return nil, err
+	var jsonBytes []byte
+	var arrRepoURL []general.ArrRepoURL
+	var err error
+	if s.shu.Settings.TypeStorage != config.DBStorage {
+		arrRepoURL, err = s.listURLsMemory(u.Name)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		arrRepoURL, err = dbstorage.ListRepoURLs(ctx, s.shu.DB, s.GetAdresBase(), u.Name)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	jsonBytes, err := json.Marshal(arrRepoURL)
+	jsonBytes, err = json.Marshal(arrRepoURL)
 	if err != nil {
 		return nil, err
 	}
@@ -150,12 +220,12 @@ func listLongURL(buf bytes.Buffer) ([]general.ArrLongURL, error) {
 	return arrLongURL, nil
 }
 
-func (s *Service) handleArrLongURL(arrLongURL []general.ArrLongURL, usr string) ([]byte, error) {
-	shu := s.repo.GetShu()
+func (s *Service) handleArrLongURL(ctx context.Context, arrLongURL []general.ArrLongURL, usr string) ([]byte, error) {
+	shu := s.shu
 	if shu.Settings.TypeStorage != config.DBStorage {
 		arrShortURL := make([]ArrShortURL, 0)
 		for _, longURL := range arrLongURL {
-			URL, err := s.AddLink(longURL.OriginalURL, usr)
+			URL, err := s.AddLink(ctx, longURL.OriginalURL, usr)
 			if err != nil {
 				return nil, err
 			}
@@ -169,13 +239,13 @@ func (s *Service) handleArrLongURL(arrLongURL []general.ArrLongURL, usr string) 
 		return jsonBytes, nil
 	}
 
-	if err := dbstorage.InsertBatch2(arrLongURL, shu.DB, usr); err != nil {
+	if err := dbstorage.InsertBatch2(ctx, arrLongURL, shu.DB, usr); err != nil {
 		return nil, err
 	}
 
 	arrShortURL := make([]ArrShortURL, 0)
 	for _, longURL := range arrLongURL {
-		short, err := dbstorage.GetShortByOriginalURL(shu.DB, longURL.OriginalURL)
+		short, err := dbstorage.GetShortByOriginalURL(ctx, shu.DB, longURL.OriginalURL)
 		if err != nil {
 			return nil, err
 		}
@@ -205,7 +275,9 @@ func getFileSettings(shu *ShortURLAttr) error {
 		if event.UUID > math.MaxInt32 {
 			event.UUID = math.MaxInt32
 		}
-		shu.MapURL[int(event.UUID)] = event.OriginalURL
+
+		shu.MapURL[int(event.UUID)] = MapURLVal{OriginalURL: event.OriginalURL, Usr: event.Usr, IsDeleted: event.IsDeleted}
+		shu.MapUser[shu.MapURL[int(event.UUID)].Usr] = true
 	}
 	shu.Cntr = len(events)
 
@@ -219,7 +291,7 @@ func getFileSettings(shu *ShortURLAttr) error {
 func (s *Service) Ping() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
-	if err := s.repo.GetShu().DB.PingContext(ctx); err != nil {
+	if err := s.shu.DB.PingContext(ctx); err != nil {
 		return err
 	}
 	return nil

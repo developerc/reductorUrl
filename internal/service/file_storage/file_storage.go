@@ -10,9 +10,10 @@ import (
 
 // Event структура для хранения объекта
 type Event struct {
-	ShortURL    string `json:"short_url"`
-	OriginalURL string `json:"original_url"`
 	UUID        uint   `json:"uuid"`
+	OriginalURL string `json:"original_url"`
+	Usr         string `json:"usr"`
+	IsDeleted   string `json:"is_deleted"`
 }
 
 // EventWriter интерфейс записи объекта в файл
