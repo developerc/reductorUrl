@@ -14,6 +14,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"net"
 	"net/http"
 	"time"
 
@@ -37,6 +38,7 @@ type svc interface {
 	FetchURLs(ctx context.Context, cookieValue string) ([]byte, error)
 	HandleCookie(cookieValue string) (*http.Cookie, string, error)
 	DelURLs(cookieValue string, buf bytes.Buffer) error
+	GetStatsSvc(ctx context.Context, ip net.IP) ([]byte, error)
 }
 
 // Server структура сервера приложения
@@ -350,6 +352,32 @@ func (s *Server) DelUserURLs(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// GetStats получает статистику по сокращенным URL-ам и пользователям
+func (s *Server) GetStats(w http.ResponseWriter, r *http.Request) {
+	//var err error
+	// смотрим заголовок запроса X-Real-IP
+	ipStr := r.Header.Get("X-Real-IP")
+	ip := net.ParseIP(ipStr)
+	if ip == nil {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	jsonBytes, err := s.service.GetStatsSvc(r.Context(), ip)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if jsonBytes == nil { //при пустом значении переменной trusted_subnet или IP не входит в подсеть
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+	if _, err := w.Write(jsonBytes); err != nil {
+		return
+	}
+}
+
 // SetupRoutes устанавливает маршруты для обработчиков запросов
 func (s *Server) SetupRoutes() http.Handler {
 	r := chi.NewRouter()
@@ -363,5 +391,6 @@ func (s *Server) SetupRoutes() http.Handler {
 	r.Post("/api/shorten/batch", s.addBatchJSON)
 	r.Get("/api/user/urls", s.UserURLs)
 	r.Delete("/api/user/urls", s.DelUserURLs)
+	r.Get("/api/internal/stats", s.GetStats)
 	return r
 }

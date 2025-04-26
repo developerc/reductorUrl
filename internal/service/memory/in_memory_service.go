@@ -5,8 +5,10 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"strconv"
@@ -34,6 +36,7 @@ type repository interface {
 	HandleCookie(cookieValue string) (*http.Cookie, string, error)
 	DelURLs(ctx context.Context, cookieValue string, buf bytes.Buffer) error
 	CloseDB() error
+	GetStatsSvc(ctx context.Context, ip net.IP) ([]byte, error)
 }
 
 // Service структура сервиса приложения
@@ -246,4 +249,42 @@ func (s *Service) changeFileStorage() error {
 		}
 	}
 	return nil
+}
+
+func (s *Service) GetStatsSvc(ctx context.Context, ip net.IP) ([]byte, error) {
+	//fmt.Println("ip: ", ip)
+	//fmt.Println(s.shu.Settings.TrustedSubnet)
+	if s.shu.Settings.TrustedSubnet == "" {
+		return nil, nil
+	}
+	var users int
+	urls := len(s.shu.MapURL)
+	_, ipNet, err := net.ParseCIDR(s.shu.Settings.TrustedSubnet)
+	if err != nil {
+		return nil, err
+	}
+	ipCheck := net.ParseIP(ip.String())
+	if ipNet.Contains(ipCheck) {
+		//return []byte("proba"), nil
+		var jsonBytes []byte
+		if s.shu.Settings.TypeStorage != config.DBStorage {
+			var usersMap map[string]bool = make(map[string]bool)
+
+			for _, val := range s.shu.MapURL {
+				//fmt.Println(val)
+				usersMap[val.Usr] = true
+			}
+			//fmt.Println(usersMap)
+			users = len(usersMap)
+			arrGetStats := general.ArrGetStats{URLs: urls, Users: users}
+			jsonBytes, err = json.Marshal(arrGetStats)
+			if err != nil {
+				return nil, err
+			}
+			return jsonBytes, nil
+		} else {
+			return dbstorage.GetStatsDb(ctx, s.shu.DB)
+		}
+	}
+	return nil, nil
 }

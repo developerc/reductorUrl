@@ -4,6 +4,7 @@ package dbstorage
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"strconv"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -141,4 +142,40 @@ func ListRepoURLs(ctx context.Context, db *sql.DB, addresBase, usr string) ([]ge
 		return nil, err
 	}
 	return arrRepoURL, nil
+}
+
+func GetStatsDb(ctx context.Context, db *sql.DB) ([]byte, error) {
+	arrGetStats := general.ArrGetStats{}
+	urls, err := db.QueryContext(ctx, "SELECT count(uuid) FROM url")
+	if err != nil {
+		return nil, err
+	}
+	defer urls.Close()
+
+	for urls.Next() {
+		err = urls.Scan(&arrGetStats.URLs)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	users, err := db.QueryContext(ctx, "SELECT count(DISTINCT usr) FROM url")
+	if err != nil {
+		return nil, err
+	}
+	defer users.Close()
+
+	for users.Next() {
+		err = users.Scan(&arrGetStats.Users)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	jsonBytes, err := json.Marshal(arrGetStats)
+	if err != nil {
+		return nil, err
+	}
+
+	return jsonBytes, nil
 }

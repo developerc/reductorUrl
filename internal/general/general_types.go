@@ -57,3 +57,9 @@ func (ca *CntrAtom) SentNotif() {
 
 // CntrAtomVar глобальная переменная атомарного счетчика запущенных горутин
 var CntrAtomVar CntrAtom
+
+// ArrGetStats структура для статистики
+type ArrGetStats struct {
+	URLs  int `json:"urls"`
+	Users int `json:"users"`
+}
