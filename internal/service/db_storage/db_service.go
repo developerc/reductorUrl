@@ -160,6 +160,11 @@ func GetStatsDB(ctx context.Context, db *sql.DB) ([]byte, error) {
 		}
 	}
 
+	err = urls.Err()
+	if err != nil {
+		return nil, err
+	}
+
 	users, err := db.QueryContext(ctx, "SELECT count(DISTINCT usr) FROM url")
 	if err != nil {
 		return nil, err
@@ -171,6 +176,11 @@ func GetStatsDB(ctx context.Context, db *sql.DB) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
+	}
+
+	err = users.Err()
+	if err != nil {
+		return nil, err
 	}
 
 	jsonBytes, err := json.Marshal(arrGetStats)
