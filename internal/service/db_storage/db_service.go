@@ -144,7 +144,8 @@ func ListRepoURLs(ctx context.Context, db *sql.DB, addresBase, usr string) ([]ge
 	return arrRepoURL, nil
 }
 
-func GetStatsDb(ctx context.Context, db *sql.DB) ([]byte, error) {
+// GetStatsDB получает статистику по количеству сокращённых URL в сервисе и количество пользователей в сервисе из БД
+func GetStatsDB(ctx context.Context, db *sql.DB) ([]byte, error) {
 	arrGetStats := general.ArrGetStats{}
 	urls, err := db.QueryContext(ctx, "SELECT count(uuid) FROM url")
 	if err != nil {

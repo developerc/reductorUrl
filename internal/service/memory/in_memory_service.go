@@ -251,6 +251,7 @@ func (s *Service) changeFileStorage() error {
 	return nil
 }
 
+// GetStatsSvc получает статистику по количеству сокращённых URL в сервисе и количество пользователей в сервисе
 func (s *Service) GetStatsSvc(ctx context.Context, ip net.IP) ([]byte, error) {
 	//fmt.Println("ip: ", ip)
 	//fmt.Println(s.shu.Settings.TrustedSubnet)
@@ -268,7 +269,7 @@ func (s *Service) GetStatsSvc(ctx context.Context, ip net.IP) ([]byte, error) {
 		//return []byte("proba"), nil
 		var jsonBytes []byte
 		if s.shu.Settings.TypeStorage != config.DBStorage {
-			var usersMap map[string]bool = make(map[string]bool)
+			usersMap := make(map[string]bool)
 
 			for _, val := range s.shu.MapURL {
 				//fmt.Println(val)
@@ -283,7 +284,7 @@ func (s *Service) GetStatsSvc(ctx context.Context, ip net.IP) ([]byte, error) {
 			}
 			return jsonBytes, nil
 		} else {
-			return dbstorage.GetStatsDb(ctx, s.shu.DB)
+			return dbstorage.GetStatsDB(ctx, s.shu.DB)
 		}
 	}
 	return nil, nil
