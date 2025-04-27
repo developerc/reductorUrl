@@ -25,8 +25,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	m "github.com/go-chi/chi/v5/middleware"
 	"go.uber.org/zap"
-
-	"github.com/developerc/reductorUrl/internal/service/memory"
+	//"github.com/developerc/reductorUrl/internal/service/memory"
 )
 
 type svc interface {
@@ -167,7 +166,9 @@ func (s *Server) AddLinkJSON(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if shortURL, err = s.service.AddLink(r.Context(), longURL, usr); err != nil {
-		if _, ok := err.(*memory.ErrorURLExists); ok {
+		//fmt.Println(err)
+		//if _, ok := err.(*memory.ErrorURLExists); ok {
+		if s.service.AsURLExists(err) {
 			s.logger.Info("Add link JSON", zap.String("error", err.Error()))
 			jsonBytes, err = api.ShortToJSON(shortURL, s.logger)
 			if err != nil {

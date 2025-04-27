@@ -52,7 +52,7 @@ func NewServiceDB(ctx context.Context, settings *config.ServerSettings) (*servic
 	service.Logger, err = logger.Initialize(shu.Settings.LogLevel)
 	service.InitSecure()
 
-	InitDbStorage(ctx, &service)
+	InitDBStorage(ctx, &service)
 	service.Storage = &StorageDB{}
 
 	return &service, err
@@ -85,7 +85,7 @@ func getShortByOriginalURL(ctx context.Context, originalURL string, s *service.S
 }
 
 // InitDbStorage
-func InitDbStorage(ctx context.Context, s *service.Service) error {
+func InitDBStorage(ctx context.Context, s *service.Service) error {
 	var err error
 	dsn := s.Shu.Settings.DBStorage
 	s.Shu.DB, err = sql.Open("pgx", dsn)
