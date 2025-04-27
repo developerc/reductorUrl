@@ -51,6 +51,7 @@ type Service struct {
 // AsURLExists делает проверку существования длинного URL
 func (s *Service) AsURLExists(err error) bool {
 	var errorURLExists ErrorURLExists
+	//fmt.Println(errorURLExists.AsURLExists(err))
 	return errorURLExists.AsURLExists(err)
 }
 

@@ -3,6 +3,7 @@
 package general
 
 import (
+	"errors"
 	"sync/atomic"
 )
 
@@ -62,4 +63,30 @@ var CntrAtomVar CntrAtom
 type ArrGetStats struct {
 	URLs  int `json:"urls"`
 	Users int `json:"users"`
+}
+
+// ArrShortURL структура массива коротких URL
+type ArrShortURL struct {
+	CorellationID string `json:"correlation_id"`
+	ShortURL      string `json:"short_url"`
+}
+
+// ErrorURLExists структура типизированной ошибки существования длинного URL
+type ErrorURLExists struct {
+	Str string
+}
+
+// Error возвращает строку со значением ошибки существования длинного URL
+func (e *ErrorURLExists) Error() string {
+	return e.Str
+}
+
+// AsURLExists проверяет существование длинного URL
+func (e *ErrorURLExists) AsURLExists(err error) bool {
+	return errors.As(err, &e)
+}
+
+// User структура пользователя
+type User struct {
+	Name string
 }
