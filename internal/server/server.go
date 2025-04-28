@@ -25,7 +25,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	m "github.com/go-chi/chi/v5/middleware"
 	"go.uber.org/zap"
-	//"github.com/developerc/reductorUrl/internal/service/memory"
 )
 
 type svc interface {
@@ -166,8 +165,6 @@ func (s *Server) AddLinkJSON(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if shortURL, err = s.service.AddLink(r.Context(), longURL, usr); err != nil {
-		//fmt.Println(err)
-		//if _, ok := err.(*memory.ErrorURLExists); ok {
 		if s.service.AsURLExists(err) {
 			s.logger.Info("Add link JSON", zap.String("error", err.Error()))
 			jsonBytes, err = api.ShortToJSON(shortURL, s.logger)
@@ -355,8 +352,6 @@ func (s *Server) DelUserURLs(w http.ResponseWriter, r *http.Request) {
 
 // GetStats получает статистику по сокращенным URL-ам и пользователям
 func (s *Server) GetStats(w http.ResponseWriter, r *http.Request) {
-	//var err error
-	// смотрим заголовок запроса X-Real-IP
 	ipStr := r.Header.Get("X-Real-IP")
 	ip := net.ParseIP(ipStr)
 	if ip == nil {
@@ -370,7 +365,7 @@ func (s *Server) GetStats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	if jsonBytes == nil { //при пустом значении переменной trusted_subnet или IP не входит в подсеть
+	if jsonBytes == nil {
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
@@ -385,13 +380,13 @@ func (s *Server) SetupRoutes() http.Handler {
 	r.Use(middleware.Middleware)
 	r.Use(middleware.GzipHandle)
 	r.Use(m.Timeout(3 * time.Second))
-	r.Post("/", s.addLink)                       //
-	r.Post("/api/shorten", s.AddLinkJSON)        //
-	r.Get("/{id}", s.GetLongLink)                //
-	r.Get("/ping", s.CheckPing)                  //
-	r.Post("/api/shorten/batch", s.addBatchJSON) //
-	r.Get("/api/user/urls", s.UserURLs)          //
-	r.Delete("/api/user/urls", s.DelUserURLs)    //
+	r.Post("/", s.addLink)
+	r.Post("/api/shorten", s.AddLinkJSON)
+	r.Get("/{id}", s.GetLongLink)
+	r.Get("/ping", s.CheckPing)
+	r.Post("/api/shorten/batch", s.addBatchJSON)
+	r.Get("/api/user/urls", s.UserURLs)
+	r.Delete("/api/user/urls", s.DelUserURLs)
 	r.Get("/api/internal/stats", s.GetStats)
 	return r
 }

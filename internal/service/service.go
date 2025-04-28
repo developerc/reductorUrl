@@ -16,19 +16,19 @@ import (
 )
 
 type repository interface {
-	AddLink(ctx context.Context, link string, usr string) (string, error)              //
-	Ping() error                                                                       //
-	GetLongLink(ctx context.Context, id string) (string, bool, error)                  //
-	HandleBatchJSON(ctx context.Context, buf bytes.Buffer, usr string) ([]byte, error) //
-	AsURLExists(err error) bool                                                        //
-	FetchURLs(ctx context.Context, cookieValue string) ([]byte, error)                 //
-	HandleCookie(cookieValue string) (*http.Cookie, string, error)                     //
-	DelURLs(cookieValue string, buf bytes.Buffer) error                                //
+	AddLink(ctx context.Context, link string, usr string) (string, error)
+	Ping() error
+	GetLongLink(ctx context.Context, id string) (string, bool, error)
+	HandleBatchJSON(ctx context.Context, buf bytes.Buffer, usr string) ([]byte, error)
+	AsURLExists(err error) bool
+	FetchURLs(ctx context.Context, cookieValue string) ([]byte, error)
+	HandleCookie(cookieValue string) (*http.Cookie, string, error)
+	DelURLs(cookieValue string, buf bytes.Buffer) error
 	CloseDB() error
 	GetStatsSvc(ctx context.Context, ip net.IP) ([]byte, error)
 }
 
-// Storager
+// Storager интерфейс для функций обработчиков
 type Storager interface {
 	AddLinkIface(ctx context.Context, link, usr string, s *Service) (string, error)
 	PingIface(s *Service) error
@@ -78,21 +78,6 @@ func (s *Service) AsURLExists(err error) bool {
 	return errorURLExists.AsURLExists(err)
 }
 
-// ErrorURLExists структура типизированной ошибки существования длинного URL
-/*type ErrorURLExists struct {
-	s string
-}
-
-// Error возвращает строку со значением ошибки существования длинного URL
-func (e *ErrorURLExists) Error() string {
-	return e.s
-}
-
-// AsURLExists проверяет существование длинного URL
-func (e *ErrorURLExists) AsURLExists(err error) bool {
-	return errors.As(err, &e)
-}*/
-
 // InitSecure создает обработчик куки
 func (s *Service) InitSecure() {
 	var hashKey = []byte("very-secret-qwer")
@@ -100,28 +85,28 @@ func (s *Service) InitSecure() {
 	s.Secure = securecookie.New(hashKey, blockKey)
 }
 
-// AddLink
+// AddLink добавляет в хранилище длинный URL, возвращает короткий
 func (s *Service) AddLink(ctx context.Context, link, usr string) (string, error) {
 	s.Shu.Cntr++
 	return s.Storage.AddLinkIface(ctx, link, usr, s)
 }
 
-// Ping
+// Ping проверяет живучесть БД
 func (s *Service) Ping() error {
 	return s.Storage.PingIface(s)
 }
 
-// GetLongLink
+// GetLongLink получает длинный URL по ID
 func (s *Service) GetLongLink(ctx context.Context, id string) (string, bool, error) {
 	return s.Storage.GetLongLinkIface(ctx, id, s)
 }
 
-// HandleBatchJSON
+// HandleBatchJSON добавляет в хранилище несколько длинных URL
 func (s *Service) HandleBatchJSON(ctx context.Context, buf bytes.Buffer, usr string) ([]byte, error) {
 	return s.Storage.HandleBatchJSONIface(ctx, buf, usr, s)
 }
 
-// FetchURLs
+// FetchURLs получает URL-ы определенного пользователя
 func (s *Service) FetchURLs(ctx context.Context, cookieValue string) ([]byte, error) {
 	return s.Storage.FetchURLsIface(ctx, cookieValue, s)
 }
@@ -173,17 +158,17 @@ func (s *Service) HandleCookie(cookieValue string) (*http.Cookie, string, error)
 	}
 }
 
-// DelURLs
+// DelURLs делает отметку об удалении коротких URL-ы определенного пользователя
 func (s *Service) DelURLs(cookieValue string, buf bytes.Buffer) error {
 	return s.Storage.DelURLsIface(cookieValue, buf, s)
 }
 
-// CloseDB
+// CloseDB закрывает соединение с БД
 func (s *Service) CloseDB() error {
 	return s.Storage.CloseDBIface(s)
 }
 
-// GetStatsSvc
+// GetStatsSvc получает статистику по количеству сокращённых URL в сервисе и количество пользователей в сервисе
 func (s *Service) GetStatsSvc(ctx context.Context, ip net.IP) ([]byte, error) {
 	return s.Storage.GetStatsSvcIface(ctx, ip, s)
 }

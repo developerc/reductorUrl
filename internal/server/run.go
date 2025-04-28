@@ -30,10 +30,6 @@ func Run() error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	/*service, err := memory.NewInMemoryService(ctx)
-	if err != nil {
-		return err
-	}*/
 	settings := config.NewServerSettings()
 
 	switch settings.TypeStorage {
@@ -55,12 +51,10 @@ func Run() error {
 	}
 
 	server, err := NewServer(svc)
-	//server, err := NewServer(service)
 	if err != nil {
 		return err
 	}
 	server.logger.Info("Running server", zap.String("address", svc.Shu.Settings.AdresRun))
-	//server.logger.Info("Running server", zap.String("address", service.GetAdresRun()))
 	routes := server.SetupRoutes()
 
 	go func() {
@@ -80,7 +74,6 @@ func Run() error {
 			case <-signalToClose:
 				if needStop && general.CntrAtomVar.GetCntr() == 0 {
 					err = svc.CloseDB()
-					//err = service.CloseDB()
 					if err != nil {
 						server.logger.Info("Close DB", zap.String("error", err.Error()))
 					} else {
@@ -91,7 +84,6 @@ func Run() error {
 			case <-general.CntrAtomVar.GetChan():
 				if needStop && general.CntrAtomVar.GetCntr() == 0 {
 					err = svc.CloseDB()
-					//err = service.CloseDB()
 					if err != nil {
 						server.logger.Info("Close DB_", zap.String("error", err.Error()))
 					} else {
@@ -104,12 +96,9 @@ func Run() error {
 	}()
 
 	server.httpSrv.Addr = svc.Shu.Settings.AdresRun
-	//server.httpSrv.Addr = service.GetAdresRun()
 	server.httpSrv.Handler = routes
 	if svc.Shu.Settings.EnableHTTPS {
-		//if service.GetShortURLAttr().Settings.EnableHTTPS {
 		err = server.httpSrv.ListenAndServeTLS(svc.Shu.Settings.CertFile, svc.Shu.Settings.KeyFile)
-		//err = server.httpSrv.ListenAndServeTLS(service.GetShortURLAttr().Settings.CertFile, service.GetShortURLAttr().Settings.KeyFile)
 	} else {
 		err = server.httpSrv.ListenAndServe()
 	}
