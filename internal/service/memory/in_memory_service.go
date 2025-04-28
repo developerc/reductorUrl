@@ -6,25 +6,26 @@ import (
 	"context"
 
 	//"database/sql"
-	"encoding/json"
+	//"encoding/json"
 	"errors"
 	"log"
 	"net"
 	"net/http"
-	"os"
-	"strconv"
-	"sync"
 
-	"github.com/gorilla/securecookie"
-	"github.com/jackc/pgerrcode"
-	"github.com/jackc/pgx/v5/pgconn"
-	"go.uber.org/zap"
+	//"os"
+	//"strconv"
+	//"sync"
 
-	"github.com/developerc/reductorUrl/internal/config"
-	"github.com/developerc/reductorUrl/internal/general"
+	//"github.com/gorilla/securecookie"
+	//"github.com/jackc/pgerrcode"
+	//"github.com/jackc/pgx/v5/pgconn"
+	//"go.uber.org/zap"
+
+	//"github.com/developerc/reductorUrl/internal/config"
+	//"github.com/developerc/reductorUrl/internal/general"
 
 	//"github.com/developerc/reductorUrl/internal/logger"
-	dbstorage "github.com/developerc/reductorUrl/internal/service/db_storage"
+	//dbstorage "github.com/developerc/reductorUrl/internal/service/db_storage"
 	filestorage "github.com/developerc/reductorUrl/internal/service/file_storage"
 )
 
@@ -42,20 +43,20 @@ type repository interface {
 }
 
 // Service структура сервиса приложения
-type Service struct {
+/*type Service struct {
 	repo   repository
 	logger *zap.Logger
 	secure *securecookie.SecureCookie
 	shu    *ShortURLAttr
 	mu     sync.RWMutex
-}
+}*/
 
 // AsURLExists делает проверку существования длинного URL
-func (s *Service) AsURLExists(err error) bool {
+/*func (s *Service) AsURLExists(err error) bool {
 	var errorURLExists ErrorURLExists
 	//fmt.Println(errorURLExists.AsURLExists(err))
 	return errorURLExists.AsURLExists(err)
-}
+}*/
 
 // ErrorURLExists структура типизированной ошибки существования длинного URL
 type ErrorURLExists struct {
@@ -73,7 +74,7 @@ func (e *ErrorURLExists) AsURLExists(err error) bool {
 }
 
 // AddLink добавляет в хранилище длинный URL, возвращает короткий
-func (s *Service) AddLink(ctx context.Context, link, usr string) (string, error) {
+/*func (s *Service) AddLink(ctx context.Context, link, usr string) (string, error) {
 	var shURL string
 	var err error
 
@@ -112,16 +113,16 @@ func (s *Service) AddLink(ctx context.Context, link, usr string) (string, error)
 		s.mu.Unlock()
 	}
 	return s.GetAdresBase() + "/" + shURL, nil
-}
+}*/
 
 // GetShortByOriginalURL получает короткий URL по значению длинного
-func (s *Service) GetShortByOriginalURL(ctx context.Context, originalURL string) (string, error) {
+/*func (s *Service) GetShortByOriginalURL(ctx context.Context, originalURL string) (string, error) {
 	shortURL, err := dbstorage.GetShortByOriginalURL(ctx, s.shu.DB, originalURL)
 	return s.GetAdresBase() + "/" + shortURL, err
-}
+}*/
 
 // GetLongLink получает длинный URL по ID
-func (s *Service) GetLongLink(ctx context.Context, id string) (longURL string, isDeleted bool, err error) {
+/*func (s *Service) GetLongLink(ctx context.Context, id string) (longURL string, isDeleted bool, err error) {
 	i, err := strconv.Atoi(id)
 	if err != nil {
 		return
@@ -145,10 +146,10 @@ func (s *Service) GetLongLink(ctx context.Context, id string) (longURL string, i
 		}
 	}
 	return
-}
+}*/
 
 // HandleBatchJSON добавляет в хранилище несколько длинных URL
-func (s *Service) HandleBatchJSON(ctx context.Context, buf bytes.Buffer, usr string) ([]byte, error) {
+/*func (s *Service) HandleBatchJSON(ctx context.Context, buf bytes.Buffer, usr string) ([]byte, error) {
 	arrLongURL, err := listLongURL(buf)
 	if err != nil {
 		return nil, err
@@ -163,16 +164,16 @@ func (s *Service) HandleBatchJSON(ctx context.Context, buf bytes.Buffer, usr str
 	}
 
 	return jsonBytes, nil
-}
+}*/
 
 // CloseDB закрывает соединение с БД
-func (s *Service) CloseDB() error {
+/*func (s *Service) CloseDB() error {
 	if s.shu.Settings.TypeStorage != config.DBStorage {
 		return nil
 	}
 
 	return s.shu.DB.Close()
-}
+}*/
 
 // NewInMemoryService конструктор сервиса
 /*func NewInMemoryService(ctx context.Context) (*Service, error) {
@@ -214,11 +215,11 @@ func (s *Service) CloseDB() error {
 }*/
 
 // InitSecure создает обработчик куки
-func (s *Service) InitSecure() {
+/*func (s *Service) InitSecure() {
 	var hashKey = []byte("very-secret-qwer")
 	var blockKey = []byte("a-lot-secret-qwe")
 	s.secure = securecookie.New(hashKey, blockKey)
-}
+}*/
 
 // addToFileStorage добавляет длинный URL в файловое хранилище
 func (shu *ShortURLAttr) addToFileStorage(cntr int, link, usr string) error {
@@ -237,7 +238,7 @@ func (shu *ShortURLAttr) addToFileStorage(cntr int, link, usr string) error {
 }
 
 // func (shu *ShortURLAttr) changeFileStorage() error {
-func (s *Service) changeFileStorage() error {
+/*func (s *Service) changeFileStorage() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	os.Remove(s.shu.Settings.FileStorage)
@@ -252,10 +253,10 @@ func (s *Service) changeFileStorage() error {
 		}
 	}
 	return nil
-}
+}*/
 
 // GetStatsSvc получает статистику по количеству сокращённых URL в сервисе и количество пользователей в сервисе
-func (s *Service) GetStatsSvc(ctx context.Context, ip net.IP) ([]byte, error) {
+/*func (s *Service) GetStatsSvc(ctx context.Context, ip net.IP) ([]byte, error) {
 	//fmt.Println("ip: ", ip)
 	//fmt.Println(s.shu.Settings.TrustedSubnet)
 	if s.shu.Settings.TrustedSubnet == "" {
@@ -291,4 +292,4 @@ func (s *Service) GetStatsSvc(ctx context.Context, ip net.IP) ([]byte, error) {
 		}
 	}
 	return nil, nil
-}
+}*/

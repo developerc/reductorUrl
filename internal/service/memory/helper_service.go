@@ -6,9 +6,10 @@ import (
 	"database/sql"
 	"encoding/json"
 	"math"
-	"net/http"
-	"strconv"
-	"time"
+
+	//"net/http"
+	//"strconv"
+	//"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 
@@ -46,7 +47,7 @@ type User struct {
 }
 
 // HandleCookie метод для работы с куками
-func (s *Service) HandleCookie(cookieValue string) (*http.Cookie, string, error) {
+/*func (s *Service) HandleCookie(cookieValue string) (*http.Cookie, string, error) {
 	var usr string
 	var cookie *http.Cookie
 	u := &User{
@@ -90,7 +91,7 @@ func (s *Service) HandleCookie(cookieValue string) (*http.Cookie, string, error)
 			return nil, "", err
 		}
 	}
-}
+}*/
 
 // CreateMapUser создает Map пользователей
 func CreateMapUser(ctx context.Context, shu *ShortURLAttr) (map[string]bool, error) {
@@ -102,7 +103,7 @@ func CreateMapUser(ctx context.Context, shu *ShortURLAttr) (map[string]bool, err
 	return mapUser, nil
 }
 
-func (s *Service) setDelMemory(arrShortURL []string, usr string) error {
+/*func (s *Service) setDelMemory(arrShortURL []string, usr string) error {
 	var err error
 
 	for _, shortURL := range arrShortURL {
@@ -124,10 +125,10 @@ func (s *Service) setDelMemory(arrShortURL []string, usr string) error {
 		s.changeFileStorage()
 	}
 	return err
-}
+}*/
 
 // DelURLs делает отметку об удалении коротких URL-ы определенного пользователя
-func (s *Service) DelURLs(cookieValue string, buf bytes.Buffer) error {
+/*func (s *Service) DelURLs(cookieValue string, buf bytes.Buffer) error {
 	general.CntrAtomVar.IncrCntr()
 	u := &User{}
 	if err := s.secure.Decode("user", cookieValue, u); err != nil {
@@ -159,10 +160,10 @@ func (s *Service) DelURLs(cookieValue string, buf bytes.Buffer) error {
 	general.CntrAtomVar.DecrCntr()
 	general.CntrAtomVar.SentNotif()
 	return nil
-}
+}*/
 
 // listURLsMemory для определенного пользователя получает список пар короткий URL, длинный URL
-func (s *Service) listURLsMemory(usr string) ([]general.ArrRepoURL, error) {
+/*func (s *Service) listURLsMemory(usr string) ([]general.ArrRepoURL, error) {
 	arrRepoURL := make([]general.ArrRepoURL, 0)
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -175,10 +176,10 @@ func (s *Service) listURLsMemory(usr string) ([]general.ArrRepoURL, error) {
 		}
 	}
 	return arrRepoURL, nil
-}
+}*/
 
 // FetchURLs получает URL-ы определенного пользователя
-func (s *Service) FetchURLs(ctx context.Context, cookieValue string) ([]byte, error) {
+/*func (s *Service) FetchURLs(ctx context.Context, cookieValue string) ([]byte, error) {
 	u := &User{}
 	if err := s.secure.Decode("user", cookieValue, u); err != nil {
 		return nil, err
@@ -210,7 +211,7 @@ func (s *Service) FetchURLs(ctx context.Context, cookieValue string) ([]byte, er
 		return nil, err
 	}
 	return jsonBytes, nil
-}
+}*/
 
 func listLongURL(buf bytes.Buffer) ([]general.ArrLongURL, error) {
 	arrLongURL := make([]general.ArrLongURL, 0)
@@ -220,7 +221,7 @@ func listLongURL(buf bytes.Buffer) ([]general.ArrLongURL, error) {
 	return arrLongURL, nil
 }
 
-func (s *Service) handleArrLongURL(ctx context.Context, arrLongURL []general.ArrLongURL, usr string) ([]byte, error) {
+/*func (s *Service) handleArrLongURL(ctx context.Context, arrLongURL []general.ArrLongURL, usr string) ([]byte, error) {
 	shu := s.shu
 	if shu.Settings.TypeStorage != config.DBStorage {
 		arrShortURL := make([]ArrShortURL, 0)
@@ -257,7 +258,7 @@ func (s *Service) handleArrLongURL(ctx context.Context, arrLongURL []general.Arr
 		return nil, err
 	}
 	return jsonBytes, nil
-}
+}*/
 
 func getFileSettings(shu *ShortURLAttr) error {
 	if _, err := filestorage.NewConsumer(shu.Settings.FileStorage); err != nil {
@@ -288,11 +289,11 @@ func getFileSettings(shu *ShortURLAttr) error {
 }
 
 // Ping делает проверку живучести БД
-func (s *Service) Ping() error {
+/*func (s *Service) Ping() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 	if err := s.shu.DB.PingContext(ctx); err != nil {
 		return err
 	}
 	return nil
-}
+}*/
