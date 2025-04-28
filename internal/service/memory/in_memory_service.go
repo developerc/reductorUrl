@@ -4,7 +4,8 @@ package memory
 import (
 	"bytes"
 	"context"
-	"database/sql"
+
+	//"database/sql"
 	"encoding/json"
 	"errors"
 	"log"
@@ -21,7 +22,8 @@ import (
 
 	"github.com/developerc/reductorUrl/internal/config"
 	"github.com/developerc/reductorUrl/internal/general"
-	"github.com/developerc/reductorUrl/internal/logger"
+
+	//"github.com/developerc/reductorUrl/internal/logger"
 	dbstorage "github.com/developerc/reductorUrl/internal/service/db_storage"
 	filestorage "github.com/developerc/reductorUrl/internal/service/file_storage"
 )
@@ -173,7 +175,7 @@ func (s *Service) CloseDB() error {
 }
 
 // NewInMemoryService конструктор сервиса
-func NewInMemoryService(ctx context.Context) (*Service, error) {
+/*func NewInMemoryService(ctx context.Context) (*Service, error) {
 	var err error
 	general.NewCntrAtom()
 
@@ -209,7 +211,7 @@ func NewInMemoryService(ctx context.Context) (*Service, error) {
 	service.logger, err = logger.Initialize(service.GetLogLevel())
 	service.InitSecure()
 	return &service, err
-}
+}*/
 
 // InitSecure создает обработчик куки
 func (s *Service) InitSecure() {
