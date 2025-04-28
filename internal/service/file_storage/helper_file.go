@@ -19,7 +19,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// StorageFile
+// StorageFile структура для слоя File Storage
 type StorageFile struct {
 }
 
@@ -41,7 +41,7 @@ func NewServiceFile(ctx context.Context, settings *config.ServerSettings) (*serv
 	return &service, err
 }
 
-// AddLinkIface
+// AddLinkIface добавляет в хранилище длинный URL, возвращает короткий
 func (sm *StorageFile) AddLinkIface(ctx context.Context, link, usr string, s *service.Service) (string, error) {
 	s.Mu.Lock()
 	if err := addToFileStorage(s.Shu.Cntr, link, usr, s); err != nil {
@@ -70,7 +70,7 @@ func addToFileStorage(cntr int, link, usr string, s *service.Service) error {
 	return nil
 }
 
-// InitFileStorage
+// InitFileStorage инициализирует файловое хранилище
 func InitFileStorage(s *service.Service) {
 	s.Shu.MapUser = make(map[string]bool)
 	if err := getFileSettings(s); err != nil {
@@ -78,7 +78,7 @@ func InitFileStorage(s *service.Service) {
 	}
 }
 
-// getFileSettings
+// getFileSettings получает настройки из файлового хранилища
 func getFileSettings(s *service.Service) error {
 	if _, err := NewConsumer(s.Shu.Settings.FileStorage); err != nil {
 		return err
@@ -107,7 +107,7 @@ func getFileSettings(s *service.Service) error {
 	return nil
 }
 
-// GetLongLinkIface
+// GetLongLinkIface получает длинный URL по ID
 func (sm *StorageFile) GetLongLinkIface(ctx context.Context, id string, s *service.Service) (string, bool, error) {
 	i, err := strconv.Atoi(id)
 	if err != nil {
@@ -116,12 +116,12 @@ func (sm *StorageFile) GetLongLinkIface(ctx context.Context, id string, s *servi
 	return s.Shu.MapURL[i].OriginalURL, false, nil
 }
 
-// PingIface
+// PingIface заглушка для пинг БД
 func (sm *StorageFile) PingIface(s *service.Service) error {
 	return nil
 }
 
-// HandleBatchJSONIface
+// HandleBatchJSONIface добавляет в хранилище несколько длинных URL
 func (sm *StorageFile) HandleBatchJSONIface(ctx context.Context, buf bytes.Buffer, usr string, s *service.Service) ([]byte, error) {
 	arrLongURL := make([]general.ArrLongURL, 0)
 	if err := json.Unmarshal(buf.Bytes(), &arrLongURL); err != nil {
@@ -147,7 +147,7 @@ func (sm *StorageFile) HandleBatchJSONIface(ctx context.Context, buf bytes.Buffe
 	return jsonBytes, nil
 }
 
-// FetchURLsIface
+// FetchURLsIface получает URL-ы определенного пользователя
 func (sm *StorageFile) FetchURLsIface(ctx context.Context, cookieValue string, s *service.Service) ([]byte, error) {
 	u := &general.User{}
 	if err := s.Secure.Decode("user", cookieValue, u); err != nil {
@@ -160,8 +160,6 @@ func (sm *StorageFile) FetchURLsIface(ctx context.Context, cookieValue string, s
 	if !ok {
 		return nil, http.ErrNoCookie
 	}
-	//var jsonBytes []byte
-	//var arrRepoURL []general.ArrRepoURL
 	var err error
 	arrRepoURL := make([]general.ArrRepoURL, 0)
 	s.Mu.RLock()
@@ -182,7 +180,7 @@ func (sm *StorageFile) FetchURLsIface(ctx context.Context, cookieValue string, s
 	return jsonBytes, nil
 }
 
-// DelURLsIface
+// DelURLsIface делает отметку об удалении коротких URL-ы определенного пользователя
 func (sm *StorageFile) DelURLsIface(cookieValue string, buf bytes.Buffer, s *service.Service) error {
 	general.CntrAtomVar.IncrCntr()
 	u := &general.User{}
@@ -224,12 +222,12 @@ func (sm *StorageFile) DelURLsIface(cookieValue string, buf bytes.Buffer, s *ser
 	return nil
 }
 
-// CloseDBIface
+// CloseDBIface закрывает соединение с БД
 func (sm *StorageFile) CloseDBIface(s *service.Service) error {
 	return nil
 }
 
-// GetStatsSvcIface
+// GetStatsSvcIface получает статистику по количеству сокращённых URL в сервисе и количество пользователей в сервисе
 func (sm *StorageFile) GetStatsSvcIface(ctx context.Context, ip net.IP, s *service.Service) ([]byte, error) {
 	if s.Shu.Settings.TrustedSubnet == "" {
 		return nil, nil
@@ -242,10 +240,8 @@ func (sm *StorageFile) GetStatsSvcIface(ctx context.Context, ip net.IP, s *servi
 	}
 	ipCheck := net.ParseIP(ip.String())
 	if ipNet.Contains(ipCheck) {
-		//var jsonBytes []byte
 		usersMap := make(map[string]bool)
 		for _, val := range s.Shu.MapURL {
-			//fmt.Println(val)
 			usersMap[val.Usr] = true
 		}
 		users = len(usersMap)
@@ -260,7 +256,7 @@ func (sm *StorageFile) GetStatsSvcIface(ctx context.Context, ip net.IP, s *servi
 	return nil, nil
 }
 
-// changeFileStorage
+// changeFileStorage заменяет файл файлового хранилища на обновленный
 func changeFileStorage(s *service.Service) error {
 	s.Mu.Lock()
 	defer s.Mu.Unlock()

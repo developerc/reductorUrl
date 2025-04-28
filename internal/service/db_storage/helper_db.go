@@ -20,26 +20,11 @@ import (
 	"go.uber.org/zap"
 )
 
-// ErrorURLExists структура типизированной ошибки существования длинного URL
-/*type ErrorURLExists struct {
-	s string
-}
-
-// Error возвращает строку со значением ошибки существования длинного URL
-func (e *ErrorURLExists) Error() string {
-	return e.s
-}
-
-// AsURLExists проверяет существование длинного URL
-func (e *ErrorURLExists) AsURLExists(err error) bool {
-	return errors.As(err, &e)
-}*/
-
-// StorageDB
+// StorageDB структура для слоя DB Storage
 type StorageDB struct {
 }
 
-// NewServiceDB конструктор сервиса
+// NewServiceDB конструктор сервиса БД
 func NewServiceDB(ctx context.Context, settings *config.ServerSettings) (*service.Service, error) {
 	var err error
 	general.NewCntrAtom()
@@ -58,7 +43,7 @@ func NewServiceDB(ctx context.Context, settings *config.ServerSettings) (*servic
 	return &service, err
 }
 
-// AddLinkIface
+// AddLinkIface добавляет в хранилище длинный URL, возвращает короткий
 func (sm *StorageDB) AddLinkIface(ctx context.Context, link, usr string, s *service.Service) (string, error) {
 	shURL, err := InsertRecord(ctx, s.Shu.DB, link, usr)
 	if err != nil {
@@ -78,13 +63,13 @@ func (sm *StorageDB) AddLinkIface(ctx context.Context, link, usr string, s *serv
 	return s.Shu.Settings.AdresBase + "/" + shURL, nil
 }
 
-// getShortByOriginalURL
+// getShortByOriginalURL получает короткий URL по длинному
 func getShortByOriginalURL(ctx context.Context, originalURL string, s *service.Service) (string, error) {
 	shortURL, err := GetShortByOriginalURL(ctx, s.Shu.DB, originalURL)
 	return s.Shu.Settings.AdresBase + "/" + shortURL, err
 }
 
-// InitDbStorage
+// InitDbStorage инициализирует БД
 func InitDBStorage(ctx context.Context, s *service.Service) error {
 	var err error
 	dsn := s.Shu.Settings.DBStorage
@@ -113,7 +98,7 @@ func createMapUser(ctx context.Context, s *service.Service) (map[string]bool, er
 	return mapUser, nil
 }
 
-// GetLongLinkIface
+// GetLongLinkIface получает длинный URL по ID
 func (sm *StorageDB) GetLongLinkIface(ctx context.Context, id string, s *service.Service) (string, bool, error) {
 	i, err := strconv.Atoi(id)
 	if err != nil {
@@ -126,7 +111,7 @@ func (sm *StorageDB) GetLongLinkIface(ctx context.Context, id string, s *service
 	return longURL, isDeleted, nil
 }
 
-// PingIface
+// PingIface проверяет живучесть БД
 func (sm *StorageDB) PingIface(s *service.Service) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
@@ -136,7 +121,7 @@ func (sm *StorageDB) PingIface(s *service.Service) error {
 	return nil
 }
 
-// HandleBatchJSONIface
+// HandleBatchJSONIface добавляет в хранилище несколько длинных URL
 func (sm *StorageDB) HandleBatchJSONIface(ctx context.Context, buf bytes.Buffer, usr string, s *service.Service) ([]byte, error) {
 	arrLongURL := make([]general.ArrLongURL, 0)
 	if err := json.Unmarshal(buf.Bytes(), &arrLongURL); err != nil {
@@ -165,7 +150,7 @@ func (sm *StorageDB) HandleBatchJSONIface(ctx context.Context, buf bytes.Buffer,
 	return jsonBytes, nil
 }
 
-// FetchURLsIface
+// FetchURLsIface получает URL-ы определенного пользователя
 func (sm *StorageDB) FetchURLsIface(ctx context.Context, cookieValue string, s *service.Service) ([]byte, error) {
 	u := &general.User{}
 	if err := s.Secure.Decode("user", cookieValue, u); err != nil {
@@ -190,7 +175,7 @@ func (sm *StorageDB) FetchURLsIface(ctx context.Context, cookieValue string, s *
 	return jsonBytes, nil
 }
 
-// DelURLsIface
+// DelURLsIface делает отметку об удалении коротких URL-ы определенного пользователя
 func (sm *StorageDB) DelURLsIface(cookieValue string, buf bytes.Buffer, s *service.Service) error {
 	general.CntrAtomVar.IncrCntr()
 	u := &general.User{}
@@ -219,12 +204,12 @@ func (sm *StorageDB) DelURLsIface(cookieValue string, buf bytes.Buffer, s *servi
 	return nil
 }
 
-// CloseDBIface
+// CloseDBIface закрывает соединение с БД
 func (sm *StorageDB) CloseDBIface(s *service.Service) error {
 	return s.Shu.DB.Close()
 }
 
-// GetStatsSvcIface
+// GetStatsSvcIface получает статистику по количеству сокращённых URL в сервисе и количество пользователей в сервисе
 func (sm *StorageDB) GetStatsSvcIface(ctx context.Context, ip net.IP, s *service.Service) ([]byte, error) {
 	if s.Shu.Settings.TrustedSubnet == "" {
 		return nil, nil

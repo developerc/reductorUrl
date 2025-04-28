@@ -15,7 +15,7 @@ import (
 	"github.com/developerc/reductorUrl/internal/service"
 )
 
-// StorageMem
+// StorageMem структура для слоя Memory Storage
 type StorageMem struct {
 }
 
@@ -37,18 +37,16 @@ func NewServiceMemory(ctx context.Context, settings *config.ServerSettings) (*se
 	return &service, err
 }
 
-// AddLinkIface
+// AddLinkIface добавляет в хранилище длинный URL, возвращает короткий
 func (sm *StorageMem) AddLinkIface(ctx context.Context, link, usr string, s *service.Service) (string, error) {
-	//s.AddLongURL(s.GetCounter(), link, usr)
 	s.AddLongURL(s.Shu.Cntr, link, usr)
 	s.Mu.Lock()
 	s.Shu.MapUser[usr] = true
 	s.Mu.Unlock()
-	//return s.GetAdresBase() + "/" + strconv.Itoa(s.GetCounter()), nil
 	return s.Shu.Settings.AdresBase + "/" + strconv.Itoa(s.Shu.Cntr), nil
 }
 
-// GetLongLinkIface
+// GetLongLinkIface получает длинный URL по ID
 func (sm *StorageMem) GetLongLinkIface(ctx context.Context, id string, s *service.Service) (string, bool, error) {
 	i, err := strconv.Atoi(id)
 	if err != nil {
@@ -57,12 +55,12 @@ func (sm *StorageMem) GetLongLinkIface(ctx context.Context, id string, s *servic
 	return s.Shu.MapURL[i].OriginalURL, false, nil
 }
 
-// PingIface
+// PingIface заглушка для пинга БД
 func (sm *StorageMem) PingIface(s *service.Service) error {
 	return nil
 }
 
-// HandleBatchJSONIface
+// HandleBatchJSONIface добавляет в хранилище несколько длинных URL
 func (sm *StorageMem) HandleBatchJSONIface(ctx context.Context, buf bytes.Buffer, usr string, s *service.Service) ([]byte, error) {
 	arrLongURL := make([]general.ArrLongURL, 0)
 	if err := json.Unmarshal(buf.Bytes(), &arrLongURL); err != nil {
@@ -88,7 +86,7 @@ func (sm *StorageMem) HandleBatchJSONIface(ctx context.Context, buf bytes.Buffer
 	return jsonBytes, nil
 }
 
-// FetchURLsIface
+// FetchURLsIface получает URL-ы определенного пользователя
 func (sm *StorageMem) FetchURLsIface(ctx context.Context, cookieValue string, s *service.Service) ([]byte, error) {
 	u := &general.User{}
 	if err := s.Secure.Decode("user", cookieValue, u); err != nil {
@@ -101,8 +99,6 @@ func (sm *StorageMem) FetchURLsIface(ctx context.Context, cookieValue string, s 
 	if !ok {
 		return nil, http.ErrNoCookie
 	}
-	//var jsonBytes []byte
-	//var arrRepoURL []general.ArrRepoURL
 	var err error
 	arrRepoURL := make([]general.ArrRepoURL, 0)
 	s.Mu.RLock()
@@ -123,7 +119,7 @@ func (sm *StorageMem) FetchURLsIface(ctx context.Context, cookieValue string, s 
 	return jsonBytes, nil
 }
 
-// DelURLsIface
+// DelURLsIface делает отметку об удалении коротких URL-ы определенного пользователя
 func (sm *StorageMem) DelURLsIface(cookieValue string, buf bytes.Buffer, s *service.Service) error {
 	general.CntrAtomVar.IncrCntr()
 	u := &general.User{}
@@ -164,12 +160,12 @@ func (sm *StorageMem) DelURLsIface(cookieValue string, buf bytes.Buffer, s *serv
 	return nil
 }
 
-// CloseDBIface
+// CloseDBIface закрывает соединение с БД
 func (sm *StorageMem) CloseDBIface(s *service.Service) error {
 	return nil
 }
 
-// GetStatsSvcIface
+// GetStatsSvcIface получает статистику по количеству сокращённых URL в сервисе и количество пользователей в сервисе
 func (sm *StorageMem) GetStatsSvcIface(ctx context.Context, ip net.IP, s *service.Service) ([]byte, error) {
 	if s.Shu.Settings.TrustedSubnet == "" {
 		return nil, nil
@@ -182,10 +178,8 @@ func (sm *StorageMem) GetStatsSvcIface(ctx context.Context, ip net.IP, s *servic
 	}
 	ipCheck := net.ParseIP(ip.String())
 	if ipNet.Contains(ipCheck) {
-		//var jsonBytes []byte
 		usersMap := make(map[string]bool)
 		for _, val := range s.Shu.MapURL {
-			//fmt.Println(val)
 			usersMap[val.Usr] = true
 		}
 		users = len(usersMap)
