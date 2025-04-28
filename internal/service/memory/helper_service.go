@@ -1,26 +1,24 @@
 package memory
 
-import (
-	"bytes"
-	"context"
-	"database/sql"
-	"encoding/json"
-	"math"
+//"bytes"
+//"context"
+//"database/sql"
+//"encoding/json"
+//"math"
 
-	//"net/http"
-	//"strconv"
-	//"time"
+//"net/http"
+//"strconv"
+//"time"
 
-	_ "github.com/jackc/pgx/v5/stdlib"
+//_ "github.com/jackc/pgx/v5/stdlib"
 
-	"github.com/developerc/reductorUrl/internal/config"
-	"github.com/developerc/reductorUrl/internal/general"
-	dbstorage "github.com/developerc/reductorUrl/internal/service/db_storage"
-	filestorage "github.com/developerc/reductorUrl/internal/service/file_storage"
-)
+//"github.com/developerc/reductorUrl/internal/config"
+//"github.com/developerc/reductorUrl/internal/general"
+//dbstorage "github.com/developerc/reductorUrl/internal/service/db_storage"
+//filestorage "github.com/developerc/reductorUrl/internal/service/file_storage"
 
 // MapURLVal структура для значения map MapURL
-type MapURLVal struct {
+/*type MapURLVal struct {
 	OriginalURL string
 	Usr         string
 	IsDeleted   string
@@ -44,7 +42,7 @@ type ArrShortURL struct {
 // User структура пользователя
 type User struct {
 	Name string
-}
+}*/
 
 // HandleCookie метод для работы с куками
 /*func (s *Service) HandleCookie(cookieValue string) (*http.Cookie, string, error) {
@@ -94,14 +92,14 @@ type User struct {
 }*/
 
 // CreateMapUser создает Map пользователей
-func CreateMapUser(ctx context.Context, shu *ShortURLAttr) (map[string]bool, error) {
+/*func CreateMapUser(ctx context.Context, shu *ShortURLAttr) (map[string]bool, error) {
 	mapUser, err := dbstorage.CreateMapUser(ctx, shu.DB)
 	if err != nil {
 		return nil, err
 	}
 	shu.Cntr = len(mapUser)
 	return mapUser, nil
-}
+}*/
 
 /*func (s *Service) setDelMemory(arrShortURL []string, usr string) error {
 	var err error
@@ -213,13 +211,13 @@ func CreateMapUser(ctx context.Context, shu *ShortURLAttr) (map[string]bool, err
 	return jsonBytes, nil
 }*/
 
-func listLongURL(buf bytes.Buffer) ([]general.ArrLongURL, error) {
+/*func listLongURL(buf bytes.Buffer) ([]general.ArrLongURL, error) {
 	arrLongURL := make([]general.ArrLongURL, 0)
 	if err := json.Unmarshal(buf.Bytes(), &arrLongURL); err != nil {
 		return nil, err
 	}
 	return arrLongURL, nil
-}
+}*/
 
 /*func (s *Service) handleArrLongURL(ctx context.Context, arrLongURL []general.ArrLongURL, usr string) ([]byte, error) {
 	shu := s.shu
@@ -260,7 +258,7 @@ func listLongURL(buf bytes.Buffer) ([]general.ArrLongURL, error) {
 	return jsonBytes, nil
 }*/
 
-func getFileSettings(shu *ShortURLAttr) error {
+/*func getFileSettings(shu *ShortURLAttr) error {
 	if _, err := filestorage.NewConsumer(shu.Settings.FileStorage); err != nil {
 		return err
 	}
@@ -286,7 +284,7 @@ func getFileSettings(shu *ShortURLAttr) error {
 		return err
 	}
 	return nil
-}
+}*/
 
 // Ping делает проверку живучести БД
 /*func (s *Service) Ping() error {

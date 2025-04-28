@@ -1,35 +1,33 @@
 // memory пакет для размещения сервисных методов приложения.
 package memory
 
-import (
-	"bytes"
-	"context"
+//"bytes"
+//"context"
 
-	//"database/sql"
-	//"encoding/json"
-	"errors"
-	"log"
-	"net"
-	"net/http"
+//"database/sql"
+//"encoding/json"
+//"errors"
+//"log"
+//"net"
+//"net/http"
 
-	//"os"
-	//"strconv"
-	//"sync"
+//"os"
+//"strconv"
+//"sync"
 
-	//"github.com/gorilla/securecookie"
-	//"github.com/jackc/pgerrcode"
-	//"github.com/jackc/pgx/v5/pgconn"
-	//"go.uber.org/zap"
+//"github.com/gorilla/securecookie"
+//"github.com/jackc/pgerrcode"
+//"github.com/jackc/pgx/v5/pgconn"
+//"go.uber.org/zap"
 
-	//"github.com/developerc/reductorUrl/internal/config"
-	//"github.com/developerc/reductorUrl/internal/general"
+//"github.com/developerc/reductorUrl/internal/config"
+//"github.com/developerc/reductorUrl/internal/general"
 
-	//"github.com/developerc/reductorUrl/internal/logger"
-	//dbstorage "github.com/developerc/reductorUrl/internal/service/db_storage"
-	filestorage "github.com/developerc/reductorUrl/internal/service/file_storage"
-)
+//"github.com/developerc/reductorUrl/internal/logger"
+//dbstorage "github.com/developerc/reductorUrl/internal/service/db_storage"
+//filestorage "github.com/developerc/reductorUrl/internal/service/file_storage"
 
-type repository interface {
+/*type repository interface {
 	AddLink(ctx context.Context, link string, usr string) (string, error)
 	Ping() error
 	GetLongLink(ctx context.Context, id string) (string, bool, error)
@@ -40,7 +38,7 @@ type repository interface {
 	DelURLs(ctx context.Context, cookieValue string, buf bytes.Buffer) error
 	CloseDB() error
 	GetStatsSvc(ctx context.Context, ip net.IP) ([]byte, error)
-}
+}*/
 
 // Service структура сервиса приложения
 /*type Service struct {
@@ -59,7 +57,7 @@ type repository interface {
 }*/
 
 // ErrorURLExists структура типизированной ошибки существования длинного URL
-type ErrorURLExists struct {
+/*type ErrorURLExists struct {
 	s string
 }
 
@@ -71,7 +69,7 @@ func (e *ErrorURLExists) Error() string {
 // AsURLExists проверяет существование длинного URL
 func (e *ErrorURLExists) AsURLExists(err error) bool {
 	return errors.As(err, &e)
-}
+}*/
 
 // AddLink добавляет в хранилище длинный URL, возвращает короткий
 /*func (s *Service) AddLink(ctx context.Context, link, usr string) (string, error) {
@@ -222,7 +220,7 @@ func (e *ErrorURLExists) AsURLExists(err error) bool {
 }*/
 
 // addToFileStorage добавляет длинный URL в файловое хранилище
-func (shu *ShortURLAttr) addToFileStorage(cntr int, link, usr string) error {
+/*func (shu *ShortURLAttr) addToFileStorage(cntr int, link, usr string) error {
 	if cntr < 0 {
 		return errors.New("not valid counter")
 	}
@@ -235,7 +233,7 @@ func (shu *ShortURLAttr) addToFileStorage(cntr int, link, usr string) error {
 		log.Println(err)
 	}
 	return nil
-}
+}*/
 
 // func (shu *ShortURLAttr) changeFileStorage() error {
 /*func (s *Service) changeFileStorage() error {
