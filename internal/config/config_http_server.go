@@ -35,6 +35,7 @@ type ServerSettings struct {
 	CertFile      string
 	KeyFile       string
 	TrustedSubnet string
+	GRPCaddress   string
 	TypeStorage   TypeStorage
 }
 
@@ -46,6 +47,7 @@ type ConfigJSON struct {
 	DataBaseDsn     string `json:"database_dsn"`
 	EnableHTTPS     bool   `json:"enable_https"`
 	TrustedSubnet   string `json:"trusted_subnet"`
+	GRPCaddress     string `json:"grpc_address"`
 }
 
 // String метод возвращает тип хранилища данных
@@ -81,6 +83,7 @@ func NewServerSettings() *ServerSettings {
 	flag.StringVar(&fileJSON, "c", defaultConfig, usage)
 	flag.StringVar(&fileJSON, "config", defaultConfig, usage)
 	trustedSubnet := flag.String("t", "", "trusted subnet")
+	grpcAddress := flag.String("g", "", "gRPC IP, port")
 	flag.Parse()
 
 	configJSON := getConfigJSON(fileJSON)
@@ -221,6 +224,20 @@ func NewServerSettings() *ServerSettings {
 	} else {
 		serverSettings.TrustedSubnet = val
 		serverSettings.Logger.Info("Trusted subnet from env:", zap.String("trusted_subnet", serverSettings.TrustedSubnet))
+	}
+
+	val, ok = os.LookupEnv("GRPC_ADDRESS")
+	if !ok || val == "" {
+		if !isFlagPassed("g") {
+			serverSettings.GRPCaddress = configJSON.GRPCaddress
+			serverSettings.Logger.Info("gRPC address from fileJSON:", zap.String("grpc_address", serverSettings.GRPCaddress))
+		} else {
+			serverSettings.GRPCaddress = *grpcAddress
+			serverSettings.Logger.Info("gRPC address from flag:", zap.String("grpc_address", serverSettings.GRPCaddress))
+		}
+	} else {
+		serverSettings.GRPCaddress = val
+		serverSettings.Logger.Info("gRPC address from env:", zap.String("grpc_address", serverSettings.GRPCaddress))
 	}
 
 	return &serverSettings
