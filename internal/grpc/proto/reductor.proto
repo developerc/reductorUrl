@@ -1,0 +1,20 @@
+syntax = "proto3"; // версия proto файлов
+package reductor; // название пакета
+option go_package = "github.com/developerc/reductorUrl/internal/grpc/proto";
+
+// Сообщение, описывающее длинный URL и пользователя
+message LinkUsrReq {
+    string link = 1; // числа здесь - порядок полей в сообщении
+    string usr = 2;
+}
+
+// Ответное сообщение короткий URL и ошибка
+message StrErrResp {
+    string short_url = 1;
+    string err = 2;
+}
+
+// Определение сервиса 
+service ReductorService {
+    rpc AddLink(LinkUsrReq) returns (StrErrResp);
+}

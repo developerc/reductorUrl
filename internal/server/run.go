@@ -11,6 +11,7 @@ import (
 
 	"github.com/developerc/reductorUrl/internal/config"
 	"github.com/developerc/reductorUrl/internal/general"
+	grpc "github.com/developerc/reductorUrl/internal/grpc/server"
 	"github.com/developerc/reductorUrl/internal/service"
 	dbstorage "github.com/developerc/reductorUrl/internal/service/db_storage"
 	filestorage "github.com/developerc/reductorUrl/internal/service/file_storage"
@@ -56,6 +57,13 @@ func Run() error {
 	}
 	server.logger.Info("Running server", zap.String("address", svc.Shu.Settings.AdresRun))
 	routes := server.SetupRoutes()
+
+	//---
+	if len(settings.GRPCaddress) > 0 {
+		go func() {
+			grpc.NewGRPCserver(svc)
+		}()
+	}
 
 	go func() {
 		<-ctx.Done()
