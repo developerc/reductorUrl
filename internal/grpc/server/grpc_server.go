@@ -42,11 +42,11 @@ func NewServer() *Server {
 
 // AddLink метод сервера gRPC, добавляет в хранилище длинный URL, возвращает короткий
 func (s *Server) AddLink(ctx context.Context, in *pb.LinkUsrReq) (*pb.StrErrResp, error) {
-	shortUrl, err := s.Service.AddLink(ctx, in.Link, in.Usr)
+	shortURL, err := s.Service.AddLink(ctx, in.Link, in.Usr)
 	if err != nil {
-		return &pb.StrErrResp{ShortUrl: shortUrl, Err: err.Error()}, nil
+		return &pb.StrErrResp{ShortUrl: shortURL, Err: err.Error()}, nil
 	} else {
-		return &pb.StrErrResp{ShortUrl: shortUrl, Err: "nil"}, nil
+		return &pb.StrErrResp{ShortUrl: shortURL, Err: "nil"}, nil
 	}
 
 }
