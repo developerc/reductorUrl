@@ -14,7 +14,59 @@ message StrErrResp {
     string err = 2;
 }
 
+// Сообщение ошибка
+message ErrMess {
+    string err = 1;
+}
+
+// Сообщение, описывающее ID длинного URL
+message IDReq {
+    string id = 1;
+}
+
+// Ответное сообщение
+message LongLinkResp {
+    string original_url = 1;
+    bool is_deleted = 2;
+    string err = 3;
+}
+
+// Сообщение, описывающее слайс байтов и пользователя
+message HandleBatchJSONReq {
+    bytes buf = 1;
+    string usr = 2;
+}
+
+// Ответное сообщение описывающее слайс байтов и ошибка
+message SliceByteErrResp {
+    bytes json_bytes = 1;
+    string err = 2;
+}
+
+// Ответное сообщение типа bool
+message BoolResp {
+    bool bool_resp = 1;
+}
+
+// Сообщение типа string
+message StrReq {
+    string cookie_value = 1;
+}
+
+// Сообщение типа строка и слайс байтов
+message StrByteReq {
+    string cookie_value = 1;
+    bytes json_bytes = 2;
+}
+
 // Определение сервиса 
 service ReductorService {
     rpc AddLink(LinkUsrReq) returns (StrErrResp);
+    rpc Ping(StrReq) returns (ErrMess);
+    rpc GetLongLink(IDReq) returns (LongLinkResp);
+    rpc HandleBatchJSON(HandleBatchJSONReq) returns (SliceByteErrResp);
+    rpc AsURLExists(ErrMess) returns (BoolResp);
+    rpc FetchURLs(StrReq) returns (SliceByteErrResp);
+    rpc DelURLs(StrByteReq) returns (ErrMess);
+    rpc GetStatsSvc(StrReq) returns (SliceByteErrResp);
 }

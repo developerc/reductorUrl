@@ -127,6 +127,406 @@ func (x *StrErrResp) GetErr() string {
 	return ""
 }
 
+// Сообщение ошибка
+type ErrMess struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Err           string                 `protobuf:"bytes,1,opt,name=err,proto3" json:"err,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ErrMess) Reset() {
+	*x = ErrMess{}
+	mi := &file_proto_reductor_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ErrMess) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ErrMess) ProtoMessage() {}
+
+func (x *ErrMess) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_reductor_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ErrMess.ProtoReflect.Descriptor instead.
+func (*ErrMess) Descriptor() ([]byte, []int) {
+	return file_proto_reductor_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *ErrMess) GetErr() string {
+	if x != nil {
+		return x.Err
+	}
+	return ""
+}
+
+// Сообщение, описывающее ID длинного URL
+type IDReq struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *IDReq) Reset() {
+	*x = IDReq{}
+	mi := &file_proto_reductor_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *IDReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*IDReq) ProtoMessage() {}
+
+func (x *IDReq) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_reductor_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use IDReq.ProtoReflect.Descriptor instead.
+func (*IDReq) Descriptor() ([]byte, []int) {
+	return file_proto_reductor_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *IDReq) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+// Ответное сообщение
+type LongLinkResp struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	OriginalUrl   string                 `protobuf:"bytes,1,opt,name=original_url,json=originalUrl,proto3" json:"original_url,omitempty"`
+	IsDeleted     bool                   `protobuf:"varint,2,opt,name=is_deleted,json=isDeleted,proto3" json:"is_deleted,omitempty"`
+	Err           string                 `protobuf:"bytes,3,opt,name=err,proto3" json:"err,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LongLinkResp) Reset() {
+	*x = LongLinkResp{}
+	mi := &file_proto_reductor_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LongLinkResp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LongLinkResp) ProtoMessage() {}
+
+func (x *LongLinkResp) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_reductor_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LongLinkResp.ProtoReflect.Descriptor instead.
+func (*LongLinkResp) Descriptor() ([]byte, []int) {
+	return file_proto_reductor_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *LongLinkResp) GetOriginalUrl() string {
+	if x != nil {
+		return x.OriginalUrl
+	}
+	return ""
+}
+
+func (x *LongLinkResp) GetIsDeleted() bool {
+	if x != nil {
+		return x.IsDeleted
+	}
+	return false
+}
+
+func (x *LongLinkResp) GetErr() string {
+	if x != nil {
+		return x.Err
+	}
+	return ""
+}
+
+// Сообщение, описывающее слайс байтов и пользователя
+type HandleBatchJSONReq struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Buf           []byte                 `protobuf:"bytes,1,opt,name=buf,proto3" json:"buf,omitempty"`
+	Usr           string                 `protobuf:"bytes,2,opt,name=usr,proto3" json:"usr,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *HandleBatchJSONReq) Reset() {
+	*x = HandleBatchJSONReq{}
+	mi := &file_proto_reductor_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *HandleBatchJSONReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*HandleBatchJSONReq) ProtoMessage() {}
+
+func (x *HandleBatchJSONReq) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_reductor_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use HandleBatchJSONReq.ProtoReflect.Descriptor instead.
+func (*HandleBatchJSONReq) Descriptor() ([]byte, []int) {
+	return file_proto_reductor_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *HandleBatchJSONReq) GetBuf() []byte {
+	if x != nil {
+		return x.Buf
+	}
+	return nil
+}
+
+func (x *HandleBatchJSONReq) GetUsr() string {
+	if x != nil {
+		return x.Usr
+	}
+	return ""
+}
+
+// Ответное сообщение описывающее слайс байтов и ошибка
+type SliceByteErrResp struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	JsonBytes     []byte                 `protobuf:"bytes,1,opt,name=json_bytes,json=jsonBytes,proto3" json:"json_bytes,omitempty"`
+	Err           string                 `protobuf:"bytes,2,opt,name=err,proto3" json:"err,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SliceByteErrResp) Reset() {
+	*x = SliceByteErrResp{}
+	mi := &file_proto_reductor_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SliceByteErrResp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SliceByteErrResp) ProtoMessage() {}
+
+func (x *SliceByteErrResp) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_reductor_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SliceByteErrResp.ProtoReflect.Descriptor instead.
+func (*SliceByteErrResp) Descriptor() ([]byte, []int) {
+	return file_proto_reductor_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *SliceByteErrResp) GetJsonBytes() []byte {
+	if x != nil {
+		return x.JsonBytes
+	}
+	return nil
+}
+
+func (x *SliceByteErrResp) GetErr() string {
+	if x != nil {
+		return x.Err
+	}
+	return ""
+}
+
+// Ответное сообщение типа bool
+type BoolResp struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	BoolResp      bool                   `protobuf:"varint,1,opt,name=bool_resp,json=boolResp,proto3" json:"bool_resp,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BoolResp) Reset() {
+	*x = BoolResp{}
+	mi := &file_proto_reductor_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BoolResp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BoolResp) ProtoMessage() {}
+
+func (x *BoolResp) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_reductor_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BoolResp.ProtoReflect.Descriptor instead.
+func (*BoolResp) Descriptor() ([]byte, []int) {
+	return file_proto_reductor_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *BoolResp) GetBoolResp() bool {
+	if x != nil {
+		return x.BoolResp
+	}
+	return false
+}
+
+// Сообщение типа string
+type StrReq struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	CookieValue   string                 `protobuf:"bytes,1,opt,name=cookie_value,json=cookieValue,proto3" json:"cookie_value,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StrReq) Reset() {
+	*x = StrReq{}
+	mi := &file_proto_reductor_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StrReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StrReq) ProtoMessage() {}
+
+func (x *StrReq) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_reductor_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StrReq.ProtoReflect.Descriptor instead.
+func (*StrReq) Descriptor() ([]byte, []int) {
+	return file_proto_reductor_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *StrReq) GetCookieValue() string {
+	if x != nil {
+		return x.CookieValue
+	}
+	return ""
+}
+
+// Сообщение типа строка и слайс байтов
+type StrByteReq struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	CookieValue   string                 `protobuf:"bytes,1,opt,name=cookie_value,json=cookieValue,proto3" json:"cookie_value,omitempty"`
+	JsonBytes     []byte                 `protobuf:"bytes,2,opt,name=json_bytes,json=jsonBytes,proto3" json:"json_bytes,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StrByteReq) Reset() {
+	*x = StrByteReq{}
+	mi := &file_proto_reductor_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StrByteReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StrByteReq) ProtoMessage() {}
+
+func (x *StrByteReq) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_reductor_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StrByteReq.ProtoReflect.Descriptor instead.
+func (*StrByteReq) Descriptor() ([]byte, []int) {
+	return file_proto_reductor_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *StrByteReq) GetCookieValue() string {
+	if x != nil {
+		return x.CookieValue
+	}
+	return ""
+}
+
+func (x *StrByteReq) GetJsonBytes() []byte {
+	if x != nil {
+		return x.JsonBytes
+	}
+	return nil
+}
+
 var File_proto_reductor_proto protoreflect.FileDescriptor
 
 const file_proto_reductor_proto_rawDesc = "" +
@@ -139,9 +539,41 @@ const file_proto_reductor_proto_rawDesc = "" +
 	"\n" +
 	"StrErrResp\x12\x1b\n" +
 	"\tshort_url\x18\x01 \x01(\tR\bshortUrl\x12\x10\n" +
-	"\x03err\x18\x02 \x01(\tR\x03err2H\n" +
+	"\x03err\x18\x02 \x01(\tR\x03err\"\x1b\n" +
+	"\aErrMess\x12\x10\n" +
+	"\x03err\x18\x01 \x01(\tR\x03err\"\x17\n" +
+	"\x05IDReq\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"b\n" +
+	"\fLongLinkResp\x12!\n" +
+	"\foriginal_url\x18\x01 \x01(\tR\voriginalUrl\x12\x1d\n" +
+	"\n" +
+	"is_deleted\x18\x02 \x01(\bR\tisDeleted\x12\x10\n" +
+	"\x03err\x18\x03 \x01(\tR\x03err\"8\n" +
+	"\x12HandleBatchJSONReq\x12\x10\n" +
+	"\x03buf\x18\x01 \x01(\fR\x03buf\x12\x10\n" +
+	"\x03usr\x18\x02 \x01(\tR\x03usr\"C\n" +
+	"\x10SliceByteErrResp\x12\x1d\n" +
+	"\n" +
+	"json_bytes\x18\x01 \x01(\fR\tjsonBytes\x12\x10\n" +
+	"\x03err\x18\x02 \x01(\tR\x03err\"'\n" +
+	"\bBoolResp\x12\x1b\n" +
+	"\tbool_resp\x18\x01 \x01(\bR\bboolResp\"+\n" +
+	"\x06StrReq\x12!\n" +
+	"\fcookie_value\x18\x01 \x01(\tR\vcookieValue\"N\n" +
+	"\n" +
+	"StrByteReq\x12!\n" +
+	"\fcookie_value\x18\x01 \x01(\tR\vcookieValue\x12\x1d\n" +
+	"\n" +
+	"json_bytes\x18\x02 \x01(\fR\tjsonBytes2\xdc\x03\n" +
 	"\x0fReductorService\x125\n" +
-	"\aAddLink\x12\x14.reductor.LinkUsrReq\x1a\x14.reductor.StrErrRespB7Z5github.com/developerc/reductorUrl/internal/grpc/protob\x06proto3"
+	"\aAddLink\x12\x14.reductor.LinkUsrReq\x1a\x14.reductor.StrErrResp\x12+\n" +
+	"\x04Ping\x12\x10.reductor.StrReq\x1a\x11.reductor.ErrMess\x126\n" +
+	"\vGetLongLink\x12\x0f.reductor.IDReq\x1a\x16.reductor.LongLinkResp\x12K\n" +
+	"\x0fHandleBatchJSON\x12\x1c.reductor.HandleBatchJSONReq\x1a\x1a.reductor.SliceByteErrResp\x124\n" +
+	"\vAsURLExists\x12\x11.reductor.ErrMess\x1a\x12.reductor.BoolResp\x129\n" +
+	"\tFetchURLs\x12\x10.reductor.StrReq\x1a\x1a.reductor.SliceByteErrResp\x122\n" +
+	"\aDelURLs\x12\x14.reductor.StrByteReq\x1a\x11.reductor.ErrMess\x12;\n" +
+	"\vGetStatsSvc\x12\x10.reductor.StrReq\x1a\x1a.reductor.SliceByteErrRespB7Z5github.com/developerc/reductorUrl/internal/grpc/protob\x06proto3"
 
 var (
 	file_proto_reductor_proto_rawDescOnce sync.Once
@@ -155,16 +587,38 @@ func file_proto_reductor_proto_rawDescGZIP() []byte {
 	return file_proto_reductor_proto_rawDescData
 }
 
-var file_proto_reductor_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_proto_reductor_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_proto_reductor_proto_goTypes = []any{
-	(*LinkUsrReq)(nil), // 0: reductor.LinkUsrReq
-	(*StrErrResp)(nil), // 1: reductor.StrErrResp
+	(*LinkUsrReq)(nil),         // 0: reductor.LinkUsrReq
+	(*StrErrResp)(nil),         // 1: reductor.StrErrResp
+	(*ErrMess)(nil),            // 2: reductor.ErrMess
+	(*IDReq)(nil),              // 3: reductor.IDReq
+	(*LongLinkResp)(nil),       // 4: reductor.LongLinkResp
+	(*HandleBatchJSONReq)(nil), // 5: reductor.HandleBatchJSONReq
+	(*SliceByteErrResp)(nil),   // 6: reductor.SliceByteErrResp
+	(*BoolResp)(nil),           // 7: reductor.BoolResp
+	(*StrReq)(nil),             // 8: reductor.StrReq
+	(*StrByteReq)(nil),         // 9: reductor.StrByteReq
 }
 var file_proto_reductor_proto_depIdxs = []int32{
 	0, // 0: reductor.ReductorService.AddLink:input_type -> reductor.LinkUsrReq
-	1, // 1: reductor.ReductorService.AddLink:output_type -> reductor.StrErrResp
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
+	8, // 1: reductor.ReductorService.Ping:input_type -> reductor.StrReq
+	3, // 2: reductor.ReductorService.GetLongLink:input_type -> reductor.IDReq
+	5, // 3: reductor.ReductorService.HandleBatchJSON:input_type -> reductor.HandleBatchJSONReq
+	2, // 4: reductor.ReductorService.AsURLExists:input_type -> reductor.ErrMess
+	8, // 5: reductor.ReductorService.FetchURLs:input_type -> reductor.StrReq
+	9, // 6: reductor.ReductorService.DelURLs:input_type -> reductor.StrByteReq
+	8, // 7: reductor.ReductorService.GetStatsSvc:input_type -> reductor.StrReq
+	1, // 8: reductor.ReductorService.AddLink:output_type -> reductor.StrErrResp
+	2, // 9: reductor.ReductorService.Ping:output_type -> reductor.ErrMess
+	4, // 10: reductor.ReductorService.GetLongLink:output_type -> reductor.LongLinkResp
+	6, // 11: reductor.ReductorService.HandleBatchJSON:output_type -> reductor.SliceByteErrResp
+	7, // 12: reductor.ReductorService.AsURLExists:output_type -> reductor.BoolResp
+	6, // 13: reductor.ReductorService.FetchURLs:output_type -> reductor.SliceByteErrResp
+	2, // 14: reductor.ReductorService.DelURLs:output_type -> reductor.ErrMess
+	6, // 15: reductor.ReductorService.GetStatsSvc:output_type -> reductor.SliceByteErrResp
+	8, // [8:16] is the sub-list for method output_type
+	0, // [0:8] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -181,7 +635,7 @@ func file_proto_reductor_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_reductor_proto_rawDesc), len(file_proto_reductor_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

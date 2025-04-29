@@ -19,7 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ReductorService_AddLink_FullMethodName = "/reductor.ReductorService/AddLink"
+	ReductorService_AddLink_FullMethodName         = "/reductor.ReductorService/AddLink"
+	ReductorService_Ping_FullMethodName            = "/reductor.ReductorService/Ping"
+	ReductorService_GetLongLink_FullMethodName     = "/reductor.ReductorService/GetLongLink"
+	ReductorService_HandleBatchJSON_FullMethodName = "/reductor.ReductorService/HandleBatchJSON"
+	ReductorService_AsURLExists_FullMethodName     = "/reductor.ReductorService/AsURLExists"
+	ReductorService_FetchURLs_FullMethodName       = "/reductor.ReductorService/FetchURLs"
+	ReductorService_DelURLs_FullMethodName         = "/reductor.ReductorService/DelURLs"
+	ReductorService_GetStatsSvc_FullMethodName     = "/reductor.ReductorService/GetStatsSvc"
 )
 
 // ReductorServiceClient is the client API for ReductorService service.
@@ -29,6 +36,13 @@ const (
 // Определение сервиса
 type ReductorServiceClient interface {
 	AddLink(ctx context.Context, in *LinkUsrReq, opts ...grpc.CallOption) (*StrErrResp, error)
+	Ping(ctx context.Context, in *StrReq, opts ...grpc.CallOption) (*ErrMess, error)
+	GetLongLink(ctx context.Context, in *IDReq, opts ...grpc.CallOption) (*LongLinkResp, error)
+	HandleBatchJSON(ctx context.Context, in *HandleBatchJSONReq, opts ...grpc.CallOption) (*SliceByteErrResp, error)
+	AsURLExists(ctx context.Context, in *ErrMess, opts ...grpc.CallOption) (*BoolResp, error)
+	FetchURLs(ctx context.Context, in *StrReq, opts ...grpc.CallOption) (*SliceByteErrResp, error)
+	DelURLs(ctx context.Context, in *StrByteReq, opts ...grpc.CallOption) (*ErrMess, error)
+	GetStatsSvc(ctx context.Context, in *StrReq, opts ...grpc.CallOption) (*SliceByteErrResp, error)
 }
 
 type reductorServiceClient struct {
@@ -49,6 +63,76 @@ func (c *reductorServiceClient) AddLink(ctx context.Context, in *LinkUsrReq, opt
 	return out, nil
 }
 
+func (c *reductorServiceClient) Ping(ctx context.Context, in *StrReq, opts ...grpc.CallOption) (*ErrMess, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ErrMess)
+	err := c.cc.Invoke(ctx, ReductorService_Ping_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *reductorServiceClient) GetLongLink(ctx context.Context, in *IDReq, opts ...grpc.CallOption) (*LongLinkResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(LongLinkResp)
+	err := c.cc.Invoke(ctx, ReductorService_GetLongLink_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *reductorServiceClient) HandleBatchJSON(ctx context.Context, in *HandleBatchJSONReq, opts ...grpc.CallOption) (*SliceByteErrResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SliceByteErrResp)
+	err := c.cc.Invoke(ctx, ReductorService_HandleBatchJSON_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *reductorServiceClient) AsURLExists(ctx context.Context, in *ErrMess, opts ...grpc.CallOption) (*BoolResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BoolResp)
+	err := c.cc.Invoke(ctx, ReductorService_AsURLExists_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *reductorServiceClient) FetchURLs(ctx context.Context, in *StrReq, opts ...grpc.CallOption) (*SliceByteErrResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SliceByteErrResp)
+	err := c.cc.Invoke(ctx, ReductorService_FetchURLs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *reductorServiceClient) DelURLs(ctx context.Context, in *StrByteReq, opts ...grpc.CallOption) (*ErrMess, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ErrMess)
+	err := c.cc.Invoke(ctx, ReductorService_DelURLs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *reductorServiceClient) GetStatsSvc(ctx context.Context, in *StrReq, opts ...grpc.CallOption) (*SliceByteErrResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SliceByteErrResp)
+	err := c.cc.Invoke(ctx, ReductorService_GetStatsSvc_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ReductorServiceServer is the server API for ReductorService service.
 // All implementations must embed UnimplementedReductorServiceServer
 // for forward compatibility.
@@ -56,6 +140,13 @@ func (c *reductorServiceClient) AddLink(ctx context.Context, in *LinkUsrReq, opt
 // Определение сервиса
 type ReductorServiceServer interface {
 	AddLink(context.Context, *LinkUsrReq) (*StrErrResp, error)
+	Ping(context.Context, *StrReq) (*ErrMess, error)
+	GetLongLink(context.Context, *IDReq) (*LongLinkResp, error)
+	HandleBatchJSON(context.Context, *HandleBatchJSONReq) (*SliceByteErrResp, error)
+	AsURLExists(context.Context, *ErrMess) (*BoolResp, error)
+	FetchURLs(context.Context, *StrReq) (*SliceByteErrResp, error)
+	DelURLs(context.Context, *StrByteReq) (*ErrMess, error)
+	GetStatsSvc(context.Context, *StrReq) (*SliceByteErrResp, error)
 	mustEmbedUnimplementedReductorServiceServer()
 }
 
@@ -68,6 +159,27 @@ type UnimplementedReductorServiceServer struct{}
 
 func (UnimplementedReductorServiceServer) AddLink(context.Context, *LinkUsrReq) (*StrErrResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddLink not implemented")
+}
+func (UnimplementedReductorServiceServer) Ping(context.Context, *StrReq) (*ErrMess, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
+}
+func (UnimplementedReductorServiceServer) GetLongLink(context.Context, *IDReq) (*LongLinkResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetLongLink not implemented")
+}
+func (UnimplementedReductorServiceServer) HandleBatchJSON(context.Context, *HandleBatchJSONReq) (*SliceByteErrResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method HandleBatchJSON not implemented")
+}
+func (UnimplementedReductorServiceServer) AsURLExists(context.Context, *ErrMess) (*BoolResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AsURLExists not implemented")
+}
+func (UnimplementedReductorServiceServer) FetchURLs(context.Context, *StrReq) (*SliceByteErrResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FetchURLs not implemented")
+}
+func (UnimplementedReductorServiceServer) DelURLs(context.Context, *StrByteReq) (*ErrMess, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DelURLs not implemented")
+}
+func (UnimplementedReductorServiceServer) GetStatsSvc(context.Context, *StrReq) (*SliceByteErrResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetStatsSvc not implemented")
 }
 func (UnimplementedReductorServiceServer) mustEmbedUnimplementedReductorServiceServer() {}
 func (UnimplementedReductorServiceServer) testEmbeddedByValue()                         {}
@@ -108,6 +220,132 @@ func _ReductorService_AddLink_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ReductorService_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StrReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReductorServiceServer).Ping(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ReductorService_Ping_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReductorServiceServer).Ping(ctx, req.(*StrReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ReductorService_GetLongLink_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IDReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReductorServiceServer).GetLongLink(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ReductorService_GetLongLink_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReductorServiceServer).GetLongLink(ctx, req.(*IDReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ReductorService_HandleBatchJSON_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(HandleBatchJSONReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReductorServiceServer).HandleBatchJSON(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ReductorService_HandleBatchJSON_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReductorServiceServer).HandleBatchJSON(ctx, req.(*HandleBatchJSONReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ReductorService_AsURLExists_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ErrMess)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReductorServiceServer).AsURLExists(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ReductorService_AsURLExists_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReductorServiceServer).AsURLExists(ctx, req.(*ErrMess))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ReductorService_FetchURLs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StrReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReductorServiceServer).FetchURLs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ReductorService_FetchURLs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReductorServiceServer).FetchURLs(ctx, req.(*StrReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ReductorService_DelURLs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StrByteReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReductorServiceServer).DelURLs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ReductorService_DelURLs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReductorServiceServer).DelURLs(ctx, req.(*StrByteReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ReductorService_GetStatsSvc_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StrReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReductorServiceServer).GetStatsSvc(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ReductorService_GetStatsSvc_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReductorServiceServer).GetStatsSvc(ctx, req.(*StrReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ReductorService_ServiceDesc is the grpc.ServiceDesc for ReductorService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -118,6 +356,34 @@ var ReductorService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AddLink",
 			Handler:    _ReductorService_AddLink_Handler,
+		},
+		{
+			MethodName: "Ping",
+			Handler:    _ReductorService_Ping_Handler,
+		},
+		{
+			MethodName: "GetLongLink",
+			Handler:    _ReductorService_GetLongLink_Handler,
+		},
+		{
+			MethodName: "HandleBatchJSON",
+			Handler:    _ReductorService_HandleBatchJSON_Handler,
+		},
+		{
+			MethodName: "AsURLExists",
+			Handler:    _ReductorService_AsURLExists_Handler,
+		},
+		{
+			MethodName: "FetchURLs",
+			Handler:    _ReductorService_FetchURLs_Handler,
+		},
+		{
+			MethodName: "DelURLs",
+			Handler:    _ReductorService_DelURLs_Handler,
+		},
+		{
+			MethodName: "GetStatsSvc",
+			Handler:    _ReductorService_GetStatsSvc_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
