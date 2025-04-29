@@ -18,7 +18,8 @@ func main() {
 	port := "5000"
 
 	addr := fmt.Sprintf("%s:%s", host, port) // используем адрес сервера
-	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	//conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Println("could not connect to grpc server: ", err)
 		os.Exit(1)
@@ -33,7 +34,7 @@ func main() {
 	}
 	fmt.Println(shortLink.ShortUrl, shortLink.Err)
 	//--
-	shortLink, err = grpcClient.AddLink(context.TODO(), &pb.LinkUsrReq{Link: "http://long_URL", Usr: "user0"})
+	shortLink, err = grpcClient.AddLink(context.TODO(), &pb.LinkUsrReq{Link: "http://long_URL2", Usr: "user0"})
 	if err != nil {
 		log.Println("failed invoking short link: ", err)
 	}
