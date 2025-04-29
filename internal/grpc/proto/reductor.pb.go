@@ -527,6 +527,67 @@ func (x *StrByteReq) GetJsonBytes() []byte {
 	return nil
 }
 
+// Ответное сообщение кука строка ошибка
+type StrStrErrResp struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	CookieValue   string                 `protobuf:"bytes,1,opt,name=cookie_value,json=cookieValue,proto3" json:"cookie_value,omitempty"`
+	Usr           string                 `protobuf:"bytes,2,opt,name=usr,proto3" json:"usr,omitempty"`
+	Err           string                 `protobuf:"bytes,3,opt,name=err,proto3" json:"err,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StrStrErrResp) Reset() {
+	*x = StrStrErrResp{}
+	mi := &file_proto_reductor_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StrStrErrResp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StrStrErrResp) ProtoMessage() {}
+
+func (x *StrStrErrResp) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_reductor_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StrStrErrResp.ProtoReflect.Descriptor instead.
+func (*StrStrErrResp) Descriptor() ([]byte, []int) {
+	return file_proto_reductor_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *StrStrErrResp) GetCookieValue() string {
+	if x != nil {
+		return x.CookieValue
+	}
+	return ""
+}
+
+func (x *StrStrErrResp) GetUsr() string {
+	if x != nil {
+		return x.Usr
+	}
+	return ""
+}
+
+func (x *StrStrErrResp) GetErr() string {
+	if x != nil {
+		return x.Err
+	}
+	return ""
+}
+
 var File_proto_reductor_proto protoreflect.FileDescriptor
 
 const file_proto_reductor_proto_rawDesc = "" +
@@ -564,7 +625,11 @@ const file_proto_reductor_proto_rawDesc = "" +
 	"StrByteReq\x12!\n" +
 	"\fcookie_value\x18\x01 \x01(\tR\vcookieValue\x12\x1d\n" +
 	"\n" +
-	"json_bytes\x18\x02 \x01(\fR\tjsonBytes2\xdc\x03\n" +
+	"json_bytes\x18\x02 \x01(\fR\tjsonBytes\"V\n" +
+	"\rStrStrErrResp\x12!\n" +
+	"\fcookie_value\x18\x01 \x01(\tR\vcookieValue\x12\x10\n" +
+	"\x03usr\x18\x02 \x01(\tR\x03usr\x12\x10\n" +
+	"\x03err\x18\x03 \x01(\tR\x03err2\x97\x04\n" +
 	"\x0fReductorService\x125\n" +
 	"\aAddLink\x12\x14.reductor.LinkUsrReq\x1a\x14.reductor.StrErrResp\x12+\n" +
 	"\x04Ping\x12\x10.reductor.StrReq\x1a\x11.reductor.ErrMess\x126\n" +
@@ -573,7 +638,8 @@ const file_proto_reductor_proto_rawDesc = "" +
 	"\vAsURLExists\x12\x11.reductor.ErrMess\x1a\x12.reductor.BoolResp\x129\n" +
 	"\tFetchURLs\x12\x10.reductor.StrReq\x1a\x1a.reductor.SliceByteErrResp\x122\n" +
 	"\aDelURLs\x12\x14.reductor.StrByteReq\x1a\x11.reductor.ErrMess\x12;\n" +
-	"\vGetStatsSvc\x12\x10.reductor.StrReq\x1a\x1a.reductor.SliceByteErrRespB7Z5github.com/developerc/reductorUrl/internal/grpc/protob\x06proto3"
+	"\vGetStatsSvc\x12\x10.reductor.StrReq\x1a\x1a.reductor.SliceByteErrResp\x129\n" +
+	"\fHandleCookie\x12\x10.reductor.StrReq\x1a\x17.reductor.StrStrErrRespB7Z5github.com/developerc/reductorUrl/internal/grpc/protob\x06proto3"
 
 var (
 	file_proto_reductor_proto_rawDescOnce sync.Once
@@ -587,7 +653,7 @@ func file_proto_reductor_proto_rawDescGZIP() []byte {
 	return file_proto_reductor_proto_rawDescData
 }
 
-var file_proto_reductor_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_proto_reductor_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_proto_reductor_proto_goTypes = []any{
 	(*LinkUsrReq)(nil),         // 0: reductor.LinkUsrReq
 	(*StrErrResp)(nil),         // 1: reductor.StrErrResp
@@ -599,29 +665,32 @@ var file_proto_reductor_proto_goTypes = []any{
 	(*BoolResp)(nil),           // 7: reductor.BoolResp
 	(*StrReq)(nil),             // 8: reductor.StrReq
 	(*StrByteReq)(nil),         // 9: reductor.StrByteReq
+	(*StrStrErrResp)(nil),      // 10: reductor.StrStrErrResp
 }
 var file_proto_reductor_proto_depIdxs = []int32{
-	0, // 0: reductor.ReductorService.AddLink:input_type -> reductor.LinkUsrReq
-	8, // 1: reductor.ReductorService.Ping:input_type -> reductor.StrReq
-	3, // 2: reductor.ReductorService.GetLongLink:input_type -> reductor.IDReq
-	5, // 3: reductor.ReductorService.HandleBatchJSON:input_type -> reductor.HandleBatchJSONReq
-	2, // 4: reductor.ReductorService.AsURLExists:input_type -> reductor.ErrMess
-	8, // 5: reductor.ReductorService.FetchURLs:input_type -> reductor.StrReq
-	9, // 6: reductor.ReductorService.DelURLs:input_type -> reductor.StrByteReq
-	8, // 7: reductor.ReductorService.GetStatsSvc:input_type -> reductor.StrReq
-	1, // 8: reductor.ReductorService.AddLink:output_type -> reductor.StrErrResp
-	2, // 9: reductor.ReductorService.Ping:output_type -> reductor.ErrMess
-	4, // 10: reductor.ReductorService.GetLongLink:output_type -> reductor.LongLinkResp
-	6, // 11: reductor.ReductorService.HandleBatchJSON:output_type -> reductor.SliceByteErrResp
-	7, // 12: reductor.ReductorService.AsURLExists:output_type -> reductor.BoolResp
-	6, // 13: reductor.ReductorService.FetchURLs:output_type -> reductor.SliceByteErrResp
-	2, // 14: reductor.ReductorService.DelURLs:output_type -> reductor.ErrMess
-	6, // 15: reductor.ReductorService.GetStatsSvc:output_type -> reductor.SliceByteErrResp
-	8, // [8:16] is the sub-list for method output_type
-	0, // [0:8] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	0,  // 0: reductor.ReductorService.AddLink:input_type -> reductor.LinkUsrReq
+	8,  // 1: reductor.ReductorService.Ping:input_type -> reductor.StrReq
+	3,  // 2: reductor.ReductorService.GetLongLink:input_type -> reductor.IDReq
+	5,  // 3: reductor.ReductorService.HandleBatchJSON:input_type -> reductor.HandleBatchJSONReq
+	2,  // 4: reductor.ReductorService.AsURLExists:input_type -> reductor.ErrMess
+	8,  // 5: reductor.ReductorService.FetchURLs:input_type -> reductor.StrReq
+	9,  // 6: reductor.ReductorService.DelURLs:input_type -> reductor.StrByteReq
+	8,  // 7: reductor.ReductorService.GetStatsSvc:input_type -> reductor.StrReq
+	8,  // 8: reductor.ReductorService.HandleCookie:input_type -> reductor.StrReq
+	1,  // 9: reductor.ReductorService.AddLink:output_type -> reductor.StrErrResp
+	2,  // 10: reductor.ReductorService.Ping:output_type -> reductor.ErrMess
+	4,  // 11: reductor.ReductorService.GetLongLink:output_type -> reductor.LongLinkResp
+	6,  // 12: reductor.ReductorService.HandleBatchJSON:output_type -> reductor.SliceByteErrResp
+	7,  // 13: reductor.ReductorService.AsURLExists:output_type -> reductor.BoolResp
+	6,  // 14: reductor.ReductorService.FetchURLs:output_type -> reductor.SliceByteErrResp
+	2,  // 15: reductor.ReductorService.DelURLs:output_type -> reductor.ErrMess
+	6,  // 16: reductor.ReductorService.GetStatsSvc:output_type -> reductor.SliceByteErrResp
+	10, // 17: reductor.ReductorService.HandleCookie:output_type -> reductor.StrStrErrResp
+	9,  // [9:18] is the sub-list for method output_type
+	0,  // [0:9] is the sub-list for method input_type
+	0,  // [0:0] is the sub-list for extension type_name
+	0,  // [0:0] is the sub-list for extension extendee
+	0,  // [0:0] is the sub-list for field type_name
 }
 
 func init() { file_proto_reductor_proto_init() }
@@ -635,7 +704,7 @@ func file_proto_reductor_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_reductor_proto_rawDesc), len(file_proto_reductor_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   10,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

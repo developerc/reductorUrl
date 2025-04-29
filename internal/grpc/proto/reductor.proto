@@ -59,6 +59,13 @@ message StrByteReq {
     bytes json_bytes = 2;
 }
 
+// Ответное сообщение кука строка ошибка
+message StrStrErrResp {
+    string cookie_value = 1;
+    string usr = 2;
+    string err = 3;
+}
+
 // Определение сервиса 
 service ReductorService {
     rpc AddLink(LinkUsrReq) returns (StrErrResp);
@@ -69,4 +76,5 @@ service ReductorService {
     rpc FetchURLs(StrReq) returns (SliceByteErrResp);
     rpc DelURLs(StrByteReq) returns (ErrMess);
     rpc GetStatsSvc(StrReq) returns (SliceByteErrResp);
+    rpc HandleCookie(StrReq) returns (StrStrErrResp);
 }

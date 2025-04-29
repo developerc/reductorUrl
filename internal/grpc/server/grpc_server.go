@@ -4,6 +4,7 @@ package server
 import (
 	"bytes"
 	"context"
+	"fmt"
 
 	//"fmt"
 
@@ -61,12 +62,48 @@ func (s *Server) Ping(ctx context.Context, in *pb.StrReq) (*pb.ErrMess, error) {
 	return &pb.ErrMess{Err: "nil"}, nil
 }
 
+// GetLongLink получает длинный URL по короткому
 func (s *Server) GetLongLink(ctx context.Context, in *pb.IDReq) (*pb.LongLinkResp, error) {
 	originalURL, isDeleted, err := s.Service.GetLongLink(ctx, in.Id)
 	if err != nil {
 		return nil, err
 	}
 	return &pb.LongLinkResp{OriginalUrl: originalURL, IsDeleted: isDeleted, Err: "nil"}, nil
+}
+
+// HandleBatchJSON добавляет в хранилище несколько длинных URL
+func (s *Server) HandleBatchJSON(ctx context.Context, in *pb.HandleBatchJSONReq) (*pb.SliceByteErrResp, error) {
+	var buf bytes.Buffer = *bytes.NewBuffer(in.Buf)
+	jsonBytes, err := s.Service.HandleBatchJSON(ctx, buf, in.Usr)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.SliceByteErrResp{JsonBytes: jsonBytes, Err: "nil"}, nil
+}
+
+// FetchURLs получает URL-ы определенного пользователя
+func (s *Server) FetchURLs(ctx context.Context, in *pb.StrReq) (*pb.SliceByteErrResp, error) {
+	/*cookie, usr, err := s.Service.HandleCookie("")
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(cookie.String())
+	fmt.Println(usr)*/
+	jsonBytes, err := s.Service.FetchURLs(ctx, in.CookieValue)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.SliceByteErrResp{JsonBytes: jsonBytes, Err: "nil"}, nil
+}
+
+func (s *Server) HandleCookie(ctx context.Context, in *pb.StrReq) (*pb.StrStrErrResp, error) {
+	cookie, usr, err := s.Service.HandleCookie("")
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(cookie.String())
+	fmt.Println(usr)
+	return &pb.StrStrErrResp{CookieValue: cookie.String(), Usr: usr, Err: "nil"}, nil
 }
 
 // NewGRPCserver создает объект структуры, которая содержит реализацию серверной части

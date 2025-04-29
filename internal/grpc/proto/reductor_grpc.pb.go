@@ -27,6 +27,7 @@ const (
 	ReductorService_FetchURLs_FullMethodName       = "/reductor.ReductorService/FetchURLs"
 	ReductorService_DelURLs_FullMethodName         = "/reductor.ReductorService/DelURLs"
 	ReductorService_GetStatsSvc_FullMethodName     = "/reductor.ReductorService/GetStatsSvc"
+	ReductorService_HandleCookie_FullMethodName    = "/reductor.ReductorService/HandleCookie"
 )
 
 // ReductorServiceClient is the client API for ReductorService service.
@@ -43,6 +44,7 @@ type ReductorServiceClient interface {
 	FetchURLs(ctx context.Context, in *StrReq, opts ...grpc.CallOption) (*SliceByteErrResp, error)
 	DelURLs(ctx context.Context, in *StrByteReq, opts ...grpc.CallOption) (*ErrMess, error)
 	GetStatsSvc(ctx context.Context, in *StrReq, opts ...grpc.CallOption) (*SliceByteErrResp, error)
+	HandleCookie(ctx context.Context, in *StrReq, opts ...grpc.CallOption) (*StrStrErrResp, error)
 }
 
 type reductorServiceClient struct {
@@ -133,6 +135,16 @@ func (c *reductorServiceClient) GetStatsSvc(ctx context.Context, in *StrReq, opt
 	return out, nil
 }
 
+func (c *reductorServiceClient) HandleCookie(ctx context.Context, in *StrReq, opts ...grpc.CallOption) (*StrStrErrResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(StrStrErrResp)
+	err := c.cc.Invoke(ctx, ReductorService_HandleCookie_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ReductorServiceServer is the server API for ReductorService service.
 // All implementations must embed UnimplementedReductorServiceServer
 // for forward compatibility.
@@ -147,6 +159,7 @@ type ReductorServiceServer interface {
 	FetchURLs(context.Context, *StrReq) (*SliceByteErrResp, error)
 	DelURLs(context.Context, *StrByteReq) (*ErrMess, error)
 	GetStatsSvc(context.Context, *StrReq) (*SliceByteErrResp, error)
+	HandleCookie(context.Context, *StrReq) (*StrStrErrResp, error)
 	mustEmbedUnimplementedReductorServiceServer()
 }
 
@@ -180,6 +193,9 @@ func (UnimplementedReductorServiceServer) DelURLs(context.Context, *StrByteReq) 
 }
 func (UnimplementedReductorServiceServer) GetStatsSvc(context.Context, *StrReq) (*SliceByteErrResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetStatsSvc not implemented")
+}
+func (UnimplementedReductorServiceServer) HandleCookie(context.Context, *StrReq) (*StrStrErrResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method HandleCookie not implemented")
 }
 func (UnimplementedReductorServiceServer) mustEmbedUnimplementedReductorServiceServer() {}
 func (UnimplementedReductorServiceServer) testEmbeddedByValue()                         {}
@@ -346,6 +362,24 @@ func _ReductorService_GetStatsSvc_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ReductorService_HandleCookie_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StrReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReductorServiceServer).HandleCookie(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ReductorService_HandleCookie_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReductorServiceServer).HandleCookie(ctx, req.(*StrReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ReductorService_ServiceDesc is the grpc.ServiceDesc for ReductorService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -384,6 +418,10 @@ var ReductorService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetStatsSvc",
 			Handler:    _ReductorService_GetStatsSvc_Handler,
+		},
+		{
+			MethodName: "HandleCookie",
+			Handler:    _ReductorService_HandleCookie_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
