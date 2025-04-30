@@ -58,10 +58,9 @@ func Run() error {
 	server.logger.Info("Running server", zap.String("address", svc.Shu.Settings.AdresRun))
 	routes := server.SetupRoutes()
 
-	//---
 	if len(settings.GRPCaddress) > 0 {
 		go func() {
-			grpc.NewGRPCserver(svc)
+			grpc.NewGRPCserver(ctx, svc)
 		}()
 	}
 

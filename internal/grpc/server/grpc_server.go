@@ -4,14 +4,10 @@ package server
 import (
 	"bytes"
 	"context"
-
-	//"fmt"
-
 	"net"
 	"net/http"
 
-	///"os"
-
+	"github.com/developerc/reductorUrl/internal/general"
 	pb "github.com/developerc/reductorUrl/internal/grpc/proto"
 	"github.com/developerc/reductorUrl/internal/service"
 	"go.uber.org/zap"
@@ -95,8 +91,6 @@ func (s *Server) HandleCookie(ctx context.Context, in *pb.StrReq) (*pb.StrStrErr
 	if err != nil {
 		return nil, err
 	}
-	//fmt.Println(cookie.String())
-	//fmt.Println(usr)
 	return &pb.StrStrErrResp{CookieValue: cookie.String(), Usr: usr, Err: "nil"}, nil
 }
 
@@ -121,40 +115,35 @@ func (s *Server) DelURLs(ctx context.Context, in *pb.StrByteReq) (*pb.ErrMess, e
 }
 
 // NewGRPCserver создает объект структуры, которая содержит реализацию серверной части
-func NewGRPCserver(service *service.Service) {
-	//var host string
-	//var port string
-	//hostAndPort := strings.Split(address, ":")
-	//hostAndPort := strings.Split(service.Shu.Settings.GRPCaddress, ":")
-	//host = hostAndPort[0]
-	//port = hostAndPort[1]
-
-	//addr := fmt.Sprintf("%s:%s", host, port)
+func NewGRPCserver(ctx context.Context, service *service.Service) {
+	general.CntrAtomVar.IncrCntr()
 	lis, err := net.Listen("tcp", service.Shu.Settings.GRPCaddress) // будем ждать запросы по этому адресу
 
 	if err != nil {
 		service.Logger.Info("Init gRPC service", zap.String("error", err.Error()))
-		//log.Println("error starting gRPC server: ", err)
 		return
-		//os.Exit(1)
 	}
 
 	service.Logger.Info("Init gRPC service", zap.String("start at host:port", service.Shu.Settings.GRPCaddress))
-	//log.Println("tcp listener started at host and port: ", service.Shu.Settings.GRPCaddress)
 	// создадим сервер grpc
 	grpcServer := grpc.NewServer()
 
-	// объект структуры, которая содержит реализацию
-	// серверной части GeometryService
+	go func() {
+		<-ctx.Done()
+		service.Logger.Info("Server gRPC", zap.String("shutdown", "begin"))
+		grpcServer.GracefulStop()
+		service.Logger.Info("Server gRPC", zap.String("shutdown", "end"))
+		general.CntrAtomVar.DecrCntr()
+		general.CntrAtomVar.SentNotif()
+	}()
+
 	reductorServiceServer := NewServer()
 	reductorServiceServer.Service = service
-	// зарегистрируем нашу реализацию сервера
+
 	pb.RegisterReductorServiceServer(grpcServer, reductorServiceServer)
-	// запустим grpc сервер
+
 	if err := grpcServer.Serve(lis); err != nil {
 		service.Logger.Info("Init gRPC service", zap.String("error", err.Error()))
 		return
-		//log.Println("error serving grpc: ", err)
-		//os.Exit(1)
 	}
 }

@@ -15,10 +15,9 @@ import (
 	"os"
 	"time"
 
-	//"github.com/developerc/reductorUrl/internal/general"
 	pb "github.com/developerc/reductorUrl/internal/grpc/proto"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure" // для упрощения не будем использовать SSL/TLS аутентификация
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 // main запускает клиента gRPC
@@ -35,7 +34,6 @@ func main() {
 		log.Println("could not connect to grpc server: ", err)
 		os.Exit(1)
 	}
-	// закроем соединение, когда выйдем из функции
 	defer conn.Close()
 
 	grpcClient := pb.NewReductorServiceClient(conn)
@@ -121,8 +119,7 @@ func main() {
 			log.Println(string(sliceByteErrResp.JsonBytes), sliceByteErrResp.Err)
 		}
 	}
-
-	// получает URL-ы определенного пользователя !!!!!!!
+	// получает URL-ы определенного пользователя
 	sliceByteErrResp, err = grpcClient.FetchURLs(ctx, &pb.StrReq{CookieValue: cookieUsr0})
 	if err != nil {
 		log.Println("error request: ", err)
@@ -133,7 +130,6 @@ func main() {
 			log.Println(string(sliceByteErrResp.JsonBytes), sliceByteErrResp.Err)
 		}
 	}
-
 	// делает отметку об удалении коротких URL-ы определенного пользователя
 	byteJSON = []byte("[\"1\",\"2\"]")
 	errMess, err = grpcClient.DelURLs(ctx, &pb.StrByteReq{CookieValue: cookieUsr0, JsonBytes: byteJSON})
