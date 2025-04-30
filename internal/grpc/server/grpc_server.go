@@ -83,12 +83,6 @@ func (s *Server) HandleBatchJSON(ctx context.Context, in *pb.HandleBatchJSONReq)
 
 // FetchURLs получает URL-ы определенного пользователя
 func (s *Server) FetchURLs(ctx context.Context, in *pb.StrReq) (*pb.SliceByteErrResp, error) {
-	/*cookie, usr, err := s.Service.HandleCookie("")
-	if err != nil {
-		return nil, err
-	}
-	fmt.Println(cookie.String())
-	fmt.Println(usr)*/
 	jsonBytes, err := s.Service.FetchURLs(ctx, in.CookieValue)
 	if err != nil {
 		return nil, err
@@ -96,14 +90,35 @@ func (s *Server) FetchURLs(ctx context.Context, in *pb.StrReq) (*pb.SliceByteErr
 	return &pb.SliceByteErrResp{JsonBytes: jsonBytes, Err: "nil"}, nil
 }
 
+// HandleCookie обрабатывает куки
 func (s *Server) HandleCookie(ctx context.Context, in *pb.StrReq) (*pb.StrStrErrResp, error) {
-	cookie, usr, err := s.Service.HandleCookie("")
+	cookie, usr, err := s.Service.HandleCookie(in.CookieValue)
 	if err != nil {
 		return nil, err
 	}
 	fmt.Println(cookie.String())
 	fmt.Println(usr)
 	return &pb.StrStrErrResp{CookieValue: cookie.String(), Usr: usr, Err: "nil"}, nil
+}
+
+// GetStatsSvc обрабатывает статистику
+func (s *Server) GetStatsSvc(ctx context.Context, in *pb.StrReq) (*pb.SliceByteErrResp, error) {
+	ipNet := net.ParseIP(in.CookieValue) //здесь в CookieValue находится IP адрес
+	jsonBytes, err := s.Service.GetStatsSvc(ctx, ipNet)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.SliceByteErrResp{JsonBytes: jsonBytes, Err: "nil"}, nil
+}
+
+// DelURLs делает отметку об удалении коротких URL-ы определенного пользователя
+func (s *Server) DelURLs(ctx context.Context, in *pb.StrByteReq) (*pb.ErrMess, error) {
+	buf := bytes.NewBuffer(in.JsonBytes)
+	err := s.Service.DelURLs(in.CookieValue, *buf)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.ErrMess{Err: "nil"}, nil
 }
 
 // NewGRPCserver создает объект структуры, которая содержит реализацию серверной части

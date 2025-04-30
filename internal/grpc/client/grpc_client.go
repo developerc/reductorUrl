@@ -23,7 +23,7 @@ import (
 
 // main запускает клиента gRPC
 func main() {
-	//var cookieUsr0 string
+	var cookieUsr0 string
 	host := "localhost"
 	port := "5000"
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -47,8 +47,9 @@ func main() {
 		if strStrErrResp.Err != "nil" {
 			log.Println("error: ", strStrErrResp.Err)
 		} else {
-			//cookieUsr0 = strStrErrResp.CookieValue
+			cookieUsr0 = strStrErrResp.CookieValue[5:]
 			log.Println(strStrErrResp.CookieValue)
+			log.Println(cookieUsr0)
 			log.Println(strStrErrResp.Usr)
 		}
 
@@ -104,30 +105,13 @@ func main() {
 		log.Println("error request: ", err)
 	} else {
 		if sliceByteErrResp.Err != "nil" {
-			log.Println("error: ", longLinkResp.Err)
+			log.Println("error: ", sliceByteErrResp.Err)
 		} else {
 			log.Println(string(sliceByteErrResp.JsonBytes), sliceByteErrResp.Err)
 		}
 	}
-	// получает URL-ы определенного пользователя !!!!!!!
-	/*var usr string
-	var cookie *http.Cookie
-	u := &general.User{
-		Name: usr,
-	}
-	usr = "user0"
-	u.Name = usr
-	if encoded, err := s.Secure.Encode("user", u); err == nil {
-		cookie = &http.Cookie{
-			Name:  "user",
-			Value: encoded,
-		}
-		return cookie, usr, nil
-	} else {
-		return nil, "", err
-	}*/
-
-	sliceByteErrResp, err = grpcClient.FetchURLs(ctx, &pb.StrReq{CookieValue: "MTc0NTk0ODQ4NHxJczFXbGtZbU5ObEFjTjVXZmVNMS1tQ01NOFV6VGJwMDNCbkt0SlZnOFF4dnJzT1lrYlVTWGNvYXBwRllsVDBDWm5TbEV4Y3p8PbePG0Z2PDsQi2gCULhOluhMm2DHSyth3QXt004gTdA"})
+	// обрабатываем статистику
+	sliceByteErrResp, err = grpcClient.GetStatsSvc(ctx, &pb.StrReq{CookieValue: "192.168.0.1"}) //здесь в CookieValue находится IP адрес
 	if err != nil {
 		log.Println("error request: ", err)
 	} else {
@@ -138,4 +122,28 @@ func main() {
 		}
 	}
 
+	// получает URL-ы определенного пользователя !!!!!!!
+	sliceByteErrResp, err = grpcClient.FetchURLs(ctx, &pb.StrReq{CookieValue: cookieUsr0})
+	if err != nil {
+		log.Println("error request: ", err)
+	} else {
+		if sliceByteErrResp.Err != "nil" {
+			log.Println("error: ", sliceByteErrResp.Err)
+		} else {
+			log.Println(string(sliceByteErrResp.JsonBytes), sliceByteErrResp.Err)
+		}
+	}
+
+	// делает отметку об удалении коротких URL-ы определенного пользователя
+	byteJSON = []byte("[\"1\",\"2\"]")
+	errMess, err = grpcClient.DelURLs(ctx, &pb.StrByteReq{CookieValue: cookieUsr0, JsonBytes: byteJSON})
+	if err != nil {
+		log.Println("error request: ", err)
+	} else {
+		if errMess.Err != "nil" {
+			log.Println("error: ", errMess.Err)
+		} else {
+			log.Println("Список коротких URL принят для отметки о удалении")
+		}
+	}
 }
