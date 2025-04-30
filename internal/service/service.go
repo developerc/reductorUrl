@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
-	"fmt"
 	"net"
 	"net/http"
 	"strconv"
@@ -114,7 +113,7 @@ func (s *Service) FetchURLs(ctx context.Context, cookieValue string) ([]byte, er
 
 // HandleCookie метод для работы с куками
 func (s *Service) HandleCookie(cookieValue string) (*http.Cookie, string, error) {
-	fmt.Println("cookieValue:", cookieValue)
+	//fmt.Println("cookieValue:", cookieValue)
 	var usr string
 	var cookie *http.Cookie
 	u := &User{
@@ -129,7 +128,7 @@ func (s *Service) HandleCookie(cookieValue string) (*http.Cookie, string, error)
 				Name:  "user",
 				Value: encoded,
 			}
-			fmt.Println("usr:", usr)
+			//fmt.Println("usr:", usr)
 			return cookie, usr, nil
 		} else {
 			return nil, "", err
@@ -154,7 +153,7 @@ func (s *Service) HandleCookie(cookieValue string) (*http.Cookie, string, error)
 			s.Mu.Lock()
 			s.Shu.MapUser[usr] = true
 			s.Mu.Unlock()
-			fmt.Println("usr:", usr)
+			//fmt.Println("usr:", usr)
 			return cookie, usr, nil
 		} else {
 			return nil, "", err

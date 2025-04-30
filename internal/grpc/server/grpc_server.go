@@ -4,7 +4,6 @@ package server
 import (
 	"bytes"
 	"context"
-	"fmt"
 
 	//"fmt"
 
@@ -96,8 +95,8 @@ func (s *Server) HandleCookie(ctx context.Context, in *pb.StrReq) (*pb.StrStrErr
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(cookie.String())
-	fmt.Println(usr)
+	//fmt.Println(cookie.String())
+	//fmt.Println(usr)
 	return &pb.StrStrErrResp{CookieValue: cookie.String(), Usr: usr, Err: "nil"}, nil
 }
 
