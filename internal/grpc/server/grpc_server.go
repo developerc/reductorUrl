@@ -73,7 +73,7 @@ func (s *Server) GetLongLink(ctx context.Context, in *pb.IDReq) (*pb.LongLinkRes
 
 // HandleBatchJSON добавляет в хранилище несколько длинных URL
 func (s *Server) HandleBatchJSON(ctx context.Context, in *pb.HandleBatchJSONReq) (*pb.SliceByteErrResp, error) {
-	var buf bytes.Buffer = *bytes.NewBuffer(in.Buf)
+	buf := *bytes.NewBuffer(in.Buf)
 	jsonBytes, err := s.Service.HandleBatchJSON(ctx, buf, in.Usr)
 	if err != nil {
 		return nil, err

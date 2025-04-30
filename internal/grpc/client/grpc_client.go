@@ -98,7 +98,7 @@ func main() {
 		}
 	}
 	// добавляем несколько длинных URL
-	var byteJSON []byte = []byte("[{\"correlation_id\":\"ident1\",\"original_url\":\"http://blabla17.ru\"}]")
+	byteJSON := []byte("[{\"correlation_id\":\"ident1\",\"original_url\":\"http://blabla17.ru\"}]")
 	sliceByteErrResp, err := grpcClient.HandleBatchJSON(ctx, &pb.HandleBatchJSONReq{Buf: byteJSON, Usr: "user0"})
 	if err != nil {
 		log.Println("error request: ", err)
