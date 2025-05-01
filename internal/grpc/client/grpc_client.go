@@ -7,10 +7,6 @@ package main
 
 import (
 	"context"
-	"fmt"
-
-	//"net/http"
-
 	"log"
 	"os"
 	"time"
@@ -23,13 +19,11 @@ import (
 // main запускает клиента gRPC
 func main() {
 	var cookieUsr0 string
-	host := "localhost"
-	port := "5000"
+	addr := "localhost:5000"
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-
-	addr := fmt.Sprintf("%s:%s", host, port) // используем адрес сервера
-	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	// создадим клиент grpc с перехватчиком
+	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(clientInterceptor))
 	if err != nil {
 		log.Println("could not connect to grpc server: ", err)
 		os.Exit(1)
@@ -46,9 +40,6 @@ func main() {
 			log.Println("error: ", strStrErrResp.Err)
 		} else {
 			cookieUsr0 = strStrErrResp.CookieValue[5:]
-			log.Println(strStrErrResp.CookieValue)
-			log.Println(cookieUsr0)
-			log.Println(strStrErrResp.Usr)
 		}
 
 	}
@@ -142,4 +133,19 @@ func main() {
 			log.Println("Список коротких URL принят для отметки о удалении")
 		}
 	}
+}
+
+// clientInterceptor клиентский перехватчик
+func clientInterceptor(ctx context.Context, method string, req interface{},
+	reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+	start := time.Now()
+
+	err := invoker(ctx, method, req, reply, cc, opts...)
+
+	if err != nil {
+		log.Printf("[ERROR] %s, %v", method, err)
+	} else {
+		log.Printf("[INFO] %s, %v", method, time.Since(start))
+	}
+	return err
 }

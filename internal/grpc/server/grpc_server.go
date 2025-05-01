@@ -4,6 +4,7 @@ package server
 import (
 	"bytes"
 	"context"
+	"log"
 	"net"
 	"net/http"
 
@@ -125,8 +126,8 @@ func NewGRPCserver(ctx context.Context, service *service.Service) {
 	}
 
 	service.Logger.Info("Init gRPC service", zap.String("start at host:port", service.Shu.Settings.GRPCaddress))
-	// создадим сервер grpc
-	grpcServer := grpc.NewServer()
+	// создадим сервер grpc с перехватчиком
+	grpcServer := grpc.NewServer(grpc.UnaryInterceptor(serverInterceptor))
 
 	go func() {
 		<-ctx.Done()
@@ -146,4 +147,10 @@ func NewGRPCserver(ctx context.Context, service *service.Service) {
 		service.Logger.Info("Init gRPC service", zap.String("error", err.Error()))
 		return
 	}
+}
+
+// serverInterceptor серверный перехватчик
+func serverInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	log.Printf("[INFO]  %v", info.FullMethod)
+	return handler(ctx, req)
 }
