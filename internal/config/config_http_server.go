@@ -25,16 +25,18 @@ const (
 
 // ServerSettings структура для хранения настроечных данных сервера
 type ServerSettings struct {
-	Logger      *zap.Logger
-	AdresRun    string
-	AdresBase   string
-	LogLevel    string
-	FileStorage string
-	DBStorage   string
-	EnableHTTPS bool
-	CertFile    string
-	KeyFile     string
-	TypeStorage TypeStorage
+	Logger        *zap.Logger
+	AdresRun      string
+	AdresBase     string
+	LogLevel      string
+	FileStorage   string
+	DBStorage     string
+	EnableHTTPS   bool
+	CertFile      string
+	KeyFile       string
+	TrustedSubnet string
+	GRPCaddress   string
+	TypeStorage   TypeStorage
 }
 
 // ConfigJSON структура для получения настроечных данных из JSON файла.
@@ -44,6 +46,8 @@ type ConfigJSON struct {
 	FileStoragePath string `json:"file_storage_path"`
 	DataBaseDsn     string `json:"database_dsn"`
 	EnableHTTPS     bool   `json:"enable_https"`
+	TrustedSubnet   string `json:"trusted_subnet"`
+	GRPCaddress     string `json:"grpc_address"`
 }
 
 // String метод возвращает тип хранилища данных
@@ -78,6 +82,8 @@ func NewServerSettings() *ServerSettings {
 	keyFile := flag.String("kf", "certs_test/localhost-key.pem", "key file")
 	flag.StringVar(&fileJSON, "c", defaultConfig, usage)
 	flag.StringVar(&fileJSON, "config", defaultConfig, usage)
+	trustedSubnet := flag.String("t", "", "trusted subnet")
+	grpcAddress := flag.String("g", "", "gRPC IP, port")
 	flag.Parse()
 
 	configJSON := getConfigJSON(fileJSON)
@@ -205,6 +211,35 @@ func NewServerSettings() *ServerSettings {
 		serverSettings.KeyFile = val
 		serverSettings.Logger.Info("keyFile from env:", zap.String("keyFile", serverSettings.KeyFile))
 	}
+
+	val, ok = os.LookupEnv("TRUSTED_SUBNET")
+	if !ok || val == "" {
+		if !isFlagPassed("t") {
+			serverSettings.TrustedSubnet = configJSON.TrustedSubnet
+			serverSettings.Logger.Info("Trusted subnet from fileJSON:", zap.String("trusted_subnet", serverSettings.TrustedSubnet))
+		} else {
+			serverSettings.TrustedSubnet = *trustedSubnet
+			serverSettings.Logger.Info("Trusted subnet from flag:", zap.String("trusted_subnet", serverSettings.TrustedSubnet))
+		}
+	} else {
+		serverSettings.TrustedSubnet = val
+		serverSettings.Logger.Info("Trusted subnet from env:", zap.String("trusted_subnet", serverSettings.TrustedSubnet))
+	}
+
+	val, ok = os.LookupEnv("GRPC_ADDRESS")
+	if !ok || val == "" {
+		if !isFlagPassed("g") {
+			serverSettings.GRPCaddress = configJSON.GRPCaddress
+			serverSettings.Logger.Info("gRPC address from fileJSON:", zap.String("grpc_address", serverSettings.GRPCaddress))
+		} else {
+			serverSettings.GRPCaddress = *grpcAddress
+			serverSettings.Logger.Info("gRPC address from flag:", zap.String("grpc_address", serverSettings.GRPCaddress))
+		}
+	} else {
+		serverSettings.GRPCaddress = val
+		serverSettings.Logger.Info("gRPC address from env:", zap.String("grpc_address", serverSettings.GRPCaddress))
+	}
+
 	return &serverSettings
 }
 
