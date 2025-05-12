@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 	"sync"
+	"sync/atomic"
 
 	"github.com/developerc/reductorUrl/internal/config"
 	"github.com/developerc/reductorUrl/internal/general"
@@ -49,11 +50,11 @@ type MapURLVal struct {
 
 // ShortURLAttr структура аттрибутов коротких URL
 type ShortURLAttr struct {
-	MapURL   map[int]MapURLVal
+	MapURL   map[int64]MapURLVal
 	MapUser  map[string]bool
 	DB       *sql.DB
 	Settings config.ServerSettings
-	Cntr     int
+	Cntr     int64
 }
 
 // Service структура сервиса приложения
@@ -86,7 +87,8 @@ func (s *Service) InitSecure() {
 
 // AddLink добавляет в хранилище длинный URL, возвращает короткий
 func (s *Service) AddLink(ctx context.Context, link, usr string) (string, error) {
-	s.Shu.Cntr++
+	//s.Shu.Cntr++
+	atomic.AddInt64(&s.Shu.Cntr, 1)
 	return s.Storage.AddLinkIface(ctx, link, usr, s)
 }
 
@@ -119,7 +121,8 @@ func (s *Service) HandleCookie(cookieValue string) (*http.Cookie, string, error)
 	}
 
 	if cookieValue == "" {
-		usr = "user" + strconv.Itoa(s.Shu.Cntr)
+		//usr = "user" + strconv.Itoa(s.Shu.Cntr)
+		usr = "user" + strconv.FormatInt(s.Shu.Cntr, 10)
 		u.Name = usr
 		if encoded, err := s.Secure.Encode("user", u); err == nil {
 			cookie = &http.Cookie{
@@ -140,7 +143,8 @@ func (s *Service) HandleCookie(cookieValue string) (*http.Cookie, string, error)
 	if ok {
 		return nil, u.Name, nil
 	} else {
-		usr = "user" + strconv.Itoa(s.Shu.Cntr)
+		//usr = "user" + strconv.Itoa(s.Shu.Cntr)
+		usr = "user" + strconv.FormatInt(s.Shu.Cntr, 10)
 		u.Name = usr
 		if encoded, err := s.Secure.Encode("user", u); err == nil {
 			cookie = &http.Cookie{
@@ -173,7 +177,7 @@ func (s *Service) GetStatsSvc(ctx context.Context, ip net.IP) ([]byte, error) {
 }
 
 // AddLongURL добавляет длинный URL в Map
-func (s *Service) AddLongURL(i int, link, usr string) {
+func (s *Service) AddLongURL(i int64, link, usr string) {
 	mapURLVal := MapURLVal{OriginalURL: link, Usr: usr, IsDeleted: "false"}
 	s.Shu.MapURL[i] = mapURLVal
 }

@@ -30,7 +30,7 @@ func NewServiceFile(ctx context.Context, settings *config.ServerSettings) (*serv
 
 	shu := new(service.ShortURLAttr)
 	shu.Settings = *settings
-	shu.MapURL = make(map[int]service.MapURLVal)
+	shu.MapURL = make(map[int64]service.MapURLVal)
 
 	service := service.Service{Shu: shu}
 	service.Logger, err = logger.Initialize(shu.Settings.LogLevel)
@@ -50,11 +50,12 @@ func (sm *StorageFile) AddLinkIface(ctx context.Context, link, usr string, s *se
 	s.Shu.MapUser[usr] = true
 	s.Mu.Unlock()
 	s.AddLongURL(s.Shu.Cntr, link, usr)
-	return s.Shu.Settings.AdresBase + "/" + strconv.Itoa(s.Shu.Cntr), nil
+	//return s.Shu.Settings.AdresBase + "/" + strconv.Itoa(s.Shu.Cntr), nil
+	return s.Shu.Settings.AdresBase + "/" + strconv.FormatInt(s.Shu.Cntr, 10), nil
 }
 
 // addToFileStorage добавляет длинный URL в файловое хранилище
-func addToFileStorage(cntr int, link, usr string, s *service.Service) error {
+func addToFileStorage(cntr int64, link, usr string, s *service.Service) error {
 	if cntr < 0 {
 		return errors.New("not valid counter")
 	}
@@ -96,10 +97,10 @@ func getFileSettings(s *service.Service) error {
 			event.UUID = math.MaxInt32
 		}
 
-		s.Shu.MapURL[int(event.UUID)] = service.MapURLVal{OriginalURL: event.OriginalURL, Usr: event.Usr, IsDeleted: event.IsDeleted}
-		s.Shu.MapUser[s.Shu.MapURL[int(event.UUID)].Usr] = true
+		s.Shu.MapURL[int64(event.UUID)] = service.MapURLVal{OriginalURL: event.OriginalURL, Usr: event.Usr, IsDeleted: event.IsDeleted}
+		s.Shu.MapUser[s.Shu.MapURL[int64(event.UUID)].Usr] = true
 	}
-	s.Shu.Cntr = len(events)
+	s.Shu.Cntr = int64(len(events))
 
 	if _, err := NewProducer(s.Shu.Settings.FileStorage); err != nil {
 		return err
@@ -109,7 +110,8 @@ func getFileSettings(s *service.Service) error {
 
 // GetLongLinkIface получает длинный URL по ID
 func (sm *StorageFile) GetLongLinkIface(ctx context.Context, id string, s *service.Service) (string, bool, error) {
-	i, err := strconv.Atoi(id)
+	//i, err := strconv.Atoi(id)
+	i, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
 		return "", false, err
 	}
@@ -167,7 +169,8 @@ func (sm *StorageFile) FetchURLsIface(ctx context.Context, cookieValue string, s
 	for uuid, val := range s.Shu.MapURL {
 		if val.Usr == u.Name {
 			repoURL := general.ArrRepoURL{}
-			repoURL.ShortURL = s.Shu.Settings.AdresBase + "/" + strconv.Itoa(uuid)
+			//repoURL.ShortURL = s.Shu.Settings.AdresBase + "/" + strconv.Itoa(uuid)
+			repoURL.ShortURL = s.Shu.Settings.AdresBase + "/" + strconv.FormatInt(uuid, 10)
 			repoURL.OriginalURL = val.OriginalURL
 			arrRepoURL = append(arrRepoURL, repoURL)
 		}
@@ -201,7 +204,8 @@ func (sm *StorageFile) DelURLsIface(cookieValue string, buf bytes.Buffer, s *ser
 	}
 
 	for _, shortURL := range arrShortURL {
-		intShortURL, err := strconv.Atoi(shortURL)
+		//intShortURL, err := strconv.Atoi(shortURL)
+		intShortURL, err := strconv.ParseInt(shortURL, 10, 64)
 		if err != nil {
 			return err
 		}

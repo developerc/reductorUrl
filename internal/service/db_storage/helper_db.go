@@ -31,7 +31,7 @@ func NewServiceDB(ctx context.Context, settings *config.ServerSettings) (*servic
 
 	shu := new(service.ShortURLAttr)
 	shu.Settings = *settings
-	shu.MapURL = make(map[int]service.MapURLVal)
+	shu.MapURL = make(map[int64]service.MapURLVal)
 
 	service := service.Service{Shu: shu}
 	service.Logger, err = logger.Initialize(shu.Settings.LogLevel)
@@ -94,7 +94,7 @@ func createMapUser(ctx context.Context, s *service.Service) (map[string]bool, er
 	if err != nil {
 		return nil, err
 	}
-	s.Shu.Cntr = len(mapUser)
+	s.Shu.Cntr = int64(len(mapUser))
 	return mapUser, nil
 }
 

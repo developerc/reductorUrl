@@ -68,6 +68,7 @@ func Run() error {
 		<-ctx.Done()
 		server.logger.Info("Server", zap.String("shutdown", "begin"))
 		server.httpSrv.Shutdown(ctx)
+		general.CntrAtomVar.DecrCntr()
 		server.logger.Info("Server", zap.String("shutdown", "end"))
 		needStop = true
 		close(signalToClose)
@@ -104,6 +105,7 @@ func Run() error {
 
 	server.httpSrv.Addr = svc.Shu.Settings.AdresRun
 	server.httpSrv.Handler = routes
+	general.CntrAtomVar.IncrCntr()
 	if svc.Shu.Settings.EnableHTTPS {
 		err = server.httpSrv.ListenAndServeTLS(svc.Shu.Settings.CertFile, svc.Shu.Settings.KeyFile)
 	} else {
