@@ -43,13 +43,11 @@ func (sm *StorageMem) AddLinkIface(ctx context.Context, link, usr string, s *ser
 	s.Mu.Lock()
 	s.Shu.MapUser[usr] = true
 	s.Mu.Unlock()
-	//return s.Shu.Settings.AdresBase + "/" + strconv.Itoa(s.Shu.Cntr), nil
 	return s.Shu.Settings.AdresBase + "/" + strconv.FormatInt(s.Shu.Cntr, 10), nil
 }
 
 // GetLongLinkIface получает длинный URL по ID
 func (sm *StorageMem) GetLongLinkIface(ctx context.Context, id string, s *service.Service) (string, bool, error) {
-	//i, err := strconv.Atoi(id)
 	i, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
 		return "", false, err
@@ -108,7 +106,6 @@ func (sm *StorageMem) FetchURLsIface(ctx context.Context, cookieValue string, s 
 	for uuid, val := range s.Shu.MapURL {
 		if val.Usr == u.Name {
 			repoURL := general.ArrRepoURL{}
-			//repoURL.ShortURL = s.Shu.Settings.AdresBase + "/" + strconv.Itoa(uuid)
 			repoURL.ShortURL = s.Shu.Settings.AdresBase + "/" + strconv.FormatInt(uuid, 10)
 			repoURL.OriginalURL = val.OriginalURL
 			arrRepoURL = append(arrRepoURL, repoURL)
@@ -143,7 +140,6 @@ func (sm *StorageMem) DelURLsIface(cookieValue string, buf bytes.Buffer, s *serv
 	}
 
 	for _, shortURL := range arrShortURL {
-		//intShortURL, err := strconv.Atoi(shortURL)
 		intShortURL, err := strconv.ParseInt(shortURL, 10, 64)
 		if err != nil {
 			return err

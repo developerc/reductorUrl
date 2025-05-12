@@ -59,7 +59,6 @@ type ShortURLAttr struct {
 
 // Service структура сервиса приложения
 type Service struct {
-	//repo    repository
 	Logger  *zap.Logger
 	Secure  *securecookie.SecureCookie
 	Shu     *ShortURLAttr
@@ -87,7 +86,6 @@ func (s *Service) InitSecure() {
 
 // AddLink добавляет в хранилище длинный URL, возвращает короткий
 func (s *Service) AddLink(ctx context.Context, link, usr string) (string, error) {
-	//s.Shu.Cntr++
 	atomic.AddInt64(&s.Shu.Cntr, 1)
 	return s.Storage.AddLinkIface(ctx, link, usr, s)
 }
@@ -143,7 +141,6 @@ func (s *Service) HandleCookie(cookieValue string) (*http.Cookie, string, error)
 	if ok {
 		return nil, u.Name, nil
 	} else {
-		//usr = "user" + strconv.Itoa(s.Shu.Cntr)
 		usr = "user" + strconv.FormatInt(s.Shu.Cntr, 10)
 		u.Name = usr
 		if encoded, err := s.Secure.Encode("user", u); err == nil {
